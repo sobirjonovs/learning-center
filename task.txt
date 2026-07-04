@@ -1,0 +1,1131 @@
+# O‘QUV MARKAZ BOSHQARUV PLATFORMASI UCHUN TEXNIK TOPSHIRIQ (TZ)
+
+## 1. LOYIHA HAQIDA UMUMIY MA’LUMOT
+
+O‘quv markaz faoliyatini boshqarish, o‘qituvchilar va o‘quvchilar faoliyatini nazorat qilish, davomat yuritish, uyga vazifalarni boshqarish, imtihon natijalarini saqlash, reyting tizimini yuritish hamda o‘quvchilarni gamifikatsiya orqali rag‘batlantirish uchun yagona platforma yaratish.
+
+Platforma quyidagi asosiy foydalanuvchi rollaridan tashkil topadi:
+
+1. Super Admin
+2. O‘qituvchi
+3. O‘quvchi
+4. Administratsiya
+
+Har bir foydalanuvchi o‘ziga tegishli login va parol orqali tizimga kiradi hamda faqat o‘z roliga tegishli imkoniyatlardan foydalanadi.
+
+Platforma dizayni zamonaviy, sodda, tushunarli va foydalanuvchi uchun qulay bo‘lishi kerak. O‘quvchi kabinetida gamifikatsiya elementlariga alohida e’tibor berilishi kerak.
+
+---
+
+# 2. SUPER ADMIN QISMI
+
+## 2.1. Tizimga kirish
+
+Super Admin tizimga quyidagi ma’lumotlar orqali kiradi:
+
+* Login
+* Parol
+
+Login va parol to‘g‘ri kiritilgandan keyin Super Admin boshqaruv paneliga yo‘naltiriladi.
+
+Noto‘g‘ri ma’lumot kiritilganda foydalanuvchiga tushunarli xatolik xabari ko‘rsatilishi kerak.
+
+---
+
+## 2.2. Dashboard
+
+Dashboard platformaning umumiy holatini ko‘rsatishi kerak.
+
+Dashboardda quyidagi ma’lumotlar aks ettiriladi:
+
+* Jami o‘qituvchilar soni
+* Faol o‘qituvchilar soni
+* Jami o‘quvchilar soni
+* Faol o‘quvchilar soni
+* Jami guruhlar soni
+* Faol guruhlar soni
+* Bugungi darslar soni
+* Bugungi davomat ko‘rsatkichi
+
+Dashboardda qo‘shimcha ravishda:
+
+* O‘quvchilar sonining o‘sish statistikasi
+* Haftalik va oylik davomat statistikasi
+* Eng faol o‘qituvchilar
+* Eng yaxshi natija ko‘rsatayotgan guruhlar
+* Eng yuqori reytingdagi o‘quvchilar
+* So‘nggi tizim faoliyatlari
+
+ko‘rsatilishi kerak.
+
+Super Admin qaysi o‘qituvchida nechta faol guruh mavjudligini ko‘ra olishi kerak.
+
+---
+
+## 2.3. O‘qituvchilarni boshqarish
+
+Super Admin barcha o‘qituvchilar ro‘yxatini ko‘ra olishi kerak.
+
+O‘qituvchi ma’lumotlari:
+
+* ID
+* F.I.Sh
+* Login
+* Parol
+* Telefon raqami
+* Rasm
+* O‘qituvchi turi
+* Biriktirilgan guruhlar
+* Dars kunlari
+* Dars vaqtlari
+* Faol yoki faol emasligi
+
+Super Admin quyidagi amallarni bajara olishi kerak:
+
+* Yangi o‘qituvchi yaratish
+* O‘qituvchi ma’lumotlarini ko‘rish
+* Ma’lumotlarni tahrirlash
+* O‘qituvchini o‘chirish
+* Faollashtirish
+* Faolsizlantirish
+* Guruh biriktirish
+* Dars jadvalini biriktirish
+
+Har bir o‘qituvchining alohida profil sahifasi bo‘lishi kerak.
+
+Profil sahifasida:
+
+* O‘qituvchi haqida ma’lumot
+* Guruhlari
+* O‘quvchilari soni
+* Dars jadvali
+* Davomat statistikasi
+* O‘quvchilarining umumiy natijalari
+* O‘qituvchi reytingi
+
+ko‘rsatilishi kerak.
+
+---
+
+## 2.4. Guruhlarni boshqarish
+
+Super Admin barcha guruhlarni ko‘ra olishi kerak.
+
+Guruh ma’lumotlari:
+
+* Guruh nomi
+* Guruh turi
+* O‘qituvchi
+* O‘quvchilar
+* Dars kunlari
+* Dars vaqti
+* Xona raqami
+* Boshlanish sanasi
+* Tugash sanasi
+* Faol yoki faol emasligi
+
+Quyidagi imkoniyatlar mavjud bo‘lishi kerak:
+
+* Guruh yaratish
+* Guruhni tahrirlash
+* Guruhni o‘chirish
+* O‘qituvchi biriktirish
+* O‘quvchi qo‘shish
+* O‘quvchini guruhdan chiqarish
+* Dars vaqtini o‘zgartirish
+* Xona biriktirish
+
+Har bir guruh uchun alohida sahifa bo‘lishi kerak.
+
+Guruh sahifasida:
+
+* Guruh ma’lumotlari
+* O‘qituvchi
+* O‘quvchilar ro‘yxati
+* Davomat
+* Uyga vazifalar
+* Imtihon natijalari
+* Guruh reytingi
+* Dars jadvali
+
+ko‘rsatilishi kerak.
+
+---
+
+## 2.5. O‘quvchilarni boshqarish
+
+Barcha o‘quvchilar ro‘yxati ko‘rsatilishi kerak.
+
+O‘quvchi ma’lumotlari:
+
+* ID
+* F.I.Sh
+* Rasm
+* Telefon
+* Ota-ona telefon raqami
+* O‘quvchi turi
+* Guruhlari
+* Ustozlari
+* Umumiy ball
+* XP
+* Daraja
+* Davomat foizi
+* Bajarilgan uyga vazifalar
+* Bajarilmagan uyga vazifalar
+* Imtihon natijalari
+* Faol yoki faol emasligi
+
+Super Admin:
+
+* O‘quvchi yaratishi
+* Tahrirlashi
+* O‘chirishi
+* Faollashtirishi
+* Faolsizlantirishi
+* Guruhga biriktirishi
+* Guruhdan chiqarishi
+
+mumkin bo‘lishi kerak.
+
+---
+
+## 2.6. Magazin boshqaruvi
+
+Platformada o‘quvchilar to‘plagan ballari orqali mahsulot sotib olishi mumkin bo‘lgan ichki magazin mavjud bo‘lishi kerak.
+
+Mahsulot ma’lumotlari:
+
+* Nomi
+* Tavsifi
+* Rasmi
+* Ball qiymati
+* Ombordagi soni
+* Faol yoki faol emasligi
+
+Super Admin:
+
+* Mahsulot yaratishi
+* Tahrirlashi
+* O‘chirishi
+* Faollashtirishi
+* Faolsizlantirishi
+
+mumkin.
+
+Shuningdek, xaridlar tarixi mavjud bo‘lishi kerak.
+
+
+Xaridlar tarixida:
+
+* O‘quvchi
+* Mahsulot
+* Sarflangan ball
+* Sana
+* Buyurtma holati
+
+ko‘rsatiladi.
+
+---
+
+## 2.7. Bildirishnomalar
+
+Super Admin foydalanuvchilarga bildirishnoma yubora olishi kerak.
+
+Bildirishnoma tarkibi:
+
+* Nomi
+* Matni
+* Rasm
+* Yuborilgan sana
+* Qabul qiluvchilar
+
+Bildirishnomani quyidagilarga yuborish mumkin:
+
+* Barcha o‘quvchilarga
+* Barcha o‘qituvchilarga
+* Ma’lum bir guruhga
+* Tanlangan foydalanuvchilarga
+
+Bildirishnomani:
+
+* Yaratish
+* Tahrirlash
+* O‘chirish
+* Darhol yuborish
+* Belgilangan vaqtga rejalashtirish
+
+imkoniyati bo‘lishi kerak.
+
+---
+
+## 2.8. Administratorlar va huquqlar
+
+Super Admin yangi administrator yaratishi va unga ma’lum huquqlarni berishi kerak.
+
+Huquqlar alohida boshqarilishi kerak.
+
+Misol uchun:
+
+* O‘quvchilarni ko‘rish
+* O‘quvchi yaratish
+* O‘quvchini tahrirlash
+* O‘quvchini o‘chirish
+* Guruh yaratish
+* Guruhni boshqarish
+* Davomatni boshqarish
+* O‘qituvchilarni boshqarish
+
+* Magazin boshqaruvi
+* Bildirishnoma yuborish
+* Hisobotlarni ko‘rish
+
+Har bir administrator uchun individual ruxsatlar belgilanadi.
+
+---
+
+# 3. O‘QITUVCHI QISMI
+
+## 3.1. Login
+
+O‘qituvchi login va parol orqali tizimga kiradi.
+
+Tizimga kirgandan keyin o‘qituvchi o‘z dashboardiga yo‘naltiriladi.
+
+---
+
+## 3.2. O‘qituvchi dashboardi
+
+Dashboardda quyidagi ma’lumotlar bo‘lishi kerak:
+
+* Biriktirilgan guruhlar
+* Jami o‘quvchilar
+* Bugungi darslar
+* Tekshirilmagan uyga vazifalar
+* O‘rtacha davomat
+* O‘qituvchining reytingi
+
+Shuningdek:
+
+* Bugungi dars jadvali
+* Guruhlar holati
+* Eng faol o‘quvchilar
+* Past natijali o‘quvchilar
+* Tekshirish kutilayotgan vazifalar
+
+ko‘rsatilishi kerak.
+
+---
+
+## 3.3. O‘quvchilar reytingi
+
+O‘qituvchi o‘z guruhlaridagi o‘quvchilarning reytingini ko‘ra olishi kerak.
+
+Reyting quyidagilar asosida shakllanadi:
+
+* Uyga vazifa ballari
+* Imtihon natijalari
+* Davomat
+* Quiz natijalari
+* Faollik
+* Bonus ballar
+
+Reytingni:
+
+* Haftalik
+* Oylik
+* Umumiy
+
+ko‘rinishda ko‘rish imkoniyati bo‘lishi kerak.
+
+---
+
+## 3.4. Davomat
+
+O‘qituvchi faqat o‘z guruhlarida davomat qila olishi kerak.
+
+Har bir o‘quvchi uchun quyidagi statuslardan biri belgilanadi:
+
+* Keldi
+* Kechikdi
+* Kelmadi
+* Sababli kelmadi
+
+Davomat tarixi saqlanishi kerak.
+
+O‘qituvchi:
+
+* Kunlik davomat
+* Haftalik davomat
+* Oylik davomat
+
+statistikasini ko‘ra olishi kerak.
+
+---
+
+## 3.5. Uyga vazifalar
+
+O‘qituvchi guruh uchun uyga vazifa yaratishi kerak.
+
+Uyga vazifa ma’lumotlari:
+
+* Sarlavha
+* Tavsif
+* Guruh
+* Boshlanish vaqti
+* Topshirish muddati
+* Maksimal ball
+* Erta topshirish bonus balli
+* Kech topshirish jarima balli
+* Fayl
+* Link
+
+O‘qituvchi o‘quvchilar yuborgan vazifalarni ko‘ra olishi kerak.
+
+Tekshirish vaqtida:
+
+* Ball berish
+* Izoh yozish
+* Qabul qilish
+* Qayta ishlash uchun yuborish
+
+imkoniyati bo‘lishi kerak.
+
+---
+
+# 3.6. INTERAKTIV QUIZ BATTLE TIZIMI
+
+
+Platformada o‘qituvchi va o‘quvchilar real vaqt rejimida qatnashadigan interaktiv Quiz Battle tizimi mavjud bo‘lishi kerak.
+
+Quiz tizimi o‘quvchilarda qiziqish, raqobat va faollikni oshirishga qaratilgan bo‘lishi kerak.
+
+Tizimning ishlash jarayoni quyidagi bosqichlardan iborat bo‘ladi:
+
+1. O‘qituvchi quiz yaratadi.
+2. Quiz uchun savollar va javob variantlarini kiritadi.
+3. O‘qituvchi quiz xonasini ochadi.
+4. Tizim maxsus Game PIN yaratadi.
+5. O‘quvchilar Game PIN orqali xonaga qo‘shiladi.
+6. Har bir o‘quvchi o‘ziga emoji-avatar tanlaydi.
+7. O‘qituvchi barcha o‘quvchilar qo‘shilganidan keyin o‘yinni boshlaydi.
+8. Savollar o‘qituvchi ekranida ko‘rsatiladi.
+9. O‘quvchi ekranida faqat javob variantlari ko‘rsatiladi.
+10. Har bir savoldan keyin natija va reyting yangilanadi.
+11. Quiz oxirida yakuniy podium va natijalar ko‘rsatiladi.
+
+---
+
+## 3.6.1. QUIZ YARATISH
+
+O‘qituvchi yangi quiz yaratishi mumkin.
+
+Quiz yaratishda quyidagi ma’lumotlar kiritiladi:
+
+* Quiz nomi
+* Quiz tavsifi
+* Fan yoki yo‘nalish
+* Guruh
+* Savollar soni
+* Quiz rasmi
+* Quiz turi
+* Umumiy vaqt chegarasi
+* Natijalarni reytingga qo‘shish yoki qo‘shmaslik
+
+Quiz turi quyidagicha bo‘lishi mumkin:
+
+* Oddiy quiz
+* Tezkor quiz
+* Battle
+* Imtihon quiz
+* Jamoaviy quiz
+
+O‘qituvchi quizga istalgan miqdorda savol qo‘sha olishi kerak.
+
+Har bir savolda:
+
+* Savol matni
+* Savol rasmi
+* 2 ta javob varianti
+* 3 ta javob varianti
+* 4 ta javob varianti
+* To‘g‘ri javob
+* Savol uchun vaqt
+* Savol uchun maksimal ball
+
+belgilanishi mumkin.
+
+O‘qituvchi savollar ketma-ketligini o‘zgartira olishi kerak.
+
+Quizni boshlashdan oldin o‘qituvchi barcha savollarni Preview rejimida ko‘ra olishi kerak.
+
+---
+
+## 3.6.2. GAME PIN VA QUIZ LOBBY
+
+O‘qituvchi “Quizni boshlash” tugmasini bosganda tizim avtomatik ravishda maxsus Game PIN yaratishi kerak.
+
+Masalan:
+
+GAME PIN: 485 729
+
+Game PIN katta va aniq ko‘rinishda chiqarilishi kerak.
+
+Lobby ekranida:
+
+* Quiz nomi
+* Game PIN
+* Qo‘shilgan o‘quvchilar soni
+* O‘quvchilarning emoji avatarlari
+* O‘quvchilarning ismlari
+* Boshlash tugmasi
+
+ko‘rsatilishi kerak.
+
+O‘quvchi Game PIN orqali xonaga kirgandan keyin o‘zining emoji-avatarini tanlashi kerak.
+
+Emoji-avatar tanlash oynasida turli personajlar mavjud bo‘lishi kerak.
+
+Masalan:
+
+😀 😎 🤓 🥷 👻 🤖 🦊 🐼 🐯 🦁 🐸 🐵 🐧 🐲 👽 🚀 ⚡ 🔥
+
+O‘quvchi bitta emoji-avatarni tanlaydi.
+
+Tanlangan emoji o‘quvchining quiz davomida vaqtinchalik avatari hisoblanadi.
+
+Lobbyda o‘quvchilar quyidagi ko‘rinishda chiqishi mumkin:
+
+😎 Aziz
+
+🦊 Madina
+
+🤖 Bekzod
+
+🐼 Sevara
+
+🥷 Jahongir
+
+O‘quvchi qo‘shilganda uning emoji-avatari animatsiya bilan ekranga chiqishi kerak.
+
+O‘qituvchi xonaga qo‘shilgan o‘quvchini chiqarib yuborish imkoniyatiga ega bo‘lishi kerak.
+
+O‘qituvchi quizni faqat “Boshlash” tugmasini bosgandan keyin boshlaydi.
+
+---
+
+# 3.6.3. O‘QITUVCHI QUIZ EKRANI
+
+Quiz davomida o‘qituvchi ekrani asosiy prezentatsiya ekrani vazifasini bajaradi.
+
+O‘qituvchi ekranida savol va barcha javob variantlari to‘liq ko‘rsatilishi kerak.
+
+Ekran quyidagi qismlardan tashkil topadi:
+
+Yuqori qism:
+
+* Quiz nomi
+* Joriy savol raqami
+* Umumiy savollar soni
+* Countdown timer
+* Javob bergan o‘quvchilar soni
+
+Markaziy qism:
+
+* Savol matni
+* Savolga tegishli rasm, agar mavjud bo‘lsa
+
+Pastki qism:
+
+* Javob variantlari
+
+Javob variantlari katta kartalar ko‘rinishida bo‘lishi kerak.
+
+Har bir javob variantiga alohida belgi biriktiriladi:
+
+▲ A javob
+
+◆ B javob
+
+● C javob
+
+■ D javob
+
+O‘qituvchi ekranidagi javob kartalarida:
+
+* Belgi
+* Javob harfi
+* Javob matni
+
+ko‘rsatiladi.
+
+Masalan:
+
+▲ A — Markaziy protsessor
+
+◆ B — Operativ xotira
+
+● C — Monitor
+
+■ D — Klaviatura
+
+Savol va javob qismi katta ekranda, proyektorda va televizorda uzoq masofadan o‘qilishi uchun yirik va aniq dizaynda bo‘lishi kerak.
+
+Dizayn:
+
+* Zamonaviy
+* Yorqin
+* Interaktiv
+* Minimal
+* Katta shriftli
+* Animatsiyali
+
+bo‘lishi kerak.
+
+Countdown timer vizual ko‘rinishda kamayib borishi kerak.
+
+Oxirgi 5 soniyada timer alohida animatsiya orqali o‘quvchilarga vaqt tugayotganini bildirishi kerak.
+
+---
+
+# 3.6.4. O‘QUVCHI QUIZ EKRANI
+
+O‘quvchi ekranida savol matni ko‘rsatilmasligi kerak.
+
+Savol faqat o‘qituvchi ekranida ko‘rinadi.
+
+O‘quvchi ekranida faqat javob tanlash interfeysi bo‘ladi.
+
+O‘quvchi ekranining yuqori qismida kichik ma’lumotlar ko‘rsatilishi mumkin:
+
+* Emoji-avatar
+* O‘quvchi ismi
+* Joriy ball
+* Streak
+
+Asosiy ekranda katta javob tugmalari joylashadi.
+
+4 ta javob mavjud bo‘lganda ekran quyidagi tartibda bo‘linadi:
+
+▲ A
+
+◆ B
+
+● C
+
+■ D
+
+O‘quvchi faqat javob belgisini tanlaydi.
+
+O‘quvchi ekranida javob matni ko‘rsatilmaydi.
+
+Misol:
+
+O‘qituvchi ekranida:
+
+Savol:
+
+“Kompyuterning asosiy hisoblash qurilmasi qaysi?”
+
+▲ A — Protsessor
+
+◆ B — Monitor
+
+● C — Sichqoncha
+
+■ D — Printer
+
+O‘quvchi telefonida esa faqat:
+
+▲ A
+
+◆ B
+
+● C
+
+■ D
+
+tugmalari ko‘rinadi.
+
+Bu orqali o‘quvchi savolni umumiy ekran yoki o‘qituvchi ekranidan o‘qib, o‘z qurilmasida javob variantini tanlaydi.
+
+Javob tugmalari telefon ekranining katta qismini egallashi kerak.
+
+O‘quvchi noto‘g‘ri tugmani tasodifan bosib yubormasligi uchun tugmalar orasida yetarli masofa bo‘lishi kerak.
+
+---
+
+# 3.6.5. JAVOB BERISH JARAYONI
+
+O‘quvchi javob variantini tanlagandan keyin uning javobi darhol tizimga yuboriladi.
+
+Bir marta javob yuborilgandan keyin javobni o‘zgartirish mumkin emas.
+
+Javob yuborilgandan so‘ng o‘quvchi ekranida:
+
+“Javobingiz qabul qilindi!”
+
+xabari ko‘rsatiladi.
+
+Savol vaqti tugamaguncha o‘quvchiga to‘g‘ri javob ko‘rsatilmasligi kerak.
+
+Barcha o‘quvchilar javob berganda yoki vaqt tugaganda savol yakunlanadi.
+
+---
+
+# 3.6.6. SAVOL NATIJASI
+
+Savol tugagandan keyin o‘qituvchi ekranida natijalar ko‘rsatilishi kerak.
+
+Natija ekranida:
+
+* To‘g‘ri javob
+* Har bir variantni tanlaganlar soni
+* Javoblar statistikasi
+* Eng tez javob bergan o‘quvchilar
+
+ko‘rsatilishi kerak.
+
+Masalan:
+
+▲ A — 14 o‘quvchi ✓
+
+◆ B — 4 o‘quvchi
+
+● C — 2 o‘quvchi
+
+■ D — 1 o‘quvchi
+
+To‘g‘ri javob vizual tarzda ajratib ko‘rsatilishi kerak.
+
+O‘quvchi ekranida esa shaxsiy natija ko‘rsatiladi.
+
+To‘g‘ri javob berganda:
+
+“🎉 To‘g‘ri javob!”
+
++850 ball
+
+🔥 4x Streak
+
+Noto‘g‘ri javob berganda:
+
+“Bu safar noto‘g‘ri javob.”
+
+“Keyingi savolda omad!”
+
+Streak buzilgan bo‘lsa, bu ham ko‘rsatiladi.
+
+---
+
+# 3.6.7. BALL HISOBLASH
+
+Quiz ballari quyidagi omillarga asoslanishi kerak:
+
+* Javobning to‘g‘riligi
+* Javob berish tezligi
+* Ketma-ket to‘g‘ri javoblar
+* Combo
+* Streak
+
+Masalan:
+
+To‘g‘ri javob: +500 ball
+
+Tezlik bonusi: +250 ball
+
+5x Streak: +100 ball
+
+Jami: +850 ball
+
+Noto‘g‘ri javob uchun asosiy ball berilmaydi.
+
+Quiz ballari va platformaning magazin ballari alohida yoki Super Admin tomonidan belgilangan koeffitsiyent asosida bog‘lanishi kerak.
+
+---
+
+# 3.6.8. LIVE LEADERBOARD
+
+Har bir necha savoldan keyin yoki o‘qituvchi xohishiga ko‘ra Live Leaderboard ko‘rsatilishi kerak.
+
+Leaderboardda:
+
+* O‘rin
+* Emoji-avatar
+* O‘quvchi ismi
+* Joriy ball
+* O‘rin o‘zgarishi
+
+ko‘rsatiladi.
+
+Masalan:
+
+🥇 🥷 Aziz — 8 450 ball ↑2
+
+🥈 🦊 Madina — 8 120 ball ↓1
+
+🥉 🤖 Bekzod — 7 900 ball ↑3
+
+Leaderboard animatsiyali bo‘lishi kerak.
+
+O‘quvchi yuqori o‘ringa ko‘tarilganda vizual animatsiya orqali ko‘rsatilishi kerak.
+
+---
+
+# 3.6.9. QUIZ YAKUNI VA PODIUM
+
+Barcha savollar tugagandan keyin yakuniy natija sahifasi ochiladi.
+
+O‘qituvchi ekranida TOP 3 o‘quvchi podium ko‘rinishida chiqariladi.
+
+Podium:
+
+🥇 1-o‘rin
+
+🥈 2-o‘rin
+
+🥉 3-o‘rin
+
+Har bir g‘olib uchun:
+
+* Emoji-avatar
+* Ism
+* Jami ball
+* To‘g‘ri javoblar soni
+
+ko‘rsatiladi.
+
+Podium animatsiya bilan ochilishi kerak.
+
+Avval 3-o‘rin, keyin 2-o‘rin va oxirida 1-o‘rin ko‘rsatilishi kerak.
+
+O‘quvchi ekranida shaxsiy natijalar ko‘rsatiladi:
+
+* Yakuniy o‘rin
+* Jami ball
+* To‘g‘ri javoblar
+* Noto‘g‘ri javoblar
+* Eng tez javob
+* Eng uzun streak
+* Olingan XP
+* Olingan bonus ball
+
+Masalan:
+
+🏆 Siz 4-o‘rinni egalladingiz!
+
+8 250 ball
+
+8/10 to‘g‘ri javob
+
+🔥 Eng uzun streak: 6
+
+⚡ Eng tez javob: 1.8 soniya
+
++450 XP
+
++120 bonus ball
+
+---
+
+# 3.6.10. QUIZ DIZAYN TALABLARI
+
+Quiz tizimining dizayni platformaning eng interaktiv qismlaridan biri bo‘lishi kerak.
+
+O‘qituvchi ekrani katta ekran va proyektor uchun optimallashtirilishi kerak.
+
+O‘quvchi interfeysi telefon uchun maksimal darajada qulay bo‘lishi kerak.
+
+O‘qituvchi ekranida:
+
+* Savol asosiy markazda
+* Katta va o‘qilishi oson shrift
+* Javoblar katta kartalarda
+* Timer aniq ko‘rinishda
+* Javob berganlar soni real vaqt rejimida
+* Savol almashish animatsiyasi
+* Natija statistikasi
+* Live Leaderboard
+* Podium animatsiyasi
+
+bo‘lishi kerak.
+
+O‘quvchi ekranida:
+
+* Ortiqcha ma’lumot bo‘lmasligi
+* Katta javob tugmalari
+* Emoji-avatar
+* Joriy ball
+* Streak
+* Javob qabul qilinganligi haqida animatsiya
+* To‘g‘ri va noto‘g‘ri javob uchun vizual feedback
+* Quiz yakunida shaxsiy natija
+
+bo‘lishi kerak.
+
+Quiz interfeysi quvnoq va energiyali bo‘lishi kerak, lekin bolalarcha yoki tartibsiz ko‘rinmasligi kerak.
+
+Asosiy maqsad — o‘qituvchi savolni boshqarishi, o‘quvchilar esa o‘z telefonlaridan tez va oson javob berishi, o‘yin davomida raqobat, qiziqish va motivatsiya shakllanishidir.
+________
+# 4. O‘QUVCHI QISMI
+
+O‘quvchi qismi platformaning eng interaktiv va gamifikatsiyalangan qismi bo‘lishi kerak.
+
+O‘quvchi tizimga kirganda o‘zining rivojlanishini aniq ko‘ra olishi kerak.
+
+Dashboardda:
+
+* Jami ball
+* XP
+* Level
+* Streak
+* Guruhdagi reyting o‘rni
+* Bajarilgan vazifalar
+* Bajarilmagan vazifalar
+* Yaqinlashayotgan deadline
+* Imtihon natijalari
+* Davomat foizi
+* Yutuqlar
+
+ko‘rsatilishi kerak.
+
+---
+
+## 4.1. Reyting
+
+O‘quvchi o‘z guruhidagi reytingni ko‘ra olishi kerak.
+
+Reyting jadvalida:
+
+* O‘rin
+* O‘quvchi
+* Level
+* XP
+* Ball
+
+ko‘rsatiladi.
+
+Birinchi uch o‘rin alohida ajratib ko‘rsatilishi kerak.
+
+Reyting:
+
+* Haftalik
+* Oylik
+* Umumiy
+
+ko‘rinishda mavjud bo‘lishi kerak.
+
+---
+
+## 4.2. Uyga vazifa topshirish
+
+O‘quvchi o‘ziga berilgan uyga vazifalarni ko‘ra olishi kerak.
+
+Vazifa statuslari:
+
+* Yangi
+* Jarayonda
+* Topshirildi
+* Tekshirildi
+* Kechikdi
+* Bajarilmadi
+
+O‘quvchi vazifani:
+
+* Link orqali
+* Bitta fayl yuklash orqali
+
+topshira olishi kerak.
+
+Vazifani muddatidan oldin topshirgan o‘quvchiga bonus ball beriladi.
+
+Vazifani kech topshirgan o‘quvchidan jarima balli ayiriladi.
+
+Ball hisoblash tizimi avtomatik ishlashi kerak.
+
+Misol:
+
+Asosiy ball: 100 ball
+
+2 kun oldin topshirildi: +20 bonus ball
+
+1 kun kech topshirildi: -15 ball
+
+Yakuniy natija: 105 ball
+
+---
+
+## 4.3. Quizda qatnashish
+
+O‘quvchi Game PIN orqali quizga qo‘shilishi kerak.
+
+Quiz davomida:
+
+* Savol
+* Javob variantlari
+* Qolgan vaqt
+* Olingan ball
+* Combo
+* Streak
+* Joriy reyting
+
+ko‘rsatilishi kerak.
+
+Quiz tugagandan so‘ng:
+
+* Yakuniy o‘rin
+* To‘g‘ri javoblar soni
+* Noto‘g‘ri javoblar soni
+* Olingan XP
+* Olingan ball
+
+ko‘rsatiladi.
+
+---
+
+## 4.4. Magazin
+
+O‘quvchi to‘plagan ballarini platforma ichidagi magazinda ishlatishi mumkin.
+
+O‘quvchi:
+
+* Ball balansini ko‘rishi
+* Mahsulotlarni ko‘rishi
+* Mahsulot haqida ma’lumot olishi
+* Mahsulot sotib olishi
+* Xaridlar tarixini ko‘rishi
+
+mumkin.
+
+Ball yetarli bo‘lmasa, tizim qancha ball yetishmayotganini ko‘rsatishi kerak.
+
+Mahsulot sotib olingandan so‘ng kerakli ball avtomatik ravishda balansdan ayiriladi.
+
+---
+
+## 4.5. Yutuqlar tizimi
+
+Platformada achievement tizimi mavjud bo‘lishi kerak.
+
+Misollar:
+
+* 7 kun ketma-ket darsda qatnashish
+* 10 ta vazifani o‘z vaqtida bajarish
+* 5 ta vazifani muddatidan oldin topshirish
+* Quizda 1-o‘rin olish
+* Guruh reytingida TOP 3 ga kirish
+* Imtihondan 100% natija olish
+* Oy chempioni bo‘lish
+
+Olingan va hali ochilmagan yutuqlar alohida ko‘rsatilishi kerak.
+
+---
+
+# 5. ADMINISTRATSIYA QISMI
+
+Administratsiya o‘quv markazning kundalik operatsion ishlarini boshqaradi.
+
+Asosiy imkoniyatlar:
+
+* Guruh ochish
+* Guruhni tahrirlash
+* Guruhga o‘qituvchi biriktirish
+* Guruhga o‘quvchi qo‘shish
+* O‘quvchini boshqa guruhga ko‘chirish
+* Dars vaqtlarini belgilash
+* Xonalarni biriktirish
+* Dars jadvalini boshqarish
+* Davomatni nazorat qilish
+
+---
+
+## 5.1. Kelmagan o‘quvchilar bilan ishlash
+
+Bugungi darsga kelmagan o‘quvchilar avtomatik ravishda alohida ro‘yxatda ko‘rsatilishi kerak.
+
+Ro‘yxatda:
+
+* O‘quvchi F.I.Sh
+* Guruh
+* O‘qituvchi
+* Dars vaqti
+* O‘quvchi telefoni
+* Ota-ona telefoni
+* Qo‘ng‘iroq holati
+* Izoh
+
+bo‘lishi kerak.
+
+Qo‘ng‘iroq statuslari:
+
+* Qo‘ng‘iroq qilinmadi
+* Javob bermadi
+* Gaplashildi
+* Sababli kelmadi
+* Qayta qo‘ng‘iroq qilish kerak
+
+Har bir qo‘ng‘iroq tarixi saqlanishi kerak.
+
+---
+
+# 6. GAMIFIKATSIYA TIZIMI
+
+Platformada quyidagi gamifikatsiya elementlari mavjud bo‘lishi kerak:
+
+* Ball
+* XP
+* Level
+* Streak
+* Reyting
+* Achievement
+* Badge
+* Daily Challenge
+* Weekly Challenge
+* Reward tizimi
+
+O‘quvchi quyidagi harakatlar orqali ball yoki XP olishi mumkin:
+
+* Darsga kelish
+* Vazifani bajarish
+* Vazifani muddatidan oldin topshirish
+* Quizda yaxshi natija ko‘rsatish
+* Imtihondan yuqori ball olish
+* Ketma-ket faol kunlar
+* Maxsus challenge bajarish
+
+Ball va XP alohida tizim sifatida ishlashi kerak.
+
+XP o‘quvchining Level darajasini oshiradi.
+
+Ball esa magazinda mahsulot sotib olish uchun ishlatiladi.
+
+---
+
+# 7. DIZAYN TALABLARI
+
+Platforma dizayni zamonaviy, professional, sodda va tushunarli bo‘lishi kerak.
+
+Super Admin, O‘qituvchi va Administratsiya qismlarida professional boshqaruv paneli dizayni ishlatilishi kerak.
+
+O‘quvchi qismi esa platformaning eng kuchli vizual qismi bo‘lishi kerak.
+
+O‘quvchi interfeysida:
+
+* Level progress
+* XP progress
+* Streak
+* Leaderboard
+* Badge
+* Achievement
+* Daily Challenge
+* Weekly Challenge
+* Reward
+* Magazin
+* Progress statistikalari
+
+vizual va interaktiv ko‘rinishda aks ettirilishi kerak.
+
+Platforma telefon, planshet, noutbuk va katta ekranlarda to‘g‘ri ishlashi kerak.
+
+Foydalanuvchi platformaga kirganda qaysi bo‘limda ekanligini va nima qilish kerakligini oson tushunishi kerak.
+
+Asosiy maqsad — o‘quv markaz boshqaruvini avtomatlashtirish, o‘qituvchilar ishini yengillashtirish, administratsiya nazoratini kuchaytirish va o‘quvchilarni gamifikatsiya orqali ko‘proq o‘qishga rag‘batlantirish.

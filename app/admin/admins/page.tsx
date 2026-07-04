@@ -1,0 +1,107 @@
+// Administratorlar ro'yxati (faqat SUPER_ADMIN)
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { parseJsonArray } from "@/lib/utils";
+import {
+  PageHeader,
+  Table,
+  Th,
+  Td,
+  Avatar,
+  ActiveBadge,
+  EmptyState,
+  btn,
+} from "@/components/ui";
+import { ConfirmButton } from "@/components/confirm-button";
+import { toggleAdmin, deleteAdmin } from "./actions";
+
+export default async function AdminsPage() {
+  const session = await requireRole("SUPER_ADMIN", "ADMIN");
+  if (session.role !== "SUPER_ADMIN") redirect("/admin");
+
+  const admins = await db.user.findMany({
+    where: { role: "ADMIN" },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return (
+    <div>
+      <PageHeader
+        title="Administratorlar"
+        subtitle="Cheklangan huquqli administratorlarni boshqarish"
+        action={
+          <Link href="/admin/admins/new" className={btn.primary}>
+            + Yangi administrator
+          </Link>
+        }
+      />
+
+      {admins.length === 0 ? (
+        <EmptyState
+          icon="🛡️"
+          title="Administratorlar yo'q"
+          hint="Birinchi administratorni qo'shish uchun yuqoridagi tugmani bosing."
+        />
+      ) : (
+        <Table
+          head={
+            <>
+              <Th>F.I.Sh</Th>
+              <Th>Login</Th>
+              <Th>Telefon</Th>
+              <Th>Huquqlar</Th>
+              <Th>Holat</Th>
+              <Th className="text-right">Amallar</Th>
+            </>
+          }
+        >
+          {admins.map((a) => {
+            const permissionCount = parseJsonArray(a.permissions).length;
+            return (
+              <tr key={a.id} className="hover:bg-slate-50/60">
+                <Td>
+                  <div className="flex items-center gap-3">
+                    <Avatar name={a.name} image={a.image} size="sm" />
+                    <div className="font-medium text-slate-800">{a.name}</div>
+                  </div>
+                </Td>
+                <Td className="text-slate-600">{a.login}</Td>
+                <Td className="text-slate-600">{a.phone || "—"}</Td>
+                <Td>
+                  <span className="font-medium text-indigo-600">{permissionCount} ta huquq</span>
+                </Td>
+                <Td>
+                  <ActiveBadge active={a.active} />
+                </Td>
+                <Td>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <Link href={`/admin/admins/${a.id}/edit`} className={btn.small}>
+                      Tahrirlash
+                    </Link>
+                    <form action={toggleAdmin}>
+                      <input type="hidden" name="id" value={a.id} />
+                      <button type="submit" className={btn.small}>
+                        {a.active ? "Faolsizlantirish" : "Faollashtirish"}
+                      </button>
+                    </form>
+                    <form action={deleteAdmin}>
+                      <input type="hidden" name="id" value={a.id} />
+                      <ConfirmButton
+                        message={`${a.name} administratorini o'chirishni tasdiqlaysizmi?`}
+                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                      >
+                        O'chirish
+                      </ConfirmButton>
+                    </form>
+                  </div>
+                </Td>
+              </tr>
+            );
+          })}
+        </Table>
+      )}
+    </div>
+  );
+}

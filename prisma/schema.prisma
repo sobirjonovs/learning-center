@@ -1,0 +1,347 @@
+// O'quv markaz boshqaruv platformasi — ma'lumotlar bazasi sxemasi
+// SQLite ishlatilgani uchun enum o'rniga String + lib/constants.ts dagi qiymatlar ishlatiladi.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Rollar: SUPER_ADMIN | ADMIN | TEACHER | STUDENT
+model User {
+  id        String   @id @default(cuid())
+  role      String
+  name      String
+  login     String   @unique
+  password  String
+  phone     String?
+  image     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // O'qituvchi maydonlari
+  teacherType String? // Asosiy | Yordamchi | Master
+
+  // O'quvchi maydonlari
+  parentPhone String?
+  studentType String? // Oddiy | Premium | VIP
+  points      Int     @default(0) // magazin balli
+  xp          Int     @default(0)
+  streak      Int     @default(0)
+  lastActive  DateTime?
+
+  // Administrator maydonlari — JSON massiv: ["students.view", ...]
+  permissions String?
+
+  // aloqalar
+  teachingGroups   Group[]                 @relation("GroupTeacher")
+  groupMemberships GroupStudent[]
+  attendance       Attendance[]            @relation("AttendanceStudent")
+  markedAttendance Attendance[]            @relation("AttendanceMarker")
+  homeworks        Homework[]              @relation("HomeworkTeacher")
+  submissions      Submission[]
+  examResults      ExamResult[]
+  purchases        Purchase[]
+  sentNotifications Notification[]         @relation("NotificationSender")
+  notifications    NotificationRecipient[]
+  quizzes          Quiz[]                  @relation("QuizTeacher")
+  quizResults      QuizResult[]
+  transactions     ScoreTransaction[]
+  achievements     StudentAchievement[]
+  callLogs         CallLog[]               @relation("CallLogStudent")
+  madeCalls        CallLog[]               @relation("CallLogCaller")
+  activities       ActivityLog[]
+}
+
+model Group {
+  id         String    @id @default(cuid())
+  name       String
+  type       String? // Umumiy | Individual | Intensiv ...
+  teacherId  String?
+  teacher    User?     @relation("GroupTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  days       String // JSON: ["Dushanba","Chorshanba","Juma"] yoki ["Toq kunlar"]
+  time       String // "14:00 - 16:00"
+  room       String?
+  startDate  DateTime?
+  endDate    DateTime?
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  students      GroupStudent[]
+  attendance    Attendance[]
+  homeworks     Homework[]
+  exams         Exam[]
+  quizzes       Quiz[]
+  notifications Notification[]
+  callLogs      CallLog[]
+}
+
+model GroupStudent {
+  id        String   @id @default(cuid())
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+
+  @@unique([groupId, studentId])
+}
+
+// Davomat statuslari: PRESENT | LATE | ABSENT | EXCUSED
+model Attendance {
+  id         String   @id @default(cuid())
+  groupId    String
+  group      Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User     @relation("AttendanceStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  date       String // "YYYY-MM-DD"
+  status     String
+  note       String?
+  markedById String?
+  markedBy   User?    @relation("AttendanceMarker", fields: [markedById], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+
+  @@unique([groupId, studentId, date])
+}
+
+model Homework {
+  id          String   @id @default(cuid())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  teacherId   String?
+  teacher     User?    @relation("HomeworkTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  title       String
+  description String?
+  startAt     DateTime @default(now())
+  dueAt       DateTime
+  maxScore    Int      @default(100)
+  earlyBonus  Int      @default(0) // muddatidan oldin topshirish bonusi (kuniga)
+  latePenalty Int      @default(0) // kechikish jarimasi (kuniga)
+  fileUrl     String?
+  link        String?
+  createdAt   DateTime @default(now())
+
+  submissions Submission[]
+}
+
+// Topshiriq statuslari: SUBMITTED | ACCEPTED | RETURNED
+model Submission {
+  id          String    @id @default(cuid())
+  homeworkId  String
+  homework    Homework  @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  link        String?
+  fileUrl     String?
+  comment     String? // o'quvchi izohi
+  submittedAt DateTime  @default(now())
+  status      String    @default("SUBMITTED")
+  score       Int? // yakuniy ball (bonus/jarima bilan)
+  baseScore   Int? // o'qituvchi bergan ball
+  bonus       Int       @default(0)
+  penalty     Int       @default(0)
+  feedback    String? // o'qituvchi izohi
+  gradedAt    DateTime?
+
+  @@unique([homeworkId, studentId])
+}
+
+model Exam {
+  id        String   @id @default(cuid())
+  groupId   String
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  title     String
+  date      DateTime @default(now())
+  maxScore  Int      @default(100)
+  createdAt DateTime @default(now())
+
+  results ExamResult[]
+}
+
+model ExamResult {
+  id        String @id @default(cuid())
+  examId    String
+  exam      Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  score     Int
+
+  @@unique([examId, studentId])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  price       Int // ball qiymati
+  stock       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  purchases Purchase[]
+}
+
+// Buyurtma holati: NEW | DELIVERED | CANCELLED
+model Purchase {
+  id        String   @id @default(cuid())
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  points    Int
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+}
+
+// Auditoriya: ALL_STUDENTS | ALL_TEACHERS | GROUP | CUSTOM
+// Holat: DRAFT | SCHEDULED | SENT
+model Notification {
+  id          String    @id @default(cuid())
+  title       String
+  body        String
+  image       String?
+  senderId    String?
+  sender      User?     @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+  audience    String
+  groupId     String?
+  group       Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  status      String    @default("DRAFT")
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  recipients NotificationRecipient[]
+}
+
+model NotificationRecipient {
+  id             String       @id @default(cuid())
+  notificationId String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt         DateTime?
+
+  @@unique([notificationId, userId])
+}
+
+// Quiz turi: NORMAL | SPEED | BATTLE | EXAM | TEAM
+model Quiz {
+  id             String   @id @default(cuid())
+  teacherId      String?
+  teacher        User?    @relation("QuizTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+  groupId        String?
+  group          Group?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  name           String
+  description    String?
+  subject        String?
+  image          String?
+  type           String   @default("NORMAL")
+  timeLimit      Int? // umumiy vaqt chegarasi (daqiqa)
+  countsToRating Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  questions QuizQuestion[]
+  results   QuizResult[]
+}
+
+model QuizQuestion {
+  id           String  @id @default(cuid())
+  quizId       String
+  quiz         Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  order        Int
+  text         String
+  image        String?
+  options      String // JSON: ["variant1","variant2",...] (2-4 ta)
+  correctIndex Int
+  timeSeconds  Int     @default(20)
+  points       Int     @default(500)
+}
+
+model QuizResult {
+  id            String   @id @default(cuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  pin           String?
+  score         Int      @default(0)
+  correctCount  Int      @default(0)
+  wrongCount    Int      @default(0)
+  bestStreak    Int      @default(0)
+  fastestMs     Int?
+  place         Int?
+  xpEarned      Int      @default(0)
+  pointsEarned  Int      @default(0)
+  createdAt     DateTime @default(now())
+}
+
+// Ball/XP daftari. sourceType: ATTENDANCE | HOMEWORK | QUIZ | EXAM | PURCHASE | BONUS | ACHIEVEMENT | CHALLENGE
+model ScoreTransaction {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  points     Int      @default(0) // +/- magazin balli
+  xp         Int      @default(0) // +/- tajriba
+  reason     String
+  sourceType String
+  sourceId   String?
+  createdAt  DateTime @default(now())
+}
+
+model Achievement {
+  id           String @id @default(cuid())
+  code         String @unique
+  name         String
+  description  String
+  icon         String // emoji
+  xpReward     Int    @default(0)
+  pointsReward Int    @default(0)
+
+  students StudentAchievement[]
+}
+
+model StudentAchievement {
+  id            String      @id @default(cuid())
+  studentId     String
+  student       User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt      DateTime    @default(now())
+
+  @@unique([studentId, achievementId])
+}
+
+// Qo'ng'iroq holati: NOT_CALLED | NO_ANSWER | TALKED | EXCUSED | CALLBACK
+model CallLog {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    User     @relation("CallLogStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  groupId    String?
+  group      Group?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  date       String // "YYYY-MM-DD" — qaysi kungi davomat uchun
+  status     String   @default("NOT_CALLED")
+  note       String?
+  calledById String?
+  calledBy   User?    @relation("CallLogCaller", fields: [calledById], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+// Sozlamalar (masalan, quiz ball koeffitsiyenti)
+model Setting {
+  key   String @id
+  value String
+}
