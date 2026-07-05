@@ -5,12 +5,9 @@ import { db } from "@/lib/db";
 import { levelFromXp } from "@/lib/gamification";
 import { fmtNumber, pct } from "@/lib/utils";
 import { GraduationCap } from "lucide-react";
-import { ActiveBadge, Avatar, Badge, EmptyState, PageHeader, Table, Td, Th, btn, inputCls } from "@/components/ui";
-import { ConfirmButton } from "@/components/confirm-button";
+import { ActiveBadge, Avatar, Badge, EmptyState, PageHeader, Table, Td, TdActions, Th, ThActions, btn, inputCls } from "@/components/ui";
+import { TableRowActions } from "@/components/table-row-actions";
 import { deleteStudent, toggleStudent } from "./actions";
-
-const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
 
 export default async function StudentsPage({
   searchParams,
@@ -115,12 +112,12 @@ export default async function StudentsPage({
               <Th>Daraja</Th>
               <Th>Davomat</Th>
               <Th>Holat</Th>
-              <Th className="text-right">Amallar</Th>
+              <ThActions>Amallar</ThActions>
             </>
           }
         >
           {students.map((s) => (
-            <tr key={s.id} className="hover:bg-white/[0.04]">
+            <tr key={s.id} className="group/row hover:bg-white/[0.04] classic-canvas:hover:bg-slate-50/80">
               <Td>
                 <Link href={`/admin/students/${s.id}`} className="flex items-center gap-3">
                   <Avatar name={s.name} image={s.image} size="sm" />
@@ -130,53 +127,61 @@ export default async function StudentsPage({
               <Td className="whitespace-nowrap text-slate-500">{s.phone ?? "—"}</Td>
               <Td className="whitespace-nowrap text-slate-500">{s.parentPhone ?? "—"}</Td>
               <Td>
-                <Badge className="bg-violet-500/15 text-violet-400">{s.studentType ?? "—"}</Badge>
+                <Badge tone="violet">{s.studentType ?? "—"}</Badge>
               </Td>
-              <Td className="max-w-48 text-slate-600">
-                {s.groupMemberships.length > 0
-                  ? s.groupMemberships.map((m) => m.group.name).join(", ")
-                  : "—"}
+              <Td className="max-w-[9rem] text-slate-600">
+                <span
+                  className="line-clamp-2 text-xs leading-snug"
+                  title={
+                    s.groupMemberships.length > 0
+                      ? s.groupMemberships.map((m) => m.group.name).join(", ")
+                      : undefined
+                  }
+                >
+                  {s.groupMemberships.length > 0
+                    ? s.groupMemberships.map((m) => m.group.name).join(", ")
+                    : "—"}
+                </span>
               </Td>
-              <Td className="text-slate-600">{fmtNumber(s.points)}</Td>
-              <Td className="text-slate-600">{fmtNumber(s.xp)}</Td>
+              <Td className="whitespace-nowrap text-slate-600">{fmtNumber(s.points)}</Td>
+              <Td className="whitespace-nowrap text-slate-600">{fmtNumber(s.xp)}</Td>
               <Td>
-                <Badge className="bg-blue-500/15 text-blue-400">{levelFromXp(s.xp).level}</Badge>
+                <Badge tone="blue">{levelFromXp(s.xp).level}</Badge>
               </Td>
-              <Td className="font-semibold text-slate-200">{attendancePct(s.id)}%</Td>
+              <Td className="whitespace-nowrap font-semibold text-slate-200">{attendancePct(s.id)}%</Td>
               <Td>
                 <ActiveBadge active={s.active} />
               </Td>
-              <Td>
-                <div className="flex items-center justify-end gap-1.5">
-                  <Link href={`/admin/students/${s.id}`} className={btn.small}>
-                    Ko'rish
-                  </Link>
-                  {canEdit && (
-                    <Link href={`/admin/students/${s.id}/edit`} className={btn.small}>
-                      Tahrirlash
-                    </Link>
-                  )}
-                  {canEdit && (
-                    <form action={toggleStudent}>
-                      <input type="hidden" name="id" value={s.id} />
-                      <button type="submit" className={btn.small}>
-                        {s.active ? "Faolsizlantirish" : "Faollashtirish"}
-                      </button>
-                    </form>
-                  )}
-                  {canDelete && (
-                    <form action={deleteStudent}>
-                      <input type="hidden" name="id" value={s.id} />
-                      <ConfirmButton
-                        message={`${s.name} o'chirilsinmi? Barcha natijalari ham o'chib ketadi.`}
-                        className={dangerSmall}
-                      >
-                        O'chirish
-                      </ConfirmButton>
-                    </form>
-                  )}
-                </div>
-              </Td>
+              <TdActions>
+                <TableRowActions
+                  links={[
+                    { href: `/admin/students/${s.id}`, label: "Ko'rish" },
+                    ...(canEdit ? [{ href: `/admin/students/${s.id}/edit`, label: "Tahrirlash" }] : []),
+                  ]}
+                  forms={[
+                    ...(canEdit
+                      ? [
+                          {
+                            action: toggleStudent,
+                            id: s.id,
+                            label: s.active ? "Faolsizlantirish" : "Faollashtirish",
+                          },
+                        ]
+                      : []),
+                    ...(canDelete
+                      ? [
+                          {
+                            action: deleteStudent,
+                            id: s.id,
+                            label: "O'chirish",
+                            confirm: `${s.name} o'chirilsinmi? Barcha natijalari ham o'chib ketadi.`,
+                            danger: true,
+                          },
+                        ]
+                      : []),
+                  ]}
+                />
+              </TdActions>
             </tr>
           ))}
         </Table>

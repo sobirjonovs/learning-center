@@ -19,7 +19,7 @@ export function ThemeToggle({
       type="button"
       onClick={toggleTheme}
       className={cn(
-        "flex items-center justify-center rounded-xl border transition",
+        "flex cursor-pointer items-center justify-center rounded-xl border transition",
         compact ? "h-9 w-9" : "h-10 w-10",
         isLight
           ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"

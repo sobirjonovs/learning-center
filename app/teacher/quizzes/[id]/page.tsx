@@ -9,12 +9,12 @@ import { HelpCircle, Pencil, Target } from "lucide-react";
 import { Badge, Card, CardTitle, EmptyState, PageHeader, btn } from "@/components/ui";
 import { Modal } from "@/components/modal";
 import { ConfirmButton } from "@/components/confirm-button";
+import { StartLiveGameButton } from "@/components/start-live-game-button";
 import { QuestionForm } from "./question-form";
 import {
   addQuestion,
   deleteQuestion,
   moveQuestion,
-  startLiveGame,
   updateQuestion,
 } from "../actions";
 
@@ -51,12 +51,9 @@ export default async function QuizBuilderPage({
             <Link href={`/teacher/quizzes/${quiz.id}/preview`} className={btn.secondary}>
               👁 Preview
             </Link>
-            <form action={startLiveGame}>
-              <input type="hidden" name="quizId" value={quiz.id} />
-              <button type="submit" className={btn.primary} disabled={!canStart}>
-                ▶ Quizni boshlash
-              </button>
-            </form>
+            <StartLiveGameButton quizId={quiz.id} className={btn.primary} disabled={!canStart}>
+              ▶ Quizni boshlash
+            </StartLiveGameButton>
           </>
         }
       />

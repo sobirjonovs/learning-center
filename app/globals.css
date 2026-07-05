@@ -111,6 +111,28 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
+/* Bosiladigan elementlar — pointer ko'rsatkich */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href],
+label[for],
+summary,
+select:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+input[type="file"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+input[type="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
 /* Asosiy sahifa foni — qorong'u gradient mesh + futuristik grid */
 .app-canvas {
   background-color: var(--color-canvas);
@@ -514,6 +536,26 @@ html[data-theme="light"] *,
 * {
   scrollbar-width: thin;
   scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+}
+
+/* Quiz Battle — sidebar va header yashirish */
+html.quiz-immersive [data-app-shell-sidebar],
+html.quiz-immersive [data-app-shell-header] {
+  display: none !important;
+}
+
+html.quiz-immersive [data-app-shell-content] {
+  padding-left: 0 !important;
+}
+
+html.quiz-immersive [data-app-shell-main] {
+  padding: 0 !important;
+}
+
+html.quiz-immersive [data-app-shell-inner] {
+  max-width: none !important;
+  margin: 0 !important;
+  animation: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

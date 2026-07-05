@@ -15,8 +15,12 @@ import {
   Zap,
 } from "lucide-react";
 import { ANSWER_SHAPES } from "@/lib/constants";
+import { resolveQuizExpression } from "@/lib/quiz-avatars";
+import { requestFullscreen } from "@/lib/fullscreen";
 import type { HostView } from "@/lib/quiz-live";
+import { useQuizImmersive } from "@/lib/use-quiz-immersive";
 import { RankMedal } from "@/components/rank-medal";
+import { QuizAvatar } from "@/components/quiz-avatar";
 
 function fmtPin(pin: string): string {
   return `${pin.slice(0, 3)} ${pin.slice(3)}`;
@@ -67,9 +71,16 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
     router.push("/teacher/quizzes");
   }, [post, router]);
 
+  useQuizImmersive(true);
+
+  const startGame = useCallback(() => {
+    void requestFullscreen().catch(() => {});
+    void post("start");
+  }, [post]);
+
   if (!view) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center app-canvas text-white">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center app-canvas text-white">
         <div className="animate-pulse-soft text-xl font-semibold">Yuklanmoqda...</div>
       </div>
     );
@@ -83,7 +94,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
   const isLastQuestion = view.qIndex + 1 >= view.total;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto app-canvas text-white">
+    <div className="fixed inset-0 z-[100] overflow-y-auto app-canvas text-white">
       {!connected && (
         <div className="fixed left-1/2 top-3 z-50 -translate-x-1/2 animate-pulse-soft rounded-full bg-rose-600 px-4 py-1.5 text-sm font-semibold shadow-lg">
           Ulanish uzildi, qayta ulanilmoqda...
@@ -127,7 +138,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
                     key={p.id}
                     className="group relative flex animate-bounce-in items-center gap-2 rounded-2xl bg-white/10 px-4 py-2.5 ring-1 ring-white/15"
                   >
-                    <span className="text-4xl">{p.emoji}</span>
+                    <QuizAvatar id={p.emoji} expression={resolveQuizExpression(view.phase)} size="2xl" />
                     <span className="font-semibold">{p.name}</span>
                     <button
                       onClick={() => post("kick", { studentId: p.id })}
@@ -143,7 +154,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
           </div>
 
           <button
-            onClick={() => post("start")}
+            onClick={startGame}
             disabled={view.playerCount === 0}
             className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500 px-12 py-4 text-2xl font-black shadow-xl transition hover:bg-emerald-400 active:scale-95 disabled:opacity-40"
           >
@@ -264,7 +275,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
                   <div className="flex flex-wrap gap-4">
                     {view.reveal.fastest.map((f, i) => (
                       <span key={i} className="flex items-center gap-1.5 text-sm font-semibold">
-                        <span className="text-xl">{f.emoji}</span>
+                        <QuizAvatar id={f.emoji} expression="happy-face" size="sm" />
                         {f.name}
                         <span className="text-indigo-300">{(f.ms / 1000).toFixed(1)} s</span>
                       </span>
@@ -318,7 +329,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
                 <span className="flex w-9 justify-center text-2xl font-black">
                   <RankMedal place={row.rank} size="sm" showBadge />
                 </span>
-                <span className="text-3xl">{row.emoji}</span>
+                <QuizAvatar id={row.emoji} expression={resolveQuizExpression(view.phase)} size="lg" />
                 <span className="min-w-0 flex-1 truncate text-lg font-bold">{row.name}</span>
                 <span className="font-mono text-xl font-black">{fmtNumber(row.score)}</span>
                 <span
@@ -368,7 +379,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
                   <span className="flex w-8 justify-center font-black">
                     <RankMedal place={p.place} size="sm" showBadge />
                   </span>
-                  <span className="text-2xl">{p.emoji}</span>
+                  <QuizAvatar id={p.emoji} expression="happy-face" size="md" />
                   <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
                   <span className="font-mono font-bold">{fmtNumber(p.score)}</span>
                 </div>
@@ -444,7 +455,7 @@ function PodiumScreen({ view, onFinish }: { view: HostView; onFinish: () => void
             <div key={col.place} className="flex w-1/3 flex-col items-center gap-3">
               {p && visible && (
                 <div className="animate-bounce-in text-center">
-                  <div className="text-6xl">{p.emoji}</div>
+                  <QuizAvatar id={p.emoji} expression="happy-face" size="3xl" />
                   <div className="mt-1 max-w-40 truncate text-lg font-black">{p.name}</div>
                   <div className="font-mono text-xl font-black text-amber-300">
                     {fmtNumber(p.score)}
@@ -479,7 +490,7 @@ function PodiumScreen({ view, onFinish }: { view: HostView; onFinish: () => void
               <span className="flex w-8 justify-center text-base font-black">
                 <RankMedal place={p.place} size="sm" showBadge />
               </span>
-              <span className="text-2xl">{p.emoji}</span>
+              <QuizAvatar id={p.emoji} expression="happy-face" size="md" />
               <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
               <span className="inline-flex items-center gap-1 text-emerald-300">
                 <Check className="h-3.5 w-3.5" strokeWidth={2} />

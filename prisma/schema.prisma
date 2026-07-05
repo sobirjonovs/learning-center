@@ -318,13 +318,14 @@ model ScoreTransaction {
 }
 
 model Achievement {
-  id           String @id @default(cuid())
-  code         String @unique
+  id           String  @id @default(cuid())
+  code         String  @unique
   name         String
   description  String
   icon         String // emoji
-  xpReward     Int    @default(0)
-  pointsReward Int    @default(0)
+  xpReward     Int     @default(0)
+  pointsReward Int     @default(0)
+  active       Boolean @default(true)
 
   students StudentAchievement[]
 }

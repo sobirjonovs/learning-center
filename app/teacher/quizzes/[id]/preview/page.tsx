@@ -7,7 +7,7 @@ import { cn, parseJsonArray } from "@/lib/utils";
 import { ANSWER_SHAPES } from "@/lib/constants";
 import { Target } from "lucide-react";
 import { PageHeader, btn } from "@/components/ui";
-import { startLiveGame } from "../../actions";
+import { StartLiveGameButton } from "@/components/start-live-game-button";
 
 export default async function QuizPreviewPage({
   params,
@@ -31,12 +31,9 @@ export default async function QuizPreviewPage({
         backHref={`/teacher/quizzes/${quiz.id}`}
         action={
           quiz.questions.length > 0 ? (
-            <form action={startLiveGame}>
-              <input type="hidden" name="quizId" value={quiz.id} />
-              <button type="submit" className={btn.primary}>
-                ▶ Quizni boshlash
-              </button>
-            </form>
+            <StartLiveGameButton quizId={quiz.id} className={btn.primary}>
+              ▶ Quizni boshlash
+            </StartLiveGameButton>
           ) : undefined
         }
       />

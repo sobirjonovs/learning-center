@@ -8,10 +8,10 @@ import { Avatar, ProgressBar } from "./ui";
 
 /** O'quvchi kabineti — ko'k linear gradient tugmalar */
 export const gameBtn =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-600 hover:via-blue-500 hover:to-cyan-500 active:scale-[0.98] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400";
+  "inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-600 hover:via-blue-500 hover:to-cyan-500 active:scale-[0.98] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400";
 
 export const gameBtnLg =
-  "inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 px-4 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-600 hover:via-blue-500 hover:to-cyan-500 active:scale-[0.98] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400";
+  "inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 px-4 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/30 transition hover:from-blue-600 hover:via-blue-500 hover:to-cyan-500 active:scale-[0.98] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400";
 
 // ---------------- O'yinchi hero paneli ----------------
 export function GameHero({

@@ -7,7 +7,8 @@ import { QUIZ_TYPES, type QuizType } from "@/lib/constants";
 import { BarChart3, Pencil, Zap } from "lucide-react";
 import { Badge, EmptyState, PageHeader, Table, Td, Th, btn } from "@/components/ui";
 import { ConfirmButton } from "@/components/confirm-button";
-import { deleteQuiz, startLiveGame } from "./actions";
+import { StartLiveGameButton } from "@/components/start-live-game-button";
+import { deleteQuiz } from "./actions";
 
 export default async function TeacherQuizzesPage() {
   const session = await requireRole("TEACHER");
@@ -101,15 +102,12 @@ export default async function TeacherQuizzesPage() {
               <Td>
                 <div className="flex items-center justify-end gap-1.5">
                   {q._count.questions > 0 && (
-                    <form action={startLiveGame}>
-                      <input type="hidden" name="quizId" value={q.id} />
-                      <button
-                        type="submit"
-                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700"
-                      >
-                        ▶ O&apos;tkazish
-                      </button>
-                    </form>
+                    <StartLiveGameButton
+                      quizId={q.id}
+                      className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-indigo-700"
+                    >
+                      ▶ O&apos;tkazish
+                    </StartLiveGameButton>
                   )}
                   <Link href={`/teacher/quizzes/${q.id}/results`} className={`${btn.small} inline-flex items-center gap-1`}>
                     <BarChart3 className="h-3.5 w-3.5" strokeWidth={1.75} />

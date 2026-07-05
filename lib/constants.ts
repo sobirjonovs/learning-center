@@ -113,10 +113,21 @@ export const QUIZ_TYPES = {
 } as const;
 export type QuizType = keyof typeof QUIZ_TYPES;
 
-export const EMOJI_AVATARS = [
-  "😀", "😎", "🤓", "🥷", "👻", "🤖", "🦊", "🐼", "🐯",
-  "🦁", "🐸", "🐵", "🐧", "🐲", "👽", "🚀", "⚡", "🔥",
-];
+export {
+  QUIZ_AVATAR_IDS,
+  QUIZ_BODY_IDS,
+  QUIZ_FACE_IDS,
+  DEFAULT_QUIZ_AVATAR,
+  DEFAULT_QUIZ_FACE,
+  isValidQuizAvatar,
+  parseQuizAvatar,
+  encodeQuizAvatar,
+  toSelectableAvatarId,
+  resolveQuizExpression,
+  type QuizGamePhase,
+  type QuizBodyId,
+  type QuizFaceId,
+} from "@/lib/quiz-avatars";
 
 // Javob variantlari belgilari va ranglari (Kahoot uslubida)
 export const ANSWER_SHAPES = [
@@ -138,6 +149,7 @@ export const PERMISSIONS = [
   { key: "teachers.manage", label: "O'qituvchilarni boshqarish" },
   { key: "categories.manage", label: "Fan kategoriyalarini boshqarish" },
   { key: "shop.manage", label: "Magazin boshqaruvi" },
+  { key: "achievements.manage", label: "Yutuqlarni boshqarish" },
   { key: "notifications.send", label: "Bildirishnoma yuborish" },
   { key: "reports.view", label: "Hisobotlarni ko'rish" },
   { key: "calls.manage", label: "Kelmaganlar bilan ishlash" },

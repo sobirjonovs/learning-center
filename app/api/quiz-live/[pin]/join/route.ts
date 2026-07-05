@@ -1,6 +1,12 @@
-// O'quvchi o'yinga qo'shiladi: { emoji }
+// O'quvchi o'yinga qo'shiladi: { avatar }
 import { getSession } from "@/lib/auth";
-import { EMOJI_AVATARS } from "@/lib/constants";
+import {
+  DEFAULT_QUIZ_AVATAR,
+  DEFAULT_QUIZ_FACE,
+  encodeQuizAvatar,
+  isValidQuizAvatar,
+  parseQuizAvatar,
+} from "@/lib/quiz-avatars";
 import { join } from "@/lib/quiz-live";
 
 export async function POST(
@@ -13,12 +19,19 @@ export async function POST(
     return Response.json({ error: "Faqat o'quvchilar qo'shila oladi" }, { status: 403 });
   }
   const body = await req.json().catch(() => ({}));
-  const emoji =
-    typeof body?.emoji === "string" && EMOJI_AVATARS.includes(body.emoji)
-      ? body.emoji
-      : EMOJI_AVATARS[0];
+  const raw =
+    typeof body?.avatar === "string"
+      ? body.avatar
+      : typeof body?.emoji === "string"
+        ? body.emoji
+        : DEFAULT_QUIZ_AVATAR;
 
-  const result = join(pin, { id: session.id, name: session.name }, emoji);
+  const parsed = parseQuizAvatar(isValidQuizAvatar(raw) ? raw : DEFAULT_QUIZ_AVATAR);
+  const avatar = parsed.body
+    ? encodeQuizAvatar(parsed.body, DEFAULT_QUIZ_FACE)
+    : DEFAULT_QUIZ_AVATAR;
+
+  const result = join(pin, { id: session.id, name: session.name }, avatar);
   if (result.error) {
     const status = result.error === "O'yin topilmadi" ? 404 : 400;
     return Response.json({ error: result.error }, { status });

@@ -78,7 +78,7 @@ export function Sidebar({
             href={item.href}
             onClick={() => setOpen(false)}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
+              "flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
               active
                 ? theme.active
                 : isLight
@@ -95,7 +95,7 @@ export function Sidebar({
   );
 
   return (
-    <>
+    <div data-app-shell-sidebar>
       {/* Mobil sarlavha */}
       <div
         className={cn(
@@ -120,7 +120,7 @@ export function Sidebar({
           <button
             onClick={() => setOpen(!open)}
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-lg border transition",
+              "flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border transition",
               isLight
                 ? "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                 : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
@@ -133,7 +133,7 @@ export function Sidebar({
       </div>
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 cursor-pointer bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={() => setOpen(false)}
         />
       )}
@@ -230,6 +230,6 @@ export function Sidebar({
           </div>
         </div>
       </aside>
-    </>
+    </div>
   );
 }

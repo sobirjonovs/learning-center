@@ -4,8 +4,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { cn, fmtNumber } from "@/lib/utils";
-import { ANSWER_SHAPES, EMOJI_AVATARS } from "@/lib/constants";
+import { ANSWER_SHAPES, QUIZ_AVATAR_IDS } from "@/lib/constants";
+import { DEFAULT_QUIZ_AVATAR, resolveQuizExpression, toSelectableAvatarId } from "@/lib/quiz-avatars";
 import type { PlayerView } from "@/lib/quiz-live";
+import { QuizAvatar } from "@/components/quiz-avatar";
+import { requestFullscreen } from "@/lib/fullscreen";
+import { useQuizImmersive } from "@/lib/use-quiz-immersive";
 import {
   AlertCircle,
   CheckCircle2,
@@ -21,9 +25,10 @@ import { RankMedal } from "@/components/rank-medal";
 
 export function PlayClient({ pin, quizName }: { pin: string; quizName: string }) {
   const [joined, setJoined] = useState(false);
+  const [immersive, setImmersive] = useState(false);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
-  const [myEmoji, setMyEmoji] = useState<string | null>(null);
+  const [myAvatar, setMyAvatar] = useState<string | null>(null);
   const [view, setView] = useState<PlayerView | null>(null);
   const [connected, setConnected] = useState(true);
   const [selected, setSelected] = useState<number | null>(null);
@@ -32,7 +37,7 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
 
   // Avatar tanlab qo'shilish
   const joinGame = useCallback(
-    async (emoji: string) => {
+    async (avatar: string) => {
       if (joining) return;
       setJoining(true);
       setJoinError(null);
@@ -40,17 +45,19 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
         const res = await fetch(`/api/quiz-live/${pin}/join`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ emoji }),
+          body: JSON.stringify({ avatar }),
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           setJoinError(data?.error ?? "Qo'shilib bo'lmadi");
+          setImmersive(false);
           return;
         }
-        setMyEmoji(emoji);
+        setMyAvatar(avatar);
         setJoined(true);
       } catch {
         setJoinError("Tarmoq xatosi. Qayta urinib ko'ring.");
+        setImmersive(false);
       } finally {
         setJoining(false);
       }
@@ -88,6 +95,8 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
     return () => clearInterval(t);
   }, []);
 
+  useQuizImmersive(immersive || joined);
+
   const sendAnswer = useCallback(
     (option: number) => {
       if (selected !== null) return;
@@ -104,7 +113,7 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
   const shell = (children: React.ReactNode, extraCls?: string) => (
     <div
       className={cn(
-        "fixed inset-0 z-50 overflow-y-auto app-canvas text-white",
+        "fixed inset-0 z-[100] overflow-y-auto app-canvas text-white",
         extraCls
       )}
     >
@@ -155,17 +164,24 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
           </div>
         )}
 
-        <div className="grid max-w-md grid-cols-6 gap-2 sm:gap-3">
-          {EMOJI_AVATARS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => joinGame(emoji)}
-              disabled={joining}
-              className="animate-pop rounded-2xl bg-white/10 p-3 text-4xl ring-1 ring-white/10 transition hover:scale-110 hover:bg-white/20 active:scale-95 disabled:opacity-50"
-            >
-              {emoji}
-            </button>
-          ))}
+        <div className="grid max-w-2xl grid-cols-4 gap-2 sm:grid-cols-5 sm:gap-3 md:grid-cols-6">
+          {QUIZ_AVATAR_IDS.map((avatarId) => {
+            const selectId = toSelectableAvatarId(avatarId);
+            return (
+              <button
+                key={avatarId}
+                onClick={() => {
+                  setImmersive(true);
+                  void requestFullscreen().catch(() => {});
+                  void joinGame(selectId);
+                }}
+                disabled={joining}
+                className="animate-pop flex aspect-square items-center justify-center rounded-2xl bg-white/10 p-2 ring-1 ring-white/10 transition hover:scale-110 hover:bg-white/20 active:scale-95 disabled:opacity-50"
+              >
+                <QuizAvatar id={selectId} size="xl" />
+              </button>
+            );
+          })}
         </div>
         <p className="text-sm text-blue-300">Avatar ustiga bosing — darhol o&apos;yinga kirasiz</p>
       </div>
@@ -184,12 +200,16 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
   const totalQMs = Math.max(1, view.questionEndsAt - view.questionStartedAt);
   const remainFrac = Math.min(1, Math.max(0, (view.questionEndsAt - serverNow) / totalQMs));
   const answered = view.answered || selected !== null;
+  const myAvatarId = view.me?.emoji ?? myAvatar ?? DEFAULT_QUIZ_AVATAR;
+  const myExpression = resolveQuizExpression(view.phase, view.reveal);
 
   // ============ LOBBY ============
   if (view.phase === "LOBBY") {
     return shell(
       <div className="flex min-h-full flex-col items-center justify-center gap-6 p-6 text-center">
-        <div className="animate-float text-8xl">{view.me?.emoji ?? myEmoji ?? "🙂"}</div>
+        <div className="animate-float">
+          <QuizAvatar id={myAvatarId} expression={myExpression} size="3xl" />
+        </div>
         <div>
           <h1 className="text-2xl font-black">Siz o&apos;yindasiz!</h1>
           <p className="mt-1 animate-pulse-soft text-sm text-blue-300">
@@ -202,7 +222,7 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
               key={i}
               className="flex animate-bounce-in items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/10"
             >
-              <span className="text-xl">{p.emoji}</span>
+              <QuizAvatar id={p.emoji} expression={resolveQuizExpression(view.phase)} size="sm" />
               {p.name}
             </span>
           ))}
@@ -225,7 +245,7 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
 
         {/* Mini panel */}
         <div className="flex items-center gap-2.5 px-4 py-3">
-          <span className="text-3xl">{view.me?.emoji ?? myEmoji}</span>
+          <QuizAvatar id={myAvatarId} expression={myExpression} size="lg" />
           <span className="min-w-0 flex-1 truncate text-sm font-bold">{view.me?.name}</span>
           {view.me && view.me.streak >= 2 && (
             <span className="animate-pop inline-flex items-center gap-1 rounded-full bg-amber-500/25 px-2.5 py-1 text-sm font-black text-amber-300">
@@ -281,6 +301,7 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
     const r = view.reveal;
     return shell(
       <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
+        <QuizAvatar id={myAvatarId} expression={myExpression} size="3xl" />
         {!r || !r.answered ? (
           <div className="animate-bounce-in space-y-3">
             <Clock className="h-16 w-16 text-amber-400" strokeWidth={1.5} />
@@ -358,7 +379,7 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
       <div className="flex min-h-full flex-col items-center justify-center gap-5 p-6">
         {lb.own && (
           <div className="w-full max-w-sm animate-bounce-in rounded-2xl bg-gradient-to-r from-blue-800 to-blue-500 p-5 text-center shadow-xl shadow-blue-600/30">
-            <div className="text-3xl">{view.me?.emoji}</div>
+            <QuizAvatar id={myAvatarId} expression={myExpression} size="lg" />
             <div className="mt-1 text-xl font-black">
               Siz {lb.own.rank}-o&apos;rindasiz — {fmtNumber(lb.own.score)} ball
             </div>
@@ -377,7 +398,7 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
                 <span className="flex w-7 justify-center text-base font-black">
                   <RankMedal place={row.rank} size="sm" showBadge />
                 </span>
-              <span className="text-2xl">{row.emoji}</span>
+              <QuizAvatar id={row.emoji} expression={resolveQuizExpression(view.phase)} size="md" />
               <span className="min-w-0 flex-1 truncate font-semibold">{row.name}</span>
               <span className="font-mono font-black">{fmtNumber(row.score)}</span>
             </div>
@@ -408,6 +429,9 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
     return shell(
       <div className="flex min-h-full flex-col items-center justify-center gap-5 p-6">
         <div className="w-full max-w-sm animate-bounce-in rounded-3xl bg-gradient-to-br from-blue-800 via-blue-600 to-cyan-600 p-6 text-center shadow-2xl shadow-blue-600/30">
+          <div className="mb-3 flex justify-center">
+            <QuizAvatar id={myAvatarId} expression="happy-face" size="3xl" />
+          </div>
           <div className="flex justify-center">
             {p.place ? (
               <RankMedal place={p.place} size="xl" />
@@ -475,7 +499,7 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
                 <span className="flex w-7 justify-center">
                   <RankMedal place={t.place} size="sm" showBadge />
                 </span>
-                <span className="text-2xl">{t.emoji}</span>
+                <QuizAvatar id={t.emoji} expression="happy-face" size="md" />
                 <span className="min-w-0 flex-1 truncate font-semibold">{t.name}</span>
                 <span className="font-mono font-black">{fmtNumber(t.score)}</span>
               </div>

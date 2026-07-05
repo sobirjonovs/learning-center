@@ -4,12 +4,9 @@ import { can, requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parseJsonArray } from "@/lib/utils";
 import { Users } from "lucide-react";
-import { ActiveBadge, Badge, EmptyState, PageHeader, Table, Td, Th, btn, inputCls } from "@/components/ui";
-import { ConfirmButton } from "@/components/confirm-button";
+import { ActiveBadge, Badge, EmptyState, PageHeader, Table, Td, TdActions, Th, ThActions, btn, inputCls } from "@/components/ui";
+import { TableRowActions } from "@/components/table-row-actions";
 import { deleteGroup, toggleGroup } from "./actions";
-
-const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
 
 export default async function GroupsPage({
   searchParams,
@@ -80,12 +77,12 @@ export default async function GroupsPage({
               <Th>Vaqti</Th>
               <Th>Xona</Th>
               <Th>Holat</Th>
-              <Th className="text-right">Amallar</Th>
+              <ThActions>Amallar</ThActions>
             </>
           }
         >
           {groups.map((g) => (
-            <tr key={g.id} className="hover:bg-white/[0.04]">
+            <tr key={g.id} className="group/row hover:bg-white/[0.04] classic-canvas:hover:bg-slate-50/80">
               <Td>
                 <Link href={`/admin/groups/${g.id}`} className="font-medium text-slate-100 hover:text-blue-400">
                   {g.name}
@@ -93,15 +90,15 @@ export default async function GroupsPage({
               </Td>
               <Td>
                 {g.subject ? (
-                  <Badge className="bg-violet-500/15 text-violet-400">{g.subject.name}</Badge>
+                  <Badge tone="violet">{g.subject.name}</Badge>
                 ) : (
                   <span className="text-slate-500">—</span>
                 )}
               </Td>
               <Td>
-                <Badge className="bg-cyan-500/15 text-cyan-400">{g.type ?? "—"}</Badge>
+                <Badge tone="sky">{g.type ?? "—"}</Badge>
               </Td>
-              <Td className="text-slate-600">
+              <Td className="max-w-[9rem] text-slate-600">
                 {g.teacher ? (
                   <Link href={`/admin/teachers/${g.teacher.id}`} className="hover:text-blue-400">
                     {g.teacher.name}
@@ -110,38 +107,39 @@ export default async function GroupsPage({
                   "—"
                 )}
               </Td>
-              <Td className="text-slate-600">{g._count.students} ta</Td>
-              <Td className="max-w-48 text-slate-600">{parseJsonArray(g.days).join(", ")}</Td>
+              <Td className="whitespace-nowrap text-slate-600">{g._count.students} ta</Td>
+              <Td className="max-w-[8rem] text-slate-600">
+                <span className="line-clamp-2 text-xs leading-snug" title={parseJsonArray(g.days).join(", ")}>
+                  {parseJsonArray(g.days).join(", ") || "—"}
+                </span>
+              </Td>
               <Td className="whitespace-nowrap text-slate-600">{g.time}</Td>
-              <Td className="text-slate-600">{g.room ?? "—"}</Td>
+              <Td className="whitespace-nowrap text-slate-600">{g.room ?? "—"}</Td>
               <Td>
                 <ActiveBadge active={g.active} />
               </Td>
-              <Td>
-                <div className="flex items-center justify-end gap-1.5">
-                  <Link href={`/admin/groups/${g.id}`} className={btn.small}>
-                    Ko'rish
-                  </Link>
-                  <Link href={`/admin/groups/${g.id}/edit`} className={btn.small}>
-                    Tahrirlash
-                  </Link>
-                  <form action={toggleGroup}>
-                    <input type="hidden" name="id" value={g.id} />
-                    <button type="submit" className={btn.small}>
-                      {g.active ? "Faolsizlantirish" : "Faollashtirish"}
-                    </button>
-                  </form>
-                  <form action={deleteGroup}>
-                    <input type="hidden" name="id" value={g.id} />
-                    <ConfirmButton
-                      message={`"${g.name}" guruhi o'chirilsinmi? Davomat, vazifa va imtihon yozuvlari ham o'chadi.`}
-                      className={dangerSmall}
-                    >
-                      O'chirish
-                    </ConfirmButton>
-                  </form>
-                </div>
-              </Td>
+              <TdActions>
+                <TableRowActions
+                  links={[
+                    { href: `/admin/groups/${g.id}`, label: "Ko'rish" },
+                    { href: `/admin/groups/${g.id}/edit`, label: "Tahrirlash" },
+                  ]}
+                  forms={[
+                    {
+                      action: toggleGroup,
+                      id: g.id,
+                      label: g.active ? "Faolsizlantirish" : "Faollashtirish",
+                    },
+                    {
+                      action: deleteGroup,
+                      id: g.id,
+                      label: "O'chirish",
+                      confirm: `"${g.name}" guruhi o'chirilsinmi? Davomat, vazifa va imtihon yozuvlari ham o'chadi.`,
+                      danger: true,
+                    },
+                  ]}
+                />
+              </TdActions>
             </tr>
           ))}
         </Table>

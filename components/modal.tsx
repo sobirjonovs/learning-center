@@ -40,13 +40,13 @@ export function Modal({
   const overlay =
     open && mounted ? (
       <div
-        className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-md"
+        className="fixed inset-0 z-50 flex cursor-pointer items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-md"
         onClick={(e) => e.target === e.currentTarget && setOpen(false)}
       >
         <div
           ref={ref}
           className={cn(
-            "my-8 w-full animate-pop rounded-2xl border p-6 shadow-xl",
+            "my-8 w-full cursor-default animate-pop rounded-2xl border p-6 shadow-xl",
             wide ? "max-w-3xl" : "max-w-lg",
             isLight
               ? "border-slate-200 bg-white shadow-2xl"
@@ -84,7 +84,9 @@ export function Modal({
 
   return (
     <>
-      <span onClick={() => setOpen(true)}>{trigger}</span>
+      <span className="cursor-pointer" onClick={() => setOpen(true)}>
+        {trigger}
+      </span>
       {mounted && overlay ? createPortal(overlay, document.body) : null}
     </>
   );

@@ -119,7 +119,7 @@ export function StyledSelect({
                 setOpen(false);
               }}
               className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition duration-150",
+                "flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition duration-150",
                 isSelected
                   ? isLight
                     ? "bg-blue-50 font-medium text-blue-700 shadow-sm"
@@ -160,7 +160,7 @@ export function StyledSelect({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-sm shadow-sm transition duration-150",
+          "flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border px-3.5 py-2.5 text-sm shadow-sm transition duration-150",
           isLight
             ? "border-slate-200 bg-white text-slate-900 hover:border-slate-300"
             : "border-white/12 bg-white/[0.06] text-ink shadow-black/10 hover:border-white/20 hover:bg-white/[0.08]",

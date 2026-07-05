@@ -203,7 +203,7 @@ export function ActiveBadge({ active }: { active: boolean }) {
 
 // ---------------- Button styles ----------------
 const btnBase =
-  "inline-flex items-center justify-center gap-2 font-semibold transition duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas classic:focus-visible:ring-offset-white";
+  "inline-flex cursor-pointer items-center justify-center gap-2 font-semibold transition duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas classic:focus-visible:ring-offset-white";
 
 export const btn = {
   primary: cn(
@@ -294,7 +294,7 @@ export function Label({
   hint?: string;
 }) {
   return (
-    <label htmlFor={htmlFor} className="mb-1.5 block">
+    <label htmlFor={htmlFor} className={cn("mb-1.5 block", htmlFor && "cursor-pointer")}>
       <span className="text-sm font-medium text-slate-300 classic:text-slate-700">
         {children}
         {required && <span className="text-rose-400 classic:text-rose-500"> *</span>}
@@ -356,6 +356,15 @@ export function Field({
 }
 
 // ---------------- Table ----------------
+const stickyActionsShadow =
+  "shadow-[-8px_0_16px_-8px_rgb(0_0_0/0.35)] classic-canvas:shadow-[-8px_0_12px_-8px_rgb(15_23_42/0.06)]";
+
+const stickyThCls =
+  "sticky right-0 z-20 whitespace-nowrap bg-surface/95 px-4 py-3 text-right font-semibold backdrop-blur-md classic-canvas:bg-slate-50";
+
+const stickyTdCls =
+  "sticky right-0 z-10 bg-surface/95 px-4 py-3 align-middle backdrop-blur-md group-hover/row:bg-surface-hover/95 classic-canvas:bg-white classic-canvas:group-hover/row:bg-slate-50";
+
 export function Table({
   head,
   children,
@@ -366,25 +375,43 @@ export function Table({
   className?: string;
 }) {
   return (
-    <div className={cn("glass-card overflow-x-auto !p-0", className)}>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-white/10 bg-white/[0.03] text-xs font-semibold uppercase tracking-wider text-slate-400 classic-canvas:border-slate-200 classic-canvas:bg-slate-50 classic-canvas:text-slate-500">
-            {head}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-white/5 classic-canvas:divide-slate-100">{children}</tbody>
-      </table>
+    <div className={cn("glass-card overflow-hidden !p-0", className)}>
+      <div className="overflow-x-auto overscroll-x-contain">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-white/10 bg-white/[0.03] text-xs font-semibold uppercase tracking-wider text-slate-400 classic-canvas:border-slate-200 classic-canvas:bg-slate-50 classic-canvas:text-slate-500">
+              {head}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5 classic-canvas:divide-slate-100">{children}</tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
 export function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <th className={cn("px-4 py-3.5 font-semibold", className)}>{children}</th>;
+  return <th className={cn("whitespace-nowrap px-4 py-3 font-semibold", className)}>{children}</th>;
+}
+
+export function ThActions({ children, className }: { children?: React.ReactNode; className?: string }) {
+  return (
+    <th className={cn(stickyThCls, stickyActionsShadow, className)}>
+      {children}
+    </th>
+  );
 }
 
 export function Td({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <td className={cn("px-4 py-3.5 align-middle text-slate-300 classic-canvas:text-slate-600", className)}>{children}</td>;
+  return <td className={cn("px-4 py-3 align-middle text-slate-300 classic-canvas:text-slate-600", className)}>{children}</td>;
+}
+
+export function TdActions({ children, className }: { children?: React.ReactNode; className?: string }) {
+  return (
+    <td className={cn(stickyTdCls, stickyActionsShadow, className)}>
+      {children}
+    </td>
+  );
 }
 
 // ---------------- Avatar ----------------
@@ -469,7 +496,7 @@ export function PageHeader({
         {backHref && (
           <Link
             href={backHref}
-            className="mb-2 inline-flex items-center gap-1 rounded-lg px-1 py-0.5 text-xs font-medium text-slate-500 transition hover:text-blue-400"
+            className="mb-2 inline-flex cursor-pointer items-center gap-1 rounded-lg px-1 py-0.5 text-xs font-medium text-slate-500 transition hover:text-blue-400"
           >
             <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
             Orqaga
@@ -522,7 +549,7 @@ export function LinkTabs({
           key={t.key}
           href={t.href}
           className={cn(
-            "rounded-lg px-4 py-2 text-sm font-medium transition duration-150",
+            "cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition duration-150",
             current === t.key
               ? "bg-gradient-to-b from-blue-500 to-brand-600 text-white shadow-md shadow-blue-600/25 classic:shadow-sm"
               : "text-slate-400 hover:bg-white/5 hover:text-white classic:text-slate-600 classic:hover:bg-white classic:hover:text-slate-900"
@@ -537,4 +564,4 @@ export function LinkTabs({
 
 // ---------------- Link accent (sahifalar ichidagi "Barchasi →" havolalar) ----------------
 export const linkAccent =
-  "text-xs font-medium text-blue-400 transition hover:text-blue-300 classic-canvas:text-blue-600 classic-canvas:hover:text-blue-700";
+  "cursor-pointer text-xs font-medium text-blue-400 transition hover:text-blue-300 classic-canvas:text-blue-600 classic-canvas:hover:text-blue-700";

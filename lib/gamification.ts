@@ -283,7 +283,7 @@ export async function getRating(studentIds: string[], since?: Date): Promise<Rat
 
 async function grant(studentId: string, code: string): Promise<void> {
   const achievement = await db.achievement.findUnique({ where: { code } });
-  if (!achievement) return;
+  if (!achievement?.active) return;
   const existing = await db.studentAchievement.findUnique({
     where: { studentId_achievementId: { studentId, achievementId: achievement.id } },
   });

@@ -14,7 +14,7 @@ export default async function StudentAchievementsPage() {
 
   const [user, achievements, earnedRows, onTimeCount, earlyCount] = await Promise.all([
     db.user.findUnique({ where: { id: session.id }, select: { streak: true } }),
-    db.achievement.findMany({ orderBy: { xpReward: "asc" } }),
+    db.achievement.findMany({ where: { active: true }, orderBy: { xpReward: "asc" } }),
     db.studentAchievement.findMany({
       where: { studentId: session.id },
       include: { achievement: true },

@@ -87,12 +87,16 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   return (
-    <ThemedCanvas variant={variant}>
+    <ThemedCanvas variant={variant} data-app-shell>
       <Sidebar items={items} brand={brand} brandIcon={brandIcon} accent={accent} variant={variant} />
-      <div className="relative z-10 lg:pl-64">
-        <AppHeader session={session} brand={brand} variant={variant} headerExtra={headerExtra} />
-        <main className="p-4 md:p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl animate-fade-in">{children}</div>
+      <div className="relative z-10 lg:pl-64" data-app-shell-content>
+        <div data-app-shell-header>
+          <AppHeader session={session} brand={brand} variant={variant} headerExtra={headerExtra} />
+        </div>
+        <main className="p-4 md:p-6 lg:p-8" data-app-shell-main>
+          <div className="mx-auto max-w-7xl animate-fade-in" data-app-shell-inner>
+            {children}
+          </div>
         </main>
       </div>
     </ThemedCanvas>
