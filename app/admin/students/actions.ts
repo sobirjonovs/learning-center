@@ -9,6 +9,7 @@ import { requirePermission, requireRole } from "@/lib/auth";
 import { logActivity } from "@/lib/log";
 import { saveUpload } from "@/lib/uploads";
 import { STUDENT_TYPES, type PermissionKey } from "@/lib/constants";
+import { actionErr, actionOk, type ActionResult } from "@/lib/action-result";
 
 async function guard(permission: PermissionKey) {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
@@ -120,11 +121,11 @@ export async function updateStudent(formData: FormData) {
   redirect(`/admin/students/${id}`);
 }
 
-export async function toggleStudent(formData: FormData) {
+export async function toggleStudent(formData: FormData): Promise<ActionResult> {
   const session = await guard("students.edit");
   const id = String(formData.get("id") ?? "");
   const student = await db.user.findUnique({ where: { id } });
-  if (!student || student.role !== "STUDENT") return;
+  if (!student || student.role !== "STUDENT") return actionErr("O'quvchi topilmadi");
 
   await db.user.update({ where: { id }, data: { active: !student.active } });
   await logActivity(
@@ -135,17 +136,24 @@ export async function toggleStudent(formData: FormData) {
   revalidatePath("/admin/students");
   revalidatePath(`/admin/students/${id}`);
   revalidatePath("/admin");
+  return actionOk(
+    student.active ? `"${student.name}" faolsizlantirildi` : `"${student.name}" faollashtirildi`
+  );
 }
 
-export async function deleteStudent(formData: FormData) {
+export async function deleteStudent(formData: FormData): Promise<ActionResult> {
   const session = await guard("students.delete");
   const id = String(formData.get("id") ?? "");
   const student = await db.user.findUnique({ where: { id } });
-  if (!student || student.role !== "STUDENT") return;
+  if (!student || student.role !== "STUDENT") return actionErr("O'quvchi topilmadi");
 
-  await db.user.delete({ where: { id } });
-  await logActivity(session.id, "O'quvchini o'chirdi", student.name);
-  revalidatePath("/admin/students");
-  revalidatePath("/admin");
-  redirect("/admin/students");
+  try {
+    await db.user.delete({ where: { id } });
+    await logActivity(session.id, "O'quvchini o'chirdi", student.name);
+    revalidatePath("/admin/students");
+    revalidatePath("/admin");
+    return actionOk(`"${student.name}" o'chirildi`);
+  } catch {
+    return actionErr("O'quvchini o'chirib bo'lmadi. Bog'liq ma'lumotlar mavjud bo'lishi mumkin.");
+  }
 }

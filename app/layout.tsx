@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Orbitron, Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ToastProvider } from "@/components/toast-provider";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -34,7 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className={jakarta.className}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

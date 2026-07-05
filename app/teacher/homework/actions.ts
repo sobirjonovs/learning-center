@@ -10,6 +10,8 @@ import { saveUpload } from "@/lib/uploads";
 import { logActivity } from "@/lib/log";
 import { awardForHomework, computeHomeworkScore } from "@/lib/gamification";
 
+export type GradeState = { success?: string; error?: string };
+
 function parseIntField(v: FormDataEntryValue | null, fallback: number, min: number, max: number): number {
   const n = Math.round(Number(String(v ?? "").trim()));
   return Number.isFinite(n) ? clamp(n, min, max) : fallback;
@@ -129,7 +131,10 @@ export async function deleteHomework(formData: FormData): Promise<void> {
 }
 
 /** Topshiriqni baholash: "ACCEPT" — qabul qilish, "RETURN" — qayta ishlashga yuborish. */
-export async function gradeSubmission(formData: FormData): Promise<void> {
+export async function gradeSubmission(
+  _prev: GradeState,
+  formData: FormData
+): Promise<GradeState> {
   const session = await requireRole("TEACHER");
 
   const submissionId = String(formData.get("submissionId") ?? "");
@@ -140,48 +145,59 @@ export async function gradeSubmission(formData: FormData): Promise<void> {
     where: { id: submissionId },
     include: { homework: { include: { group: true } }, student: { select: { name: true } } },
   });
-  if (!sub || sub.homework.group.teacherId !== session.id) return;
+  if (!sub || sub.homework.group.teacherId !== session.id) {
+    return { error: "Topshiriq topilmadi yoki ruxsat yo'q" };
+  }
 
   const hw = sub.homework;
   const previousScore = sub.status === "ACCEPTED" && sub.score !== null ? sub.score : null;
 
-  if (decision === "RETURN") {
-    await db.submission.update({
-      where: { id: sub.id },
-      data: { status: "RETURNED", feedback, score: null, bonus: 0, penalty: 0, gradedAt: new Date() },
-    });
-    // Avval qabul qilingan bo'lsa, berilgan ballarni qaytarib olamiz
-    if (previousScore !== null) {
-      await awardForHomework(sub.studentId, 0, previousScore, hw.title, sub.id);
+  try {
+    if (decision === "RETURN") {
+      await db.submission.update({
+        where: { id: sub.id },
+        data: { status: "RETURNED", feedback, score: null, bonus: 0, penalty: 0, gradedAt: new Date() },
+      });
+      if (previousScore !== null) {
+        await awardForHomework(sub.studentId, 0, previousScore, hw.title, sub.id);
+      }
+      await logActivity(session.id, "Vazifani qayta ishlashga yubordi", `${hw.title} — ${sub.student.name}`);
+      revalidatePath(`/teacher/homework/${hw.id}`);
+      revalidatePath("/teacher/homework");
+      revalidatePath("/teacher");
+      return { success: `${sub.student.name} vazifasi qayta ishlashga yuborildi` };
     }
-    await logActivity(session.id, "Vazifani qayta ishlashga yubordi", `${hw.title} — ${sub.student.name}`);
-  } else if (decision === "ACCEPT") {
-    const raw = String(formData.get("base") ?? "").trim();
-    if (raw === "") return;
-    const parsed = Math.round(Number(raw));
-    if (!Number.isFinite(parsed)) return;
-    const base = clamp(parsed, 0, hw.maxScore);
 
-    const compute = computeHomeworkScore(base, hw.dueAt, sub.submittedAt, hw.earlyBonus, hw.latePenalty);
-    await db.submission.update({
-      where: { id: sub.id },
-      data: {
-        status: "ACCEPTED",
-        baseScore: base,
-        bonus: compute.bonus,
-        penalty: compute.penalty,
-        score: compute.final,
-        feedback,
-        gradedAt: new Date(),
-      },
-    });
-    await awardForHomework(sub.studentId, compute.final, previousScore, hw.title, sub.id);
-    await logActivity(session.id, "Vazifani baholadi", `${hw.title} — ${sub.student.name}: ${compute.final} ball`);
-  } else {
-    return;
+    if (decision === "ACCEPT") {
+      const raw = String(formData.get("base") ?? "").trim();
+      if (raw === "") return { error: "Ball kiritilmagan" };
+      const parsed = Math.round(Number(raw));
+      if (!Number.isFinite(parsed)) return { error: "Ball noto'g'ri kiritilgan" };
+      const base = clamp(parsed, 0, hw.maxScore);
+
+      const compute = computeHomeworkScore(base, hw.dueAt, sub.submittedAt, hw.earlyBonus, hw.latePenalty);
+      await db.submission.update({
+        where: { id: sub.id },
+        data: {
+          status: "ACCEPTED",
+          baseScore: base,
+          bonus: compute.bonus,
+          penalty: compute.penalty,
+          score: compute.final,
+          feedback,
+          gradedAt: new Date(),
+        },
+      });
+      await awardForHomework(sub.studentId, compute.final, previousScore, hw.title, sub.id);
+      await logActivity(session.id, "Vazifani baholadi", `${hw.title} — ${sub.student.name}: ${compute.final} ball`);
+      revalidatePath(`/teacher/homework/${hw.id}`);
+      revalidatePath("/teacher/homework");
+      revalidatePath("/teacher");
+      return { success: `${sub.student.name} vazifasi qabul qilindi — ${compute.final} ball` };
+    }
+
+    return { error: "Noto'g'ri amal tanlandi" };
+  } catch {
+    return { error: "Baholashda xatolik yuz berdi. Qayta urinib ko'ring." };
   }
-
-  revalidatePath(`/teacher/homework/${hw.id}`);
-  revalidatePath("/teacher/homework");
-  revalidatePath("/teacher");
 }

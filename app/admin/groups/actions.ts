@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { requirePermission, requireRole } from "@/lib/auth";
 import { logActivity } from "@/lib/log";
 import { GROUP_TYPES, WEEKDAYS, type PermissionKey } from "@/lib/constants";
+import { actionErr, actionOk, type ActionResult } from "@/lib/action-result";
 
 async function guard(permission: PermissionKey) {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
@@ -112,11 +113,11 @@ export async function updateGroup(formData: FormData) {
   redirect(`/admin/groups/${id}`);
 }
 
-export async function toggleGroup(formData: FormData) {
+export async function toggleGroup(formData: FormData): Promise<ActionResult> {
   const session = await guard("groups.manage");
   const id = String(formData.get("id") ?? "");
   const group = await db.group.findUnique({ where: { id } });
-  if (!group) return;
+  if (!group) return actionErr("Guruh topilmadi");
 
   await db.group.update({ where: { id }, data: { active: !group.active } });
   await logActivity(
@@ -127,19 +128,26 @@ export async function toggleGroup(formData: FormData) {
   revalidatePath("/admin/groups");
   revalidatePath(`/admin/groups/${id}`);
   revalidatePath("/admin");
+  return actionOk(
+    group.active ? `"${group.name}" faolsizlantirildi` : `"${group.name}" faollashtirildi`
+  );
 }
 
-export async function deleteGroup(formData: FormData) {
+export async function deleteGroup(formData: FormData): Promise<ActionResult> {
   const session = await guard("groups.manage");
   const id = String(formData.get("id") ?? "");
   const group = await db.group.findUnique({ where: { id } });
-  if (!group) return;
+  if (!group) return actionErr("Guruh topilmadi");
 
-  await db.group.delete({ where: { id } });
-  await logActivity(session.id, "Guruhni o'chirdi", group.name);
-  revalidatePath("/admin/groups");
-  revalidatePath("/admin");
-  redirect("/admin/groups");
+  try {
+    await db.group.delete({ where: { id } });
+    await logActivity(session.id, "Guruhni o'chirdi", group.name);
+    revalidatePath("/admin/groups");
+    revalidatePath("/admin");
+    return actionOk(`"${group.name}" guruhi o'chirildi`);
+  } catch {
+    return actionErr("Guruhni o'chirib bo'lmadi. Bog'liq ma'lumotlar mavjud bo'lishi mumkin.");
+  }
 }
 
 export async function addStudentToGroup(formData: FormData) {

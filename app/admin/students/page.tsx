@@ -176,6 +176,7 @@ export default async function StudentsPage({
                             label: "O'chirish",
                             confirm: `${s.name} o'chirilsinmi? Barcha natijalari ham o'chib ketadi.`,
                             danger: true,
+                            deferredDelete: true,
                           },
                         ]
                       : []),

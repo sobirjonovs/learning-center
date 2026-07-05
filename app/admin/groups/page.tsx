@@ -136,6 +136,7 @@ export default async function GroupsPage({
                       label: "O'chirish",
                       confirm: `"${g.name}" guruhi o'chirilsinmi? Davomat, vazifa va imtihon yozuvlari ham o'chadi.`,
                       danger: true,
+                      deferredDelete: true,
                     },
                   ]}
                 />
