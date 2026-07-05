@@ -58,7 +58,7 @@ export default async function SettingsPage() {
                 bo&apos;lsa — 5000 quiz balli 75 magazin balli beradi.
               </p>
             </Field>
-            <div className="flex justify-end border-t border-slate-100 pt-4">
+            <div className="flex justify-end border-t border-white/10 pt-4">
               <button type="submit" className={btn.primary}>
                 Saqlash
               </button>
@@ -69,25 +69,25 @@ export default async function SettingsPage() {
         <Card>
           <CardTitle>O&apos;zgarmas stavkalar (ma&apos;lumot uchun)</CardTitle>
           <ul className="space-y-2 text-sm text-slate-600">
-            <li className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
+            <li className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3.5 py-2.5">
               <span>Uyga vazifa — XP</span>
-              <span className="font-semibold text-slate-800">
+              <span className="font-semibold text-slate-100">
                 yakuniy ball × {RATES.homeworkXp}
               </span>
             </li>
-            <li className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
+            <li className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3.5 py-2.5">
               <span>Uyga vazifa — magazin balli</span>
-              <span className="font-semibold text-slate-800">
+              <span className="font-semibold text-slate-100">
                 yakuniy ball × {RATES.homeworkPoints}
               </span>
             </li>
-            <li className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
+            <li className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3.5 py-2.5">
               <span>Imtihon — XP</span>
-              <span className="font-semibold text-slate-800">natija × {RATES.examXp}</span>
+              <span className="font-semibold text-slate-100">natija × {RATES.examXp}</span>
             </li>
-            <li className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
+            <li className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3.5 py-2.5">
               <span>Imtihon — magazin balli</span>
-              <span className="font-semibold text-slate-800">natija × {RATES.examPoints}</span>
+              <span className="font-semibold text-slate-100">natija × {RATES.examPoints}</span>
             </li>
           </ul>
           <p className="mt-3 text-xs text-slate-400">

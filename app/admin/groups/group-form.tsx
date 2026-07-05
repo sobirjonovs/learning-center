@@ -9,6 +9,7 @@ type GroupData = {
   name: string;
   type: string | null;
   teacherId: string | null;
+  subjectId: string | null;
   days: string;
   time: string;
   room: string | null;
@@ -17,6 +18,8 @@ type GroupData = {
   active: boolean;
 };
 
+type SubjectOption = { id: string; name: string };
+
 const ERROR_TEXT: Record<string, string> = {
   required: "Majburiy maydonlarni to'ldiring (nomi, dars kunlari va vaqti).",
 };
@@ -24,11 +27,13 @@ const ERROR_TEXT: Record<string, string> = {
 export function GroupForm({
   group,
   teachers,
+  subjects,
   action,
   error,
 }: {
   group?: GroupData;
   teachers: Array<{ id: string; name: string }>;
+  subjects: SubjectOption[];
   action: (formData: FormData) => Promise<void>;
   error?: string;
 }) {
@@ -65,6 +70,17 @@ export function GroupForm({
           </select>
         </Field>
 
+        <Field label="Fan kategoriyasi">
+          <select name="subjectId" defaultValue={group?.subjectId ?? ""} className={inputCls}>
+            <option value="">— Tanlanmagan —</option>
+            {subjects.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+
         <Field label="O'qituvchi">
           <select name="teacherId" defaultValue={group?.teacherId ?? ""} className={inputCls}>
             <option value="">— Biriktirilmagan —</option>
@@ -81,7 +97,7 @@ export function GroupForm({
             {WEEKDAYS.map((day) => (
               <label
                 key={day}
-                className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5"
               >
                 <input
                   type="checkbox"
@@ -129,7 +145,7 @@ export function GroupForm({
         </Field>
       </div>
 
-      <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+      <label className="flex items-center gap-2 text-sm font-medium text-slate-200">
         <input
           type="checkbox"
           name="active"

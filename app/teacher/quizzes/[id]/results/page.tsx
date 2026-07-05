@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fmtDateTime, fmtNumber } from "@/lib/utils";
+import { BarChart3, Flame } from "lucide-react";
 import { Badge, EmptyState, PageHeader, Table, Td, Th } from "@/components/ui";
-
-const MEDALS = ["🥇", "🥈", "🥉"];
+import { RankMedal } from "@/components/rank-medal";
 
 export default async function QuizResultsPage({
   params,
@@ -41,14 +41,19 @@ export default async function QuizResultsPage({
   return (
     <div>
       <PageHeader
-        title={`📊 Natijalar: ${quiz.name}`}
+        title={
+          <span className="inline-flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" strokeWidth={1.75} />
+            Natijalar: {quiz.name}
+          </span>
+        }
         subtitle={`${sessionList.length} ta o'tkazilgan sessiya · ${results.length} ta natija`}
         backHref={`/teacher/quizzes/${quiz.id}`}
       />
 
       {sessionList.length === 0 ? (
         <EmptyState
-          icon="📊"
+          icon={BarChart3}
           title="Hali natijalar yo'q"
           hint="Quiz o'tkazilgach, o'quvchilar natijalari shu yerda ko'rinadi."
         />
@@ -68,25 +73,28 @@ export default async function QuizResultsPage({
                     <Th>O&apos;quvchi</Th>
                     <Th className="text-right">Ball</Th>
                     <Th className="text-center">To&apos;g&apos;ri / Noto&apos;g&apos;ri</Th>
-                    <Th className="text-center">🔥 Streak</Th>
+                    <Th className="text-center">
+                      <span className="inline-flex items-center justify-center gap-1">
+                        <Flame className="h-3.5 w-3.5 text-amber-500" strokeWidth={1.75} />
+                        Streak
+                      </span>
+                    </Th>
                     <Th className="text-right">XP / Bonus</Th>
                     <Th>Sana</Th>
                   </>
                 }
               >
                 {s.rows.map((r) => (
-                  <tr key={r.id} className="transition hover:bg-slate-50/60">
-                    <Td className="text-lg">
-                      {r.place && r.place <= 3 ? (
-                        MEDALS[r.place - 1]
+                  <tr key={r.id} className="transition hover:bg-white/[0.04]">
+                    <Td>
+                      {r.place ? (
+                        <RankMedal place={r.place} size="sm" showBadge />
                       ) : (
-                        <span className="text-sm font-semibold text-slate-500">
-                          {r.place ?? "—"}
-                        </span>
+                        <span className="text-sm font-semibold text-slate-500">—</span>
                       )}
                     </Td>
-                    <Td className="font-semibold text-slate-900">{r.student.name}</Td>
-                    <Td className="text-right font-bold text-indigo-600">
+                    <Td className="font-semibold text-white">{r.student.name}</Td>
+                    <Td className="text-right font-bold text-blue-400">
                       {fmtNumber(r.score)}
                     </Td>
                     <Td className="text-center">

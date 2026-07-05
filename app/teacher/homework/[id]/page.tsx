@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { SUBMISSION_STATUS, type SubmissionStatus } from "@/lib/constants";
 import { fmtDateTime } from "@/lib/utils";
 import { computeHomeworkScore } from "@/lib/gamification";
+import { Hourglass, Inbox, Scale, Target } from "lucide-react";
 import {
   Avatar,
   Badge,
@@ -68,21 +69,21 @@ export default async function HomeworkGradingPage({
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Maksimal ball" value={hw.maxScore} icon="🎯" tone="indigo" />
+        <StatCard label="Maksimal ball" value={hw.maxScore} icon={Target} tone="indigo" />
         <StatCard
           label="Erta bonus / kech jarima"
           value={`+${hw.earlyBonus} / -${hw.latePenalty}`}
-          icon="⚖️"
+          icon={Scale}
           tone="violet"
           hint="Har bir kun uchun"
         />
         <StatCard
           label="Topshirdi"
           value={`${submittedCount}/${hw.group.students.length}`}
-          icon="📥"
+          icon={Inbox}
           tone="sky"
         />
-        <StatCard label="Tekshirilmagan" value={ungradedCount} icon="⏳" tone="amber" />
+        <StatCard label="Tekshirilmagan" value={ungradedCount} icon={Hourglass} tone="amber" />
       </div>
 
       {(hw.description || hw.fileUrl || hw.link) && (
@@ -92,12 +93,12 @@ export default async function HomeworkGradingPage({
           )}
           <div className="mt-2 flex flex-wrap gap-4 text-sm">
             {hw.fileUrl && (
-              <a href={hw.fileUrl} target="_blank" className="font-medium text-indigo-600 hover:underline">
+              <a href={hw.fileUrl} target="_blank" className="font-medium text-blue-400 hover:underline">
                 📎 Vazifa fayli
               </a>
             )}
             {hw.link && (
-              <a href={hw.link} target="_blank" className="font-medium text-indigo-600 hover:underline">
+              <a href={hw.link} target="_blank" className="font-medium text-blue-400 hover:underline">
                 🔗 Vazifa havolasi
               </a>
             )}
@@ -105,7 +106,7 @@ export default async function HomeworkGradingPage({
         </Card>
       )}
 
-      <h3 className="mb-3 text-sm font-semibold text-slate-700">
+      <h3 className="mb-3 text-sm font-semibold text-slate-200">
         O'quvchilar topshiriqlari ({hw.group.students.length})
       </h3>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -113,7 +114,7 @@ export default async function HomeworkGradingPage({
           const sub = subByStudent.get(m.student.id);
           if (!sub) {
             return (
-              <Card key={m.student.id} className="bg-slate-50">
+              <Card key={m.student.id} className="bg-white/5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <Avatar name={m.student.name} image={m.student.image} size="sm" />
@@ -142,7 +143,7 @@ export default async function HomeworkGradingPage({
                 <div className="flex items-center gap-3">
                   <Avatar name={m.student.name} image={m.student.image} size="sm" />
                   <div>
-                    <div className="text-sm font-semibold text-slate-800">{m.student.name}</div>
+                    <div className="text-sm font-semibold text-slate-100">{m.student.name}</div>
                     <div className="text-xs text-slate-400">
                       {fmtDateTime(sub.submittedAt)} · <span className={timing.cls}>{timing.text}</span>
                     </div>
@@ -154,14 +155,14 @@ export default async function HomeworkGradingPage({
               </div>
 
               {(sub.link || sub.fileUrl || sub.comment) && (
-                <div className="mt-3 space-y-1.5 rounded-xl bg-slate-50 p-3 text-sm">
+                <div className="mt-3 space-y-1.5 rounded-xl bg-white/5 p-3 text-sm">
                   {sub.link && (
-                    <a href={sub.link} target="_blank" className="block truncate font-medium text-indigo-600 hover:underline">
+                    <a href={sub.link} target="_blank" className="block truncate font-medium text-blue-400 hover:underline">
                       🔗 {sub.link}
                     </a>
                   )}
                   {sub.fileUrl && (
-                    <a href={sub.fileUrl} target="_blank" className="block font-medium text-indigo-600 hover:underline">
+                    <a href={sub.fileUrl} target="_blank" className="block font-medium text-blue-400 hover:underline">
                       📎 Yuklangan fayl
                     </a>
                   )}
@@ -176,7 +177,7 @@ export default async function HomeworkGradingPage({
                 </div>
               )}
 
-              <form action={gradeSubmission} className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+              <form action={gradeSubmission} className="mt-4 space-y-3 border-t border-white/10 pt-4">
                 <input type="hidden" name="submissionId" value={sub.id} />
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label={`Ball (0-${hw.maxScore})`}>

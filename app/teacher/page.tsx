@@ -3,8 +3,10 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { weekdayNameFor } from "@/lib/constants";
-import { fmtDateTime, fmtNumber, parseJsonArray, pct } from "@/lib/utils";
+import { addDays, dateStr, fmtDate, fmtDateTime, fmtNumber, parseJsonArray, pct } from "@/lib/utils";
 import { levelFromXp } from "@/lib/gamification";
+import { BarChart, LineChart } from "@/components/charts";
+import { Calendar, CheckCircle2, GraduationCap, Inbox, PartyPopper, Trophy, Users } from "lucide-react";
 import {
   Avatar,
   Badge,
@@ -39,7 +41,7 @@ export default async function TeacherDashboardPage() {
     .filter((g) => parseJsonArray(g.days).includes(todayName))
     .sort((a, b) => a.time.localeCompare(b.time));
 
-  const [ungradedCount, attByGroup, attByStudent, students, pending] = await Promise.all([
+  const [ungradedCount, attByGroup, attByStudent, students, pending, recentAttendance] = await Promise.all([
     db.submission.count({
       where: { status: "SUBMITTED", homework: { group: { teacherId: session.id } } },
     }),
@@ -65,6 +67,10 @@ export default async function TeacherDashboardPage() {
         student: { select: { name: true, image: true } },
         homework: { select: { id: true, title: true, group: { select: { name: true } } } },
       },
+    }),
+    db.attendance.findMany({
+      where: { groupId: { in: groupIds }, date: { gte: dateStr(addDays(new Date(), -34)) } },
+      select: { date: true, status: true, groupId: true },
     }),
   ]);
 
@@ -101,25 +107,61 @@ export default async function TeacherDashboardPage() {
 
   const ratingTone =
     avgAttendance >= 85
-      ? "bg-emerald-100 text-emerald-700"
+      ? "bg-emerald-500/15 text-emerald-400"
       : avgAttendance >= 70
-        ? "bg-amber-100 text-amber-700"
-        : "bg-rose-100 text-rose-700";
+        ? "bg-amber-500/15 text-amber-400"
+        : "bg-rose-500/15 text-rose-400";
+
+  const isPresent = (s: string) => s === "PRESENT" || s === "LATE";
+  const now = new Date();
+
+  // Haftalik davomat (oxirgi 7 kun)
+  const weeklyAttendance = Array.from({ length: 7 }, (_, i) => {
+    const day = addDays(now, i - 6);
+    const ds = dateStr(day);
+    const rows = recentAttendance.filter((r) => r.date === ds);
+    return {
+      label: weekdayNameFor(day).slice(0, 2),
+      value: pct(rows.filter((r) => isPresent(r.status)).length, rows.length),
+    };
+  });
+
+  // Guruhlar bo'yicha davomat %
+  const groupAttendanceChart = groups.map((g) => {
+    const att = groupAtt.get(g.id);
+    return {
+      label: g.name.length > 10 ? `${g.name.slice(0, 9)}…` : g.name,
+      value: att ? pct(att.present, att.total) : 0,
+    };
+  });
+
+  // Oxirgi 6 hafta davomat dinamikasi
+  const weeklyTrend = Array.from({ length: 6 }, (_, i) => {
+    const end = addDays(now, -7 * (5 - i));
+    const start = addDays(end, -6);
+    const s = dateStr(start);
+    const e = dateStr(end);
+    const rows = recentAttendance.filter((r) => r.date >= s && r.date <= e);
+    return {
+      label: fmtDate(start).slice(0, 5),
+      value: pct(rows.filter((r) => isPresent(r.status)).length, rows.length),
+    };
+  });
 
   return (
     <div>
       <PageHeader title="Dashboard" subtitle={`Xush kelibsiz, ${session.name}!`} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Biriktirilgan guruhlar" value={activeGroups.length} icon="👥" tone="indigo" />
-        <StatCard label="Jami o'quvchilar" value={studentIds.length} icon="🎓" tone="sky" />
-        <StatCard label="Bugungi darslar" value={todaysGroups.length} icon="📅" tone="violet" hint={todayName} />
-        <StatCard label="Tekshirilmagan vazifalar" value={ungradedCount} icon="📥" tone="amber" />
-        <StatCard label="O'rtacha davomat" value={`${avgAttendance}%`} icon="✅" tone="emerald" />
+        <StatCard label="Biriktirilgan guruhlar" value={activeGroups.length} icon={Users} tone="indigo" />
+        <StatCard label="Jami o'quvchilar" value={studentIds.length} icon={GraduationCap} tone="sky" />
+        <StatCard label="Bugungi darslar" value={todaysGroups.length} icon={Calendar} tone="violet" hint={todayName} />
+        <StatCard label="Tekshirilmagan vazifalar" value={ungradedCount} icon={Inbox} tone="amber" />
+        <StatCard label="O'rtacha davomat" value={`${avgAttendance}%`} icon={CheckCircle2} tone="emerald" />
         <StatCard
           label="O'qituvchi reytingi"
           value={<Badge className={ratingTone}>{avgAttendance}%</Badge>}
-          icon="🏆"
+          icon={Trophy}
           tone="rose"
           hint="Guruhlar davomati asosida"
         />
@@ -128,13 +170,28 @@ export default async function TeacherDashboardPage() {
       {groups.length === 0 ? (
         <div className="mt-6">
           <EmptyState
-            icon="👥"
+            icon={Users}
             title="Sizga hali guruh biriktirilmagan"
             hint="Administrator guruh biriktirgach, bu yerda ma'lumotlar ko'rinadi."
           />
         </div>
       ) : (
         <>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            <Card>
+              <CardTitle>Haftalik davomat</CardTitle>
+              <BarChart data={weeklyAttendance} suffix="%" maxValue={100} color="#10b981" />
+            </Card>
+            <Card>
+              <CardTitle>Guruhlar bo'yicha davomat</CardTitle>
+              <BarChart data={groupAttendanceChart} suffix="%" maxValue={100} color="#3b82f6" />
+            </Card>
+            <Card>
+              <CardTitle>Davomat dinamikasi (haftalar)</CardTitle>
+              <LineChart data={weeklyTrend} suffix="%" color="#8b5cf6" />
+            </Card>
+          </div>
+
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <Card>
               <CardTitle action={<Link href="/teacher/attendance" className={btn.small}>Davomat olish</Link>}>
@@ -143,18 +200,18 @@ export default async function TeacherDashboardPage() {
               {todaysGroups.length === 0 ? (
                 <div className="py-8 text-center text-sm text-slate-400">Bugun darslar yo'q</div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-white/5">
                   {todaysGroups.map((g) => (
                     <div key={g.id} className="flex items-center justify-between gap-3 py-3">
                       <div>
-                        <Link href={`/teacher/groups/${g.id}`} className="text-sm font-semibold text-slate-800 hover:text-indigo-600">
+                        <Link href={`/teacher/groups/${g.id}`} className="text-sm font-semibold text-slate-100 hover:text-blue-400">
                           {g.name}
                         </Link>
                         <div className="text-xs text-slate-400">
                           {g._count.students} o'quvchi{g.room ? ` · ${g.room}-xona` : ""}
                         </div>
                       </div>
-                      <Badge className="bg-indigo-100 text-indigo-700">{g.time}</Badge>
+                      <Badge className="bg-blue-500/15 text-blue-400">{g.time}</Badge>
                     </div>
                   ))}
                 </div>
@@ -172,7 +229,7 @@ export default async function TeacherDashboardPage() {
                   return (
                     <div key={g.id}>
                       <div className="mb-1 flex items-center justify-between text-sm">
-                        <Link href={`/teacher/groups/${g.id}`} className="font-medium text-slate-700 hover:text-indigo-600">
+                        <Link href={`/teacher/groups/${g.id}`} className="font-medium text-slate-200 hover:text-blue-400">
                           {g.name}
                         </Link>
                         <span className="text-xs text-slate-400">
@@ -193,16 +250,16 @@ export default async function TeacherDashboardPage() {
               {topStudents.length === 0 ? (
                 <div className="py-8 text-center text-sm text-slate-400">O'quvchilar yo'q</div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-white/5">
                   {topStudents.map((s, i) => {
                     const level = levelFromXp(s.xp).level;
                     return (
                       <div key={s.id} className="flex items-center gap-3 py-2.5">
                         <span className="w-6 text-center text-sm font-semibold text-slate-400">{i + 1}</span>
                         <Avatar name={s.name} image={s.image} size="sm" />
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">{s.name}</span>
-                        <Badge className="bg-violet-100 text-violet-700">Lv {level}</Badge>
-                        <span className="text-sm font-semibold text-indigo-600">{fmtNumber(s.xp)} XP</span>
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">{s.name}</span>
+                        <Badge className="bg-violet-500/15 text-violet-400">Lv {level}</Badge>
+                        <span className="text-sm font-semibold text-blue-400">{fmtNumber(s.xp)} XP</span>
                       </div>
                     );
                   })}
@@ -215,17 +272,17 @@ export default async function TeacherDashboardPage() {
               {lowStudents.length === 0 ? (
                 <div className="py-8 text-center text-sm text-slate-400">Davomat ma'lumotlari yo'q</div>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-white/5">
                   {lowStudents.map(({ student, percent }) => (
                     <div key={student!.id} className="flex items-center gap-3 py-2.5">
                       <Avatar name={student!.name} image={student!.image} size="sm" />
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-slate-700">{student!.name}</div>
+                        <div className="truncate text-sm font-medium text-slate-200">{student!.name}</div>
                         <div className="text-xs text-slate-400">Sabab: davomat past</div>
                       </div>
                       <Badge
                         className={
-                          percent >= 70 ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"
+                          percent >= 70 ? "bg-amber-500/15 text-amber-400" : "bg-rose-500/15 text-rose-400"
                         }
                       >
                         {percent}%
@@ -242,16 +299,17 @@ export default async function TeacherDashboardPage() {
               Tekshirish kutilayotgan vazifalar
             </CardTitle>
             {pending.length === 0 ? (
-              <div className="py-8 text-center text-sm text-slate-400">
-                Tekshirish kutilayotgan topshiriqlar yo'q 🎉
+              <div className="inline-flex items-center justify-center gap-2 py-8 text-sm text-slate-400">
+                <PartyPopper className="h-4 w-4 text-emerald-400" strokeWidth={1.75} />
+                Tekshirish kutilayotgan topshiriqlar yo&apos;q
               </div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-white/5">
                 {pending.map((s) => (
                   <div key={s.id} className="flex flex-wrap items-center gap-3 py-3">
                     <Avatar name={s.student.name} image={s.student.image} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-slate-700">{s.student.name}</div>
+                      <div className="truncate text-sm font-medium text-slate-200">{s.student.name}</div>
                       <div className="truncate text-xs text-slate-400">
                         {s.homework.title} · {s.homework.group.name}
                       </div>

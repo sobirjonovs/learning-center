@@ -49,5 +49,8 @@ export async function buyProduct(formData: FormData): Promise<void> {
 
   revalidatePath("/student/shop");
   revalidatePath("/student");
+  revalidatePath("/admin");
+  revalidatePath("/admin/shop");
+  revalidatePath("/admin/shop/history");
   redirect(`/student/shop?ok=${encodeURIComponent(product.name)}`);
 }

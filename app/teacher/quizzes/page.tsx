@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fmtDate } from "@/lib/utils";
 import { QUIZ_TYPES, type QuizType } from "@/lib/constants";
+import { BarChart3, Pencil, Zap } from "lucide-react";
 import { Badge, EmptyState, PageHeader, Table, Td, Th, btn } from "@/components/ui";
 import { ConfirmButton } from "@/components/confirm-button";
 import { deleteQuiz, startLiveGame } from "./actions";
@@ -20,7 +21,12 @@ export default async function TeacherQuizzesPage() {
   return (
     <div>
       <PageHeader
-        title="⚡ Quiz Battle"
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Zap className="h-5 w-5 text-amber-400" strokeWidth={1.75} fill="currentColor" />
+            Quiz Battle
+          </span>
+        }
         subtitle="Jonli quizlar yaratish va o'tkazish"
         action={
           <Link href="/teacher/quizzes/new" className={btn.primary}>
@@ -31,7 +37,7 @@ export default async function TeacherQuizzesPage() {
 
       {quizzes.length === 0 ? (
         <EmptyState
-          icon="⚡"
+          icon={Zap}
           title="Hali quiz yaratilmagan"
           hint="Birinchi quizingizni yaratib, o'quvchilar bilan jonli bellashuv o'tkazing!"
           action={
@@ -55,7 +61,7 @@ export default async function TeacherQuizzesPage() {
           }
         >
           {quizzes.map((q) => (
-            <tr key={q.id} className="transition hover:bg-slate-50/60">
+            <tr key={q.id} className="transition hover:bg-white/[0.04]">
               <Td>
                 <div className="flex items-center gap-3">
                   {q.image ? (
@@ -63,17 +69,17 @@ export default async function TeacherQuizzesPage() {
                     <img
                       src={q.image}
                       alt={q.name}
-                      className="h-10 w-10 rounded-xl border border-slate-100 object-cover"
+                      className="h-10 w-10 rounded-xl border border-white/10 object-cover"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-lg">
-                      ⚡
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50">
+                      <Zap className="h-5 w-5 text-indigo-600" strokeWidth={1.75} fill="currentColor" />
                     </div>
                   )}
                   <div>
                     <Link
                       href={`/teacher/quizzes/${q.id}`}
-                      className="font-semibold text-slate-900 hover:text-indigo-600"
+                      className="font-semibold text-white hover:text-blue-400"
                     >
                       {q.name}
                     </Link>
@@ -85,7 +91,7 @@ export default async function TeacherQuizzesPage() {
               </Td>
               <Td>{q.subject ?? "—"}</Td>
               <Td>
-                <Badge className="bg-violet-100 text-violet-700">
+                <Badge className="bg-violet-500/15 text-violet-400">
                   {QUIZ_TYPES[q.type as QuizType]?.label ?? q.type}
                 </Badge>
               </Td>
@@ -105,17 +111,19 @@ export default async function TeacherQuizzesPage() {
                       </button>
                     </form>
                   )}
-                  <Link href={`/teacher/quizzes/${q.id}/results`} className={btn.small}>
-                    📊 Natijalar
+                  <Link href={`/teacher/quizzes/${q.id}/results`} className={`${btn.small} inline-flex items-center gap-1`}>
+                    <BarChart3 className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Natijalar
                   </Link>
-                  <Link href={`/teacher/quizzes/${q.id}`} className={btn.small}>
-                    ✏️ Tahrirlash
+                  <Link href={`/teacher/quizzes/${q.id}`} className={`${btn.small} inline-flex items-center gap-1`}>
+                    <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Tahrirlash
                   </Link>
                   <form action={deleteQuiz}>
                     <input type="hidden" name="id" value={q.id} />
                     <ConfirmButton
                       message={`"${q.name}" quizini o'chirishga ishonchingiz komilmi? Barcha savollar va natijalar ham o'chadi.`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                      className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                     >
                       🗑
                     </ConfirmButton>

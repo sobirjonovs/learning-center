@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parseJsonArray, pct } from "@/lib/utils";
+import { Calendar, Users } from "lucide-react";
 import { ActiveBadge, Badge, Card, EmptyState, PageHeader, ProgressBar, btn } from "@/components/ui";
 
 export default async function TeacherGroupsPage() {
@@ -33,7 +34,7 @@ export default async function TeacherGroupsPage() {
 
       {groups.length === 0 ? (
         <EmptyState
-          icon="👥"
+          icon={Users}
           title="Sizga hali guruh biriktirilmagan"
           hint="Administrator guruh biriktirgach, bu yerda ko'rinadi."
         />
@@ -47,7 +48,7 @@ export default async function TeacherGroupsPage() {
               <Card key={g.id} className="flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div className="text-base font-bold text-slate-900">{g.name}</div>
+                    <div className="text-base font-bold text-white">{g.name}</div>
                     {g.type && <div className="text-xs text-slate-400">{g.type}</div>}
                   </div>
                   <ActiveBadge active={g.active} />
@@ -55,7 +56,7 @@ export default async function TeacherGroupsPage() {
 
                 <div className="space-y-1.5 text-sm text-slate-600">
                   <div className="flex items-center gap-2">
-                    <span>📅</span>
+                    <Calendar className="h-4 w-4 shrink-0 text-slate-400" strokeWidth={1.75} />
                     <span>{days.length > 0 ? days.join(", ") : "—"}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -70,7 +71,7 @@ export default async function TeacherGroupsPage() {
 
                 <div className="mt-auto">
                   <div className="mb-1 flex items-center justify-between text-xs text-slate-500">
-                    <Badge className="bg-indigo-100 text-indigo-700">{g._count.students} o'quvchi</Badge>
+                    <Badge className="bg-blue-500/15 text-blue-400">{g._count.students} o'quvchi</Badge>
                     <span>Davomat: {percent}%</span>
                   </div>
                   <ProgressBar value={percent} />

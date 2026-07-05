@@ -3,6 +3,7 @@ import { requireRole, requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { todayStr, fmtDate, fmtDateTime } from "@/lib/utils";
 import { CALL_STATUS, type CallStatus } from "@/lib/constants";
+import { CheckCircle2, PartyPopper, Phone, UserX } from "lucide-react";
 import {
   PageHeader,
   StatCard,
@@ -17,8 +18,17 @@ import {
   btn,
 } from "@/components/ui";
 import { Modal } from "@/components/modal";
+import { StyledSelect } from "@/components/styled-select";
 import { DateFilter } from "./date-filter";
 import { addCallLog } from "./actions";
+
+const CALL_STATUS_DOTS: Record<CallStatus, string> = {
+  NOT_CALLED: "bg-slate-400",
+  NO_ANSWER: "bg-amber-400",
+  TALKED: "bg-emerald-400",
+  EXCUSED: "bg-sky-400",
+  CALLBACK: "bg-violet-400",
+};
 
 export default async function AbsentPage({
   searchParams,
@@ -76,16 +86,16 @@ export default async function AbsentPage({
         <StatCard
           label={isToday ? "Bugun kelmaganlar" : "Kelmaganlar"}
           value={absents.length}
-          icon="🙅"
+          icon={UserX}
           tone="rose"
         />
-        <StatCard label="Gaplashildi" value={talkedCount} icon="✅" tone="emerald" />
-        <StatCard label="Qo'ng'iroq qilinmadi" value={notCalledCount} icon="📞" tone="amber" />
+        <StatCard label="Gaplashildi" value={talkedCount} icon={CheckCircle2} tone="emerald" />
+        <StatCard label="Qo'ng'iroq qilinmadi" value={notCalledCount} icon={Phone} tone="amber" />
       </div>
 
       {absents.length === 0 ? (
         <EmptyState
-          icon="🎉"
+          icon={PartyPopper}
           title="Bu kunda kelmagan o'quvchilar yo'q"
           hint="Boshqa sanani tanlab ko'rishingiz mumkin."
         />
@@ -110,11 +120,11 @@ export default async function AbsentPage({
             const latest = logs[0];
             const st = CALL_STATUS[latestStatus(a.studentId)];
             return (
-              <tr key={a.id} className="hover:bg-slate-50/60">
+              <tr key={a.id} className="hover:bg-white/[0.04]">
                 <Td>
                   <div className="flex items-center gap-3">
                     <Avatar name={a.student.name} image={a.student.image} size="sm" />
-                    <div className="font-medium text-slate-800">{a.student.name}</div>
+                    <div className="font-medium text-slate-100">{a.student.name}</div>
                   </div>
                 </Td>
                 <Td className="text-slate-700">{a.group.name}</Td>
@@ -133,7 +143,7 @@ export default async function AbsentPage({
                     <Modal
                       title={`Qo'ng'iroq holati — ${a.student.name}`}
                       trigger={
-                        <button className="inline-flex items-center justify-center gap-1 rounded-lg border border-indigo-200 bg-white px-2.5 py-1 text-xs font-medium text-indigo-600 transition hover:bg-indigo-50">
+                        <button className="inline-flex items-center justify-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/15 px-2.5 py-1 text-xs font-medium text-blue-400 transition hover:bg-blue-500/25">
                           Yangilash
                         </button>
                       }
@@ -143,17 +153,16 @@ export default async function AbsentPage({
                         <input type="hidden" name="groupId" value={a.groupId} />
                         <input type="hidden" name="date" value={date} />
                         <Field label="Holat" required>
-                          <select
+                          <StyledSelect
                             name="status"
                             defaultValue={latest?.status ?? "TALKED"}
-                            className={inputCls}
-                          >
-                            {(Object.keys(CALL_STATUS) as CallStatus[]).map((k) => (
-                              <option key={k} value={k}>
-                                {CALL_STATUS[k].label}
-                              </option>
-                            ))}
-                          </select>
+                            required
+                            options={(Object.keys(CALL_STATUS) as CallStatus[]).map((k) => ({
+                              value: k,
+                              label: CALL_STATUS[k].label,
+                              dot: CALL_STATUS_DOTS[k],
+                            }))}
+                          />
                         </Field>
                         <Field label="Izoh">
                           <textarea
@@ -186,7 +195,7 @@ export default async function AbsentPage({
                             return (
                               <div
                                 key={log.id}
-                                className="rounded-xl border border-slate-100 bg-slate-50/50 p-3"
+                                className="rounded-xl border border-white/10 bg-white/5 p-3"
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <Badge className={ls.badge}>{ls.label}</Badge>

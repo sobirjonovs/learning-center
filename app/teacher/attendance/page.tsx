@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { ATTENDANCE_STATUS, type AttendanceStatus } from "@/lib/constants";
 import { cn, dateStr, fmtDate, pct, startOfMonth, startOfWeek, todayStr } from "@/lib/utils";
 import { BarChart, SegmentBar } from "@/components/charts";
+import { Calendar, Users } from "lucide-react";
 import {
   Avatar,
   Card,
@@ -76,7 +77,7 @@ export default async function TeacherAttendancePage({
     return (
       <div>
         <PageHeader title="Davomat" subtitle="Guruh davomatini belgilash va tahlil qilish" />
-        <EmptyState icon="✅" title="Sizga hali guruh biriktirilmagan" />
+        <EmptyState icon={Users} title="Sizga hali guruh biriktirilmagan" />
       </div>
     );
   }
@@ -170,7 +171,7 @@ export default async function TeacherAttendancePage({
               Guruhda o'quvchilar yo'q
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-white/5">
               {members.map((m) => {
                 const current = dayStatus.get(m.student.id);
                 return (
@@ -183,7 +184,7 @@ export default async function TeacherAttendancePage({
                     <input type="hidden" name="studentId" value={m.student.id} />
                     <input type="hidden" name="date" value={sana} />
                     <Avatar name={m.student.name} image={m.student.image} size="sm" />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">
                       {m.student.name}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -197,7 +198,7 @@ export default async function TeacherAttendancePage({
                             "rounded-lg px-3 py-1.5 text-xs font-semibold transition active:scale-[0.97]",
                             current === key
                               ? cn(ATTENDANCE_STATUS[key].badge, "ring-1 ring-inset ring-black/10")
-                              : "border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                              : "border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
                           )}
                         >
                           {ATTENDANCE_STATUS[key].label}
@@ -236,11 +237,11 @@ export default async function TeacherAttendancePage({
       </div>
 
       <div className="mt-6">
-        <h3 className="mb-3 text-sm font-semibold text-slate-700">
+        <h3 className="mb-3 text-sm font-semibold text-slate-200">
           Davomat tarixi (so'nggi {historyDates.length} dars)
         </h3>
         {historyDates.length === 0 ? (
-          <EmptyState icon="🗓️" title="Davomat yozuvlari hali yo'q" />
+          <EmptyState icon={Calendar} title="Davomat yozuvlari hali yo'q" />
         ) : (
           <Table
             head={
@@ -258,13 +259,13 @@ export default async function TeacherAttendancePage({
               const c = countRows(byDate.get(d)!);
               const percent = pct(c.PRESENT + c.LATE, c.total);
               return (
-                <tr key={d} className="hover:bg-slate-50/60">
-                  <Td className="font-medium text-slate-700">{fmtDate(d)}</Td>
+                <tr key={d} className="hover:bg-white/[0.04]">
+                  <Td className="font-medium text-slate-200">{fmtDate(d)}</Td>
                   <Td className="text-center font-semibold text-emerald-600">{c.PRESENT}</Td>
                   <Td className="text-center font-semibold text-amber-600">{c.LATE}</Td>
                   <Td className="text-center font-semibold text-rose-600">{c.ABSENT}</Td>
                   <Td className="text-center font-semibold text-sky-600">{c.EXCUSED}</Td>
-                  <Td className="font-semibold text-slate-700">{percent}%</Td>
+                  <Td className="font-semibold text-slate-200">{percent}%</Td>
                 </tr>
               );
             })}

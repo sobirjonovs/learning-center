@@ -19,7 +19,18 @@ export default async function EditTeacherPage({
   const { id } = await params;
   const { error } = await searchParams;
 
-  const teacher = await db.user.findUnique({ where: { id } });
+  const [teacher, subjects, teacherSubjects] = await Promise.all([
+    db.user.findUnique({ where: { id } }),
+    db.subject.findMany({
+      where: { active: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    db.teacherSubject.findMany({
+      where: { teacherId: id },
+      select: { subjectId: true },
+    }),
+  ]);
   if (!teacher || teacher.role !== "TEACHER") notFound();
 
   return (
@@ -30,7 +41,15 @@ export default async function EditTeacherPage({
         backHref={`/admin/teachers/${teacher.id}`}
       />
       <Card>
-        <TeacherForm teacher={teacher} action={updateTeacher} error={error} />
+        <TeacherForm
+          teacher={{
+            ...teacher,
+            subjectIds: teacherSubjects.map((ts) => ts.subjectId),
+          }}
+          subjects={subjects}
+          action={updateTeacher}
+          error={error}
+        />
       </Card>
     </div>
   );

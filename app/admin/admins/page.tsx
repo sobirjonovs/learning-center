@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parseJsonArray } from "@/lib/utils";
+import { Shield } from "lucide-react";
 import {
   PageHeader,
   Table,
@@ -40,7 +41,7 @@ export default async function AdminsPage() {
 
       {admins.length === 0 ? (
         <EmptyState
-          icon="🛡️"
+          icon={Shield}
           title="Administratorlar yo'q"
           hint="Birinchi administratorni qo'shish uchun yuqoridagi tugmani bosing."
         />
@@ -60,17 +61,17 @@ export default async function AdminsPage() {
           {admins.map((a) => {
             const permissionCount = parseJsonArray(a.permissions).length;
             return (
-              <tr key={a.id} className="hover:bg-slate-50/60">
+              <tr key={a.id} className="hover:bg-white/[0.04]">
                 <Td>
                   <div className="flex items-center gap-3">
                     <Avatar name={a.name} image={a.image} size="sm" />
-                    <div className="font-medium text-slate-800">{a.name}</div>
+                    <div className="font-medium text-slate-100">{a.name}</div>
                   </div>
                 </Td>
                 <Td className="text-slate-600">{a.login}</Td>
                 <Td className="text-slate-600">{a.phone || "—"}</Td>
                 <Td>
-                  <span className="font-medium text-indigo-600">{permissionCount} ta huquq</span>
+                  <span className="font-medium text-blue-400">{permissionCount} ta huquq</span>
                 </Td>
                 <Td>
                   <ActiveBadge active={a.active} />
@@ -90,7 +91,7 @@ export default async function AdminsPage() {
                       <input type="hidden" name="id" value={a.id} />
                       <ConfirmButton
                         message={`${a.name} administratorini o'chirishni tasdiqlaysizmi?`}
-                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                       >
                         O'chirish
                       </ConfirmButton>

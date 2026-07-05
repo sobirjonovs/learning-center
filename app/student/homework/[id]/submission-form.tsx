@@ -2,11 +2,13 @@
 
 // Vazifa topshirish formasi — havola YOKI fayl (kamida bittasi shart)
 import { useActionState } from "react";
+import { RotateCcw, Send } from "lucide-react";
 import { submitHomework, type SubmitHomeworkState } from "../actions";
 import { Label, inputCls } from "@/components/ui";
+import { cn } from "@/lib/utils";
+import { gameBtn } from "@/components/gamification";
 
-const submitBtn =
-  "inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 active:scale-[0.98] disabled:opacity-50";
+const submitBtn = cn(gameBtn, "w-full py-2.5");
 
 export function SubmissionForm({
   homeworkId,
@@ -64,7 +66,19 @@ export function SubmissionForm({
       )}
 
       <button type="submit" disabled={pending} className={submitBtn}>
-        {pending ? "Yuborilmoqda..." : resubmit ? "🔄 Qayta topshirish" : "🚀 Topshirish"}
+        {pending ? (
+          "Yuborilmoqda..."
+        ) : resubmit ? (
+          <>
+            <RotateCcw className="h-4 w-4" strokeWidth={1.75} />
+            Qayta topshirish
+          </>
+        ) : (
+          <>
+            <Send className="h-4 w-4" strokeWidth={1.75} />
+            Topshirish
+          </>
+        )}
       </button>
     </form>
   );

@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { ATTENDANCE_STATUS, SUBMISSION_STATUS, type AttendanceStatus, type SubmissionStatus } from "@/lib/constants";
 import { levelFromXp } from "@/lib/gamification";
 import { fmtDate, fmtDateTime, fmtNumber, parseJsonArray, pct } from "@/lib/utils";
+import { CheckCircle2, Flame, Gem, Zap } from "lucide-react";
 import {
   ActiveBadge,
   Avatar,
@@ -106,7 +107,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
         title={
           <span className="flex flex-wrap items-center gap-3">
             {student.name}
-            <Badge className="bg-violet-100 text-violet-700">{student.studentType ?? "Oddiy"}</Badge>
+            <Badge className="bg-violet-500/15 text-violet-400">{student.studentType ?? "Oddiy"}</Badge>
             <ActiveBadge active={student.active} />
           </span>
         }
@@ -125,7 +126,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
       <Card className="mb-4 flex flex-wrap items-center gap-4">
         <Avatar name={student.name} image={student.image} size="lg" />
         <div className="min-w-0">
-          <div className="text-lg font-bold text-slate-900">{student.name}</div>
+          <div className="text-lg font-bold text-white">{student.name}</div>
           <div className="text-sm text-slate-500">
             {student.login} · {student.phone ?? "telefon kiritilmagan"}
             {student.parentPhone ? ` · Ota-ona: ${student.parentPhone}` : ""}
@@ -135,11 +136,11 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
 
       {/* Stat kartalar */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Umumiy ball" value={fmtNumber(student.points)} icon="💎" tone="indigo" hint="Magazin balli" />
-        <StatCard label="XP" value={fmtNumber(student.xp)} icon="⚡" tone="violet" hint="Tajriba balli" />
+        <StatCard label="Umumiy ball" value={fmtNumber(student.points)} icon={Gem} tone="indigo" hint="Magazin balli" />
+        <StatCard label="XP" value={fmtNumber(student.xp)} icon={Zap} tone="violet" hint="Tajriba balli" />
         <Card>
           <div className="text-xs font-medium text-slate-500">Daraja</div>
-          <div className="text-2xl font-bold text-slate-900">{lvl.level}-daraja</div>
+          <div className="text-2xl font-bold text-white">{lvl.level}-daraja</div>
           <div className="mt-2">
             <ProgressBar value={lvl.progress * 100} />
           </div>
@@ -147,11 +148,11 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
             {fmtNumber(lvl.intoLevel)}/{fmtNumber(lvl.needed)} XP
           </div>
         </Card>
-        <StatCard label="Streak" value={student.streak} icon="🔥" tone="amber" hint="Ketma-ket faol kunlar" />
+        <StatCard label="Streak" value={student.streak} icon={Flame} tone="amber" hint="Ketma-ket faol kunlar" />
         <StatCard
           label="Davomat"
           value={`${attendancePct}%`}
-          icon="✅"
+          icon={CheckCircle2}
           tone="emerald"
           hint={`${fmtNumber(attendanceRows.length)} ta yozuvdan`}
         />
@@ -165,11 +166,11 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
           ) : (
             <div className="space-y-3">
               {student.groupMemberships.map((m) => (
-                <div key={m.id} className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                <div key={m.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <Link
                       href={`/admin/groups/${m.group.id}`}
-                      className="text-sm font-semibold text-slate-800 hover:text-indigo-600"
+                      className="text-sm font-semibold text-slate-100 hover:text-blue-400"
                     >
                       {m.group.name}
                     </Link>
@@ -178,7 +179,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
                   <div className="mt-1 text-xs text-slate-500">
                     Ustoz:{" "}
                     {m.group.teacher ? (
-                      <Link href={`/admin/teachers/${m.group.teacher.id}`} className="font-medium hover:text-indigo-600">
+                      <Link href={`/admin/teachers/${m.group.teacher.id}`} className="font-medium hover:text-blue-400">
                         {m.group.teacher.name}
                       </Link>
                     ) : (
@@ -217,13 +218,13 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
           {recentSubmissions.length === 0 ? (
             <p className="py-4 text-center text-sm text-slate-400">Topshiriqlar yo'q</p>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-white/5">
               {recentSubmissions.map((s) => {
                 const st = SUBMISSION_STATUS[s.status as SubmissionStatus];
                 return (
                   <div key={s.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-slate-800">{s.homework.title}</div>
+                      <div className="truncate text-sm font-medium text-slate-100">{s.homework.title}</div>
                       <div className="text-xs text-slate-400">Topshirildi: {fmtDateTime(s.submittedAt)}</div>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -249,17 +250,17 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
             <div className="-m-5 mt-0 overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/60 text-xs uppercase tracking-wide text-slate-500">
+                  <tr className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-wide text-slate-500">
                     <Th>Imtihon</Th>
                     <Th>Guruh</Th>
                     <Th>Sana</Th>
                     <Th className="text-right">Ball</Th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/5">
                   {examResults.map((r) => (
                     <tr key={r.id}>
-                      <Td className="font-medium text-slate-800">{r.exam.title}</Td>
+                      <Td className="font-medium text-slate-100">{r.exam.title}</Td>
                       <Td className="text-slate-500">{r.exam.group.name}</Td>
                       <Td className="text-slate-500">{fmtDate(r.exam.date)}</Td>
                       <Td className="text-right font-bold text-slate-700">
@@ -282,10 +283,10 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {student.achievements.map((a) => (
-                <div key={a.id} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                <div key={a.id} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="text-3xl">{a.achievement.icon}</div>
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-slate-800">{a.achievement.name}</div>
+                    <div className="text-sm font-semibold text-slate-100">{a.achievement.name}</div>
                     <div className="text-xs text-slate-500">{a.achievement.description}</div>
                     <div className="mt-1 text-xs text-slate-400">{fmtDate(a.earnedAt)}</div>
                   </div>

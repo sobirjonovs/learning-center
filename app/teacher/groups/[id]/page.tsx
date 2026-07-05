@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { fmtDate, fmtDateTime, parseJsonArray, pct } from "@/lib/utils";
 import { getRating, levelFromXp } from "@/lib/gamification";
 import { ATTENDANCE_STATUS } from "@/lib/constants";
+import { CheckCircle2, Clock, FileText, X } from "lucide-react";
 import {
   ActiveBadge,
   Avatar,
@@ -19,8 +20,7 @@ import {
   Th,
   btn,
 } from "@/components/ui";
-
-const MEDALS = ["🥇", "🥈", "🥉"];
+import { RankMedal } from "@/components/rank-medal";
 
 export default async function TeacherGroupDetailPage({
   params,
@@ -114,7 +114,7 @@ export default async function TeacherGroupDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-slate-700">
+            <h3 className="mb-3 text-sm font-semibold text-slate-200">
               O'quvchilar ({group.students.length})
             </h3>
             <Table
@@ -138,19 +138,19 @@ export default async function TeacherGroupDetailPage({
                   const att = studentAtt.get(m.student.id);
                   const percent = att ? pct(att.present, att.total) : 0;
                   return (
-                    <tr key={m.student.id} className="hover:bg-slate-50/60">
+                    <tr key={m.student.id} className="hover:bg-white/[0.04]">
                       <Td>
                         <div className="flex items-center gap-3">
                           <Avatar name={m.student.name} image={m.student.image} size="sm" />
-                          <span className="font-medium text-slate-700">{m.student.name}</span>
+                          <span className="font-medium text-slate-200">{m.student.name}</span>
                         </div>
                       </Td>
                       <Td className="text-right font-semibold text-amber-600">
                         {m.student.points}
                       </Td>
-                      <Td className="text-right font-semibold text-indigo-600">{m.student.xp}</Td>
+                      <Td className="text-right font-semibold text-blue-400">{m.student.xp}</Td>
                       <Td>
-                        <Badge className="bg-violet-100 text-violet-700">
+                        <Badge className="bg-violet-500/15 text-violet-400">
                           Lv {levelFromXp(m.student.xp).level}
                         </Badge>
                       </Td>
@@ -180,7 +180,7 @@ export default async function TeacherGroupDetailPage({
             {group.homeworks.length === 0 ? (
               <div className="py-8 text-center text-sm text-slate-400">Vazifalar yo'q</div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-white/5">
                 {group.homeworks.map((hw) => {
                   const st = hwStats.get(hw.id) ?? { submitted: 0, ungraded: 0 };
                   return (
@@ -188,7 +188,7 @@ export default async function TeacherGroupDetailPage({
                       <div className="min-w-0 flex-1">
                         <Link
                           href={`/teacher/homework/${hw.id}`}
-                          className="text-sm font-medium text-slate-700 hover:text-indigo-600"
+                          className="text-sm font-medium text-slate-200 hover:text-blue-400"
                         >
                           {hw.title}
                         </Link>
@@ -197,7 +197,7 @@ export default async function TeacherGroupDetailPage({
                         </div>
                       </div>
                       {st.ungraded > 0 && (
-                        <Badge className="bg-amber-100 text-amber-700">
+                        <Badge className="bg-amber-500/15 text-amber-400">
                           {st.ungraded} ta tekshirilmagan
                         </Badge>
                       )}
@@ -224,7 +224,7 @@ export default async function TeacherGroupDetailPage({
             {group.exams.length === 0 ? (
               <div className="py-8 text-center text-sm text-slate-400">Imtihonlar yo'q</div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-white/5">
                 {group.exams.map((exam) => {
                   const avg =
                     exam.results.length > 0
@@ -237,7 +237,7 @@ export default async function TeacherGroupDetailPage({
                       <div className="min-w-0 flex-1">
                         <Link
                           href={`/teacher/exams/${exam.id}`}
-                          className="text-sm font-medium text-slate-700 hover:text-indigo-600"
+                          className="text-sm font-medium text-slate-200 hover:text-blue-400"
                         >
                           {exam.title}
                         </Link>
@@ -245,7 +245,7 @@ export default async function TeacherGroupDetailPage({
                           {fmtDate(exam.date)} · {exam.results.length} ta natija
                         </div>
                       </div>
-                      <Badge className="bg-emerald-100 text-emerald-700">
+                      <Badge className="bg-emerald-500/15 text-emerald-400">
                         O'rtacha: {avg !== null ? `${avg} / ${exam.maxScore}` : "—"}
                       </Badge>
                     </div>
@@ -262,17 +262,17 @@ export default async function TeacherGroupDetailPage({
             {rating.length === 0 ? (
               <div className="py-8 text-center text-sm text-slate-400">O'quvchilar yo'q</div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-white/5">
                 {rating.map((r) => (
                   <div key={r.studentId} className="flex items-center gap-3 py-2.5">
-                    <span className="w-7 text-center text-sm font-semibold text-slate-400">
-                      {r.place <= 3 ? MEDALS[r.place - 1] : r.place}
+                    <span className="flex w-7 justify-center">
+                      <RankMedal place={r.place} size="sm" showBadge />
                     </span>
                     <Avatar name={r.name} image={r.image} size="sm" />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">
                       {r.name}
                     </span>
-                    <span className="text-sm font-semibold text-indigo-600">{r.xp} XP</span>
+                    <span className="text-sm font-semibold text-blue-400">{r.xp} XP</span>
                   </div>
                 ))}
               </div>
@@ -299,9 +299,24 @@ export default async function TeacherGroupDetailPage({
                   return (
                     <div key={date}>
                       <div className="mb-1 flex items-center justify-between text-sm">
-                        <span className="font-medium text-slate-700">{fmtDate(date)}</span>
-                        <span className="text-xs text-slate-400">
-                          ✅ {c.PRESENT} · ⏰ {c.LATE} · ❌ {c.ABSENT} · 📄 {c.EXCUSED}
+                        <span className="font-medium text-slate-200">{fmtDate(date)}</span>
+                        <span className="inline-flex items-center gap-2 text-xs text-slate-400">
+                          <span className="inline-flex items-center gap-0.5">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-400" strokeWidth={2} />
+                            {c.PRESENT}
+                          </span>
+                          <span className="inline-flex items-center gap-0.5">
+                            <Clock className="h-3 w-3 text-amber-400" strokeWidth={2} />
+                            {c.LATE}
+                          </span>
+                          <span className="inline-flex items-center gap-0.5">
+                            <X className="h-3 w-3 text-rose-400" strokeWidth={2} />
+                            {c.ABSENT}
+                          </span>
+                          <span className="inline-flex items-center gap-0.5">
+                            <FileText className="h-3 w-3 text-blue-400" strokeWidth={2} />
+                            {c.EXCUSED}
+                          </span>
                         </span>
                       </div>
                       <div className="flex items-center gap-2">

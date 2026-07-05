@@ -4,10 +4,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn, fmtNumber } from "@/lib/utils";
+import {
+  BarChart3,
+  Check,
+  Flag,
+  Flame,
+  PartyPopper,
+  Rocket,
+  X,
+  Zap,
+} from "lucide-react";
 import { ANSWER_SHAPES } from "@/lib/constants";
 import type { HostView } from "@/lib/quiz-live";
-
-const MEDALS = ["🥇", "🥈", "🥉"];
+import { RankMedal } from "@/components/rank-medal";
 
 function fmtPin(pin: string): string {
   return `${pin.slice(0, 3)} ${pin.slice(3)}`;
@@ -60,7 +69,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
 
   if (!view) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-900 text-white">
+      <div className="fixed inset-0 z-50 flex items-center justify-center app-canvas text-white">
         <div className="animate-pulse-soft text-xl font-semibold">Yuklanmoqda...</div>
       </div>
     );
@@ -74,7 +83,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
   const isLastQuestion = view.qIndex + 1 >= view.total;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-900 text-white">
+    <div className="fixed inset-0 z-50 overflow-y-auto app-canvas text-white">
       {!connected && (
         <div className="fixed left-1/2 top-3 z-50 -translate-x-1/2 animate-pulse-soft rounded-full bg-rose-600 px-4 py-1.5 text-sm font-semibold shadow-lg">
           Ulanish uzildi, qayta ulanilmoqda...
@@ -136,9 +145,10 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
           <button
             onClick={() => post("start")}
             disabled={view.playerCount === 0}
-            className="rounded-2xl bg-emerald-500 px-12 py-4 text-2xl font-black shadow-xl transition hover:bg-emerald-400 active:scale-95 disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500 px-12 py-4 text-2xl font-black shadow-xl transition hover:bg-emerald-400 active:scale-95 disabled:opacity-40"
           >
-            🚀 Boshlash
+            <Rocket className="h-6 w-6" strokeWidth={1.75} />
+            Boshlash
           </button>
         </div>
       )}
@@ -247,8 +257,9 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
               {view.reveal && view.reveal.fastest.length > 0 ? (
                 <div className="animate-slide-up rounded-2xl bg-white/10 px-5 py-3 ring-1 ring-white/15">
-                  <div className="mb-1 text-xs font-bold uppercase tracking-wider text-indigo-300">
-                    ⚡ Eng tez javob berganlar
+                  <div className="mb-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-indigo-300">
+                    <Zap className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Eng tez javob berganlar
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {view.reveal.fastest.map((f, i) => (
@@ -266,15 +277,23 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
               <div className="flex gap-3">
                 <button
                   onClick={() => post("next", { action: "leaderboard" })}
-                  className="rounded-xl bg-white/15 px-6 py-3 text-lg font-bold ring-1 ring-white/25 transition hover:bg-white/25 active:scale-95"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-6 py-3 text-lg font-bold ring-1 ring-white/25 transition hover:bg-white/25 active:scale-95"
                 >
-                  📊 Leaderboard
+                  <BarChart3 className="h-5 w-5" strokeWidth={1.75} />
+                  Leaderboard
                 </button>
                 <button
                   onClick={() => post("next", { action: "next" })}
-                  className="rounded-xl bg-emerald-500 px-6 py-3 text-lg font-bold transition hover:bg-emerald-400 active:scale-95"
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-lg font-bold transition hover:bg-emerald-400 active:scale-95"
                 >
-                  {isLastQuestion ? "🏁 Yakuniy natijalar →" : "Keyingi savol →"}
+                  {isLastQuestion ? (
+                    <>
+                      <Flag className="h-5 w-5" strokeWidth={1.75} />
+                      Yakuniy natijalar →
+                    </>
+                  ) : (
+                    "Keyingi savol →"
+                  )}
                 </button>
               </div>
             </div>
@@ -285,7 +304,10 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
       {/* ============ LEADERBOARD ============ */}
       {view.phase === "LEADERBOARD" && (
         <div className="flex min-h-full flex-col items-center justify-center p-6 md:p-10">
-          <h2 className="mb-8 text-4xl font-black">📊 Leaderboard</h2>
+          <h2 className="mb-8 inline-flex items-center gap-3 text-4xl font-black">
+            <BarChart3 className="h-9 w-9" strokeWidth={1.75} />
+            Leaderboard
+          </h2>
           <div className="w-full max-w-2xl space-y-2.5">
             {view.leaderboard.slice(0, 8).map((row, i) => (
               <div
@@ -293,8 +315,8 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
                 className="flex animate-slide-up items-center gap-4 rounded-2xl bg-white/10 px-5 py-3.5 ring-1 ring-white/15"
                 style={{ animationDelay: `${i * 90}ms` }}
               >
-                <span className="w-9 text-center text-2xl font-black">
-                  {row.rank <= 3 ? MEDALS[row.rank - 1] : row.rank}
+                <span className="flex w-9 justify-center text-2xl font-black">
+                  <RankMedal place={row.rank} size="sm" showBadge />
                 </span>
                 <span className="text-3xl">{row.emoji}</span>
                 <span className="min-w-0 flex-1 truncate text-lg font-bold">{row.name}</span>
@@ -312,9 +334,16 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
           </div>
           <button
             onClick={() => post("next", { action: "next" })}
-            className="mt-8 rounded-xl bg-emerald-500 px-8 py-3.5 text-lg font-bold transition hover:bg-emerald-400 active:scale-95"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-8 py-3.5 text-lg font-bold transition hover:bg-emerald-400 active:scale-95"
           >
-            {isLastQuestion ? "🏁 Yakuniy natijalar →" : "Keyingi savol →"}
+            {isLastQuestion ? (
+              <>
+                <Flag className="h-5 w-5" strokeWidth={1.75} />
+                Yakuniy natijalar →
+              </>
+            ) : (
+              "Keyingi savol →"
+            )}
           </button>
         </div>
       )}
@@ -327,7 +356,7 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
       {/* ============ ENDED ============ */}
       {view.phase === "ENDED" && (
         <div className="flex min-h-full flex-col items-center justify-center gap-6 p-6">
-          <div className="text-6xl">🏁</div>
+          <Flag className="h-16 w-16 text-cyan-400" strokeWidth={1.5} />
           <h2 className="text-3xl font-black">O&apos;yin yakunlandi</h2>
           {view.podium && view.podium.all.length > 0 && (
             <div className="w-full max-w-xl space-y-2">
@@ -336,8 +365,8 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
                   key={p.id}
                   className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 ring-1 ring-white/15"
                 >
-                  <span className="w-8 text-center font-black">
-                    {p.place <= 3 ? MEDALS[p.place - 1] : p.place}
+                  <span className="flex w-8 justify-center font-black">
+                    <RankMedal place={p.place} size="sm" showBadge />
                   </span>
                   <span className="text-2xl">{p.emoji}</span>
                   <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
@@ -395,15 +424,16 @@ function PodiumScreen({ view, onFinish }: { view: HostView; onFinish: () => void
   const podium = view.podium!;
   const byPlace = (place: number) => podium.top3.find((p) => p.place === place);
   const columns: Array<{ place: number; height: string; visibleAt: number; tone: string }> = [
-    { place: 2, height: "h-40", visibleAt: 2, tone: "bg-slate-300/90 text-slate-800" },
+    { place: 2, height: "h-40", visibleAt: 2, tone: "bg-slate-300/90 text-slate-100" },
     { place: 1, height: "h-56", visibleAt: 3, tone: "bg-amber-400/95 text-amber-950" },
     { place: 3, height: "h-32", visibleAt: 1, tone: "bg-orange-700/90 text-orange-50" },
   ];
 
   return (
     <div className="flex min-h-full flex-col items-center justify-center gap-8 bg-gradient-to-b from-violet-950 via-indigo-950 to-fuchsia-950 p-6 md:p-10">
-      <h2 className="animate-bounce-in text-center text-4xl font-black md:text-5xl">
-        🎉 G&apos;oliblar podiumi
+      <h2 className="animate-bounce-in inline-flex items-center gap-3 text-center text-4xl font-black md:text-5xl">
+        <PartyPopper className="h-10 w-10 text-amber-400" strokeWidth={1.5} />
+        G&apos;oliblar podiumi
       </h2>
 
       <div className="flex w-full max-w-3xl items-end justify-center gap-3 md:gap-5">
@@ -419,8 +449,9 @@ function PodiumScreen({ view, onFinish }: { view: HostView; onFinish: () => void
                   <div className="font-mono text-xl font-black text-amber-300">
                     {fmtNumber(p.score)}
                   </div>
-                  <div className="text-xs font-semibold text-indigo-200">
-                    ✓ {p.correct} ta to&apos;g&apos;ri javob
+                  <div className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-200">
+                    <Check className="h-3 w-3" strokeWidth={2} />
+                    {p.correct} ta to&apos;g&apos;ri javob
                   </div>
                 </div>
               )}
@@ -431,7 +462,7 @@ function PodiumScreen({ view, onFinish }: { view: HostView; onFinish: () => void
                   visible && p ? col.tone : "bg-white/5 text-transparent"
                 )}
               >
-                {MEDALS[col.place - 1]}
+                {visible && p ? <RankMedal place={col.place} size="xl" /> : null}
               </div>
             </div>
           );
@@ -445,14 +476,23 @@ function PodiumScreen({ view, onFinish }: { view: HostView; onFinish: () => void
               key={p.id}
               className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 text-sm ring-1 ring-white/15"
             >
-              <span className="w-8 text-center text-base font-black">
-                {p.place <= 3 ? MEDALS[p.place - 1] : p.place}
+              <span className="flex w-8 justify-center text-base font-black">
+                <RankMedal place={p.place} size="sm" showBadge />
               </span>
               <span className="text-2xl">{p.emoji}</span>
               <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
-              <span className="text-emerald-300">✓ {p.correct}</span>
-              <span className="text-rose-300">✗ {p.wrong}</span>
-              <span className="text-amber-300">🔥 {p.bestStreak}</span>
+              <span className="inline-flex items-center gap-1 text-emerald-300">
+                <Check className="h-3.5 w-3.5" strokeWidth={2} />
+                {p.correct}
+              </span>
+              <span className="inline-flex items-center gap-1 text-rose-300">
+                <X className="h-3.5 w-3.5" strokeWidth={2} />
+                {p.wrong}
+              </span>
+              <span className="inline-flex items-center gap-1 text-amber-300">
+                <Flame className="h-3.5 w-3.5" strokeWidth={1.75} />
+                {p.bestStreak}
+              </span>
               <span className="w-20 text-right font-mono font-black">{fmtNumber(p.score)}</span>
             </div>
           ))}

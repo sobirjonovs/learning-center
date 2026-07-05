@@ -13,7 +13,7 @@ type AdminData = {
 };
 
 const checkboxCls =
-  "h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500";
+  "h-4 w-4 rounded border-slate-300 text-blue-400 focus:ring-indigo-500";
 
 export function AdminForm({ admin, error }: { admin?: AdminData; error?: string }) {
   return (
@@ -68,11 +68,11 @@ export function AdminForm({ admin, error }: { admin?: AdminData; error?: string 
       </Field>
 
       <Field label="Huquqlar">
-        <div className="grid gap-1.5 rounded-xl border border-slate-200 bg-slate-50/50 p-3 sm:grid-cols-2">
+        <div className="grid gap-1.5 rounded-xl border border-white/10 bg-white/5 p-3 sm:grid-cols-2">
           {PERMISSIONS.map((p) => (
             <label
               key={p.key}
-              className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-slate-700 hover:bg-white"
+              className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-slate-300 hover:bg-white/10"
             >
               <input
                 type="checkbox"
@@ -90,7 +90,7 @@ export function AdminForm({ admin, error }: { admin?: AdminData; error?: string 
         </p>
       </Field>
 
-      <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+      <label className="flex items-center gap-2 text-sm font-medium text-slate-200">
         <input
           type="checkbox"
           name="active"
@@ -100,7 +100,7 @@ export function AdminForm({ admin, error }: { admin?: AdminData; error?: string 
         Faol (tizimga kira oladi)
       </label>
 
-      <div className="flex justify-end border-t border-slate-100 pt-4">
+      <div className="flex justify-end border-t border-white/10 pt-4">
         <button type="submit" className={btn.primary}>
           {admin ? "Saqlash" : "Qo'shish"}
         </button>

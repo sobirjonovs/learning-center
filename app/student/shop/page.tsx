@@ -2,15 +2,16 @@
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { PURCHASE_STATUS, type PurchaseStatus } from "@/lib/constants";
-import { fmtDateTime, fmtNumber } from "@/lib/utils";
+import { cn, fmtDateTime, fmtNumber } from "@/lib/utils";
+import { Package, PartyPopper, ShoppingBag, Star, XCircle } from "lucide-react";
 import { Badge, Card, CardTitle, EmptyState, PageHeader, Table, Td, Th } from "@/components/ui";
+import { CoinBalance, GameAlert, gameBtn } from "@/components/gamification";
 import { ConfirmButton } from "@/components/confirm-button";
 import { buyProduct } from "./actions";
 
-const buyBtn =
-  "inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 active:scale-[0.98]";
+const buyBtn = cn(gameBtn, "w-full");
 const disabledBtn =
-  "inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400";
+  "inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-500";
 
 export default async function StudentShopPage({
   searchParams,
@@ -33,61 +34,67 @@ export default async function StudentShopPage({
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title="Magazin 🛍️" subtitle="To'plagan ballaringizni sovg'alarga almashtiring" />
+      <PageHeader
+        title={
+          <span className="font-display inline-flex items-center gap-2">
+            <ShoppingBag className="h-5 w-5 text-cyan-400" strokeWidth={1.75} />
+            Magazin
+          </span>
+        }
+        subtitle="To'plagan ballaringizni sovg'alarga almashtiring"
+      />
 
-      {/* Balans */}
-      <div className="relative mb-6 animate-slide-up overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 p-6 text-white shadow-lg">
-        <div className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/10" />
-        <div className="relative flex items-center justify-between gap-4">
-          <div>
-            <div className="text-sm text-violet-100">Sizning balansingiz</div>
-            <div className="mt-1 text-3xl font-extrabold">⭐ {fmtNumber(points)} ball</div>
-          </div>
-          <div className="hidden animate-float text-6xl sm:block">🛍️</div>
-        </div>
-      </div>
+      <CoinBalance points={fmtNumber(points)} />
 
       {xato && (
-        <div className="mb-6 animate-shake rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-          ❌ {xato}
-        </div>
+        <GameAlert type="error">
+          <span className="inline-flex items-center gap-2">
+            <XCircle className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            {xato}
+          </span>
+        </GameAlert>
       )}
       {ok && (
-        <div className="mb-6 animate-pop rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-          🎉 &quot;{ok}&quot; muvaffaqiyatli sotib olindi! Buyurtmangiz administratorga yetkazildi.
-        </div>
+        <GameAlert type="success">
+          <span className="inline-flex items-center gap-2">
+            <PartyPopper className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+            &quot;{ok}&quot; muvaffaqiyatli sotib olindi! Buyurtmangiz administratorga yetkazildi.
+          </span>
+        </GameAlert>
       )}
 
-      {/* Mahsulotlar */}
       {products.length === 0 ? (
-        <EmptyState icon="🛍️" title="Hozircha mahsulotlar yo'q" hint="Tez orada yangi sovg'alar qo'shiladi." />
+        <EmptyState icon={ShoppingBag} title="Hozircha mahsulotlar yo'q" hint="Tez orada yangi sovg'alar qo'shiladi." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((p) => {
             const soldOut = p.stock <= 0;
             const missing = p.price - points;
             return (
-              <Card key={p.id} className="flex animate-slide-up flex-col">
+              <Card key={p.id} className="game-card flex animate-slide-up flex-col">
                 {p.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={p.image}
                     alt={p.name}
-                    className="h-36 w-full rounded-xl bg-slate-50 object-cover"
+                    className="h-36 w-full rounded-xl bg-white/5 object-cover"
                   />
                 ) : (
-                  <div className="flex h-36 items-center justify-center rounded-xl bg-gradient-to-br from-violet-50 to-fuchsia-50 text-5xl">
+                  <div className="flex h-36 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 text-5xl">
                     🎁
                   </div>
                 )}
-                <div className="mt-3 font-semibold text-slate-900">{p.name}</div>
+                <div className="mt-3 font-semibold text-white">{p.name}</div>
                 {p.description && (
                   <div className="mt-0.5 line-clamp-2 text-xs text-slate-500">{p.description}</div>
                 )}
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-lg font-bold text-violet-600">⭐ {fmtNumber(p.price)} ball</div>
+                  <div className="inline-flex items-center gap-1 font-display text-lg font-bold text-amber-400">
+                    <Star className="h-4 w-4" strokeWidth={1.75} />
+                    {fmtNumber(p.price)} ball
+                  </div>
                   <Badge
-                    className={soldOut ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}
+                    className={soldOut ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400"}
                   >
                     {soldOut ? "Tugagan" : `${p.stock} ta qoldi`}
                   </Badge>
@@ -116,11 +123,15 @@ export default async function StudentShopPage({
         </div>
       )}
 
-      {/* Xaridlarim */}
       <div className="mt-10">
-        <CardTitle>📦 Xaridlarim</CardTitle>
+        <CardTitle>
+          <span className="font-display inline-flex items-center gap-2">
+            <Package className="h-4 w-4 text-slate-400" strokeWidth={1.75} />
+            Xaridlarim
+          </span>
+        </CardTitle>
         {purchases.length === 0 ? (
-          <EmptyState icon="📦" title="Hozircha xaridlar yo'q" hint="Ball to'plang va birinchi sovg'angizni oling!" />
+          <EmptyState icon={Package} title="Hozircha xaridlar yo'q" hint="Ball to'plang va birinchi sovg'angizni oling!" />
         ) : (
           <Table
             head={
@@ -136,9 +147,12 @@ export default async function StudentShopPage({
               const st = PURCHASE_STATUS[pu.status as PurchaseStatus] ?? PURCHASE_STATUS.NEW;
               return (
                 <tr key={pu.id}>
-                  <Td className="font-medium text-slate-800">{pu.product.name}</Td>
-                  <Td className="text-right font-semibold text-violet-600">
-                    ⭐ {fmtNumber(pu.points)}
+                  <Td className="font-medium text-slate-100">{pu.product.name}</Td>
+                  <Td className="text-right font-semibold text-amber-400">
+                    <span className="inline-flex items-center justify-end gap-1">
+                      <Star className="h-3.5 w-3.5" strokeWidth={1.75} />
+                      {fmtNumber(pu.points)}
+                    </span>
                   </Td>
                   <Td className="text-slate-500">{fmtDateTime(pu.createdAt)}</Td>
                   <Td>

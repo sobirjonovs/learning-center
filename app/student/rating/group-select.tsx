@@ -17,7 +17,7 @@ export function GroupSelect({
     <select
       value={current}
       onChange={(e) => router.push(`/student/rating?group=${e.target.value}&davr=${davr}`)}
-      className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+      className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-sm font-medium text-slate-200 shadow-sm outline-none transition focus:border-blue-400/60 focus:ring-4 focus:ring-blue-500/20"
       aria-label="Guruhni tanlash"
     >
       {groups.map((g) => (

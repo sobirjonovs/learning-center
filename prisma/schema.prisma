@@ -38,6 +38,7 @@ model User {
   permissions String?
 
   // aloqalar
+  teacherSubjects  TeacherSubject[]
   teachingGroups   Group[]                 @relation("GroupTeacher")
   groupMemberships GroupStudent[]
   attendance       Attendance[]            @relation("AttendanceStudent")
@@ -57,10 +58,33 @@ model User {
   activities       ActivityLog[]
 }
 
+// O'qituvchi fanlari / kategoriyalari (Matematika, Ingliz tili, Frontend, ...)
+model Subject {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  teachers TeacherSubject[]
+  groups   Group[]
+}
+
+model TeacherSubject {
+  id        String  @id @default(cuid())
+  teacherId String
+  teacher   User    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, subjectId])
+}
+
 model Group {
   id         String    @id @default(cuid())
   name       String
   type       String? // Umumiy | Individual | Intensiv ...
+  subjectId  String?
+  subject    Subject?  @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   teacherId  String?
   teacher    User?     @relation("GroupTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
   days       String // JSON: ["Dushanba","Chorshanba","Juma"] yoki ["Toq kunlar"]

@@ -48,7 +48,9 @@ async function main() {
   await db.homework.deleteMany();
   await db.attendance.deleteMany();
   await db.groupStudent.deleteMany();
+  await db.teacherSubject.deleteMany();
   await db.group.deleteMany();
+  await db.subject.deleteMany();
   await db.setting.deleteMany();
   await db.user.deleteMany();
 
@@ -86,15 +88,16 @@ async function main() {
         "attendance.manage",
         "calls.manage",
         "notifications.send",
+        "categories.manage",
       ]),
     },
   });
 
   const teacherData = [
-    { name: "Aziz Karimov", login: "aziz.teacher", type: "Asosiy o'qituvchi", phone: "+998 93 111 22 33" },
-    { name: "Madina Yusupova", login: "madina.teacher", type: "Master o'qituvchi", phone: "+998 94 222 33 44" },
-    { name: "Jasur Toshmatov", login: "jasur.teacher", type: "Asosiy o'qituvchi", phone: "+998 95 333 44 55" },
-    { name: "Dilnoza Saidova", login: "dilnoza.teacher", type: "Yordamchi o'qituvchi", phone: "+998 97 444 55 66" },
+    { name: "Aziz Karimov", login: "aziz.teacher", type: "Asosiy o'qituvchi", phone: "+998 93 111 22 33", subjects: ["Frontend", "Backend"] },
+    { name: "Madina Yusupova", login: "madina.teacher", type: "Master o'qituvchi", phone: "+998 94 222 33 44", subjects: ["Ingliz tili"] },
+    { name: "Jasur Toshmatov", login: "jasur.teacher", type: "Asosiy o'qituvchi", phone: "+998 95 333 44 55", subjects: ["Matematika"] },
+    { name: "Dilnoza Saidova", login: "dilnoza.teacher", type: "Yordamchi o'qituvchi", phone: "+998 97 444 55 66", subjects: ["Python"] },
   ];
   const teachers = [];
   for (const t of teacherData) {
@@ -137,14 +140,34 @@ async function main() {
     );
   }
 
+  console.log("Fan kategoriyalari yaratilmoqda...");
+  const { DEFAULT_SUBJECTS } = await import("../lib/constants");
+  const subjectMap = new Map<string, string>();
+  for (const name of DEFAULT_SUBJECTS) {
+    const subject = await db.subject.create({ data: { name } });
+    subjectMap.set(name, subject.id);
+  }
+
+  for (let i = 0; i < teacherData.length; i++) {
+    const t = teacherData[i];
+    for (const subjectName of t.subjects) {
+      const subjectId = subjectMap.get(subjectName);
+      if (subjectId) {
+        await db.teacherSubject.create({
+          data: { teacherId: teachers[i].id, subjectId },
+        });
+      }
+    }
+  }
+
   console.log("Guruhlar yaratilmoqda...");
   const groupDefs = [
-    { name: "Frontend A-1", type: "Umumiy", teacher: 0, days: ["Dushanba", "Chorshanba", "Juma"], time: "14:00 - 16:00", room: "201" },
-    { name: "Backend B-2", type: "Intensiv", teacher: 0, days: ["Seshanba", "Payshanba", "Shanba"], time: "10:00 - 12:00", room: "202" },
-    { name: "Ingliz tili C-1", type: "Umumiy", teacher: 1, days: ["Seshanba", "Payshanba", "Shanba"], time: "16:00 - 18:00", room: "105" },
-    { name: "Matematika M-3", type: "Umumiy", teacher: 2, days: ["Dushanba", "Chorshanba", "Juma"], time: "09:00 - 11:00", room: "301" },
-    { name: "IELTS Pro", type: "Intensiv", teacher: 1, days: ["Shanba", "Yakshanba"], time: "11:00 - 13:30", room: "106" },
-    { name: "Python kids", type: "Online", teacher: 3, days: ["Chorshanba", "Juma"], time: "17:00 - 18:30", room: null as string | null, active: false },
+    { name: "Frontend A-1", type: "Umumiy", teacher: 0, subject: "Frontend", days: ["Dushanba", "Chorshanba", "Juma"], time: "14:00 - 16:00", room: "201" },
+    { name: "Backend B-2", type: "Intensiv", teacher: 0, subject: "Backend", days: ["Seshanba", "Payshanba", "Shanba"], time: "10:00 - 12:00", room: "202" },
+    { name: "Ingliz tili C-1", type: "Umumiy", teacher: 1, subject: "Ingliz tili", days: ["Seshanba", "Payshanba", "Shanba"], time: "16:00 - 18:00", room: "105" },
+    { name: "Matematika M-3", type: "Umumiy", teacher: 2, subject: "Matematika", days: ["Dushanba", "Chorshanba", "Juma"], time: "09:00 - 11:00", room: "301" },
+    { name: "IELTS Pro", type: "Intensiv", teacher: 1, subject: "Ingliz tili", days: ["Shanba", "Yakshanba"], time: "11:00 - 13:30", room: "106" },
+    { name: "Python kids", type: "Online", teacher: 3, subject: "Python", days: ["Chorshanba", "Juma"], time: "17:00 - 18:30", room: null as string | null, active: false },
   ];
   const groups = [];
   for (const g of groupDefs) {
@@ -154,6 +177,7 @@ async function main() {
           name: g.name,
           type: g.type,
           teacherId: teachers[g.teacher].id,
+          subjectId: subjectMap.get(g.subject),
           days: JSON.stringify(g.days),
           time: g.time,
           room: g.room ?? undefined,

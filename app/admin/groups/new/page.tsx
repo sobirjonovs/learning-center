@@ -20,11 +20,17 @@ export default async function NewGroupPage({
     select: { id: true, name: true },
   });
 
+  const subjects = await db.subject.findMany({
+    where: { active: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Yangi guruh" subtitle="Guruh ma'lumotlarini kiriting" backHref="/admin/groups" />
       <Card>
-        <GroupForm teachers={teachers} action={createGroup} error={error} />
+        <GroupForm teachers={teachers} subjects={subjects} action={createGroup} error={error} />
       </Card>
     </div>
   );

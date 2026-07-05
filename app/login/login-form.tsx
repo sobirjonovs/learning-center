@@ -1,9 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
+import { cn } from "@/lib/utils";
+import { btn, inputCls } from "@/components/ui";
 import { loginAction, type LoginState } from "./actions";
 
-export function LoginForm() {
+export function LoginForm({ isLight = false }: { isLight?: boolean }) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(
     loginAction,
     {}
@@ -12,11 +14,21 @@ export function LoginForm() {
   return (
     <form
       action={formAction}
-      className="rounded-2xl bg-white p-8 shadow-2xl shadow-indigo-900/30"
+      className={
+        isLight
+          ? "rounded-2xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/50"
+          : "rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl ring-1 ring-white/10"
+      }
     >
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div>
-          <label htmlFor="login" className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label
+            htmlFor="login"
+            className={cn(
+              "mb-1.5 block text-sm font-medium",
+              isLight ? "text-slate-700" : "text-slate-300"
+            )}
+          >
             Login
           </label>
           <input
@@ -26,11 +38,17 @@ export function LoginForm() {
             required
             autoComplete="username"
             placeholder="masalan: aziz.teacher"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+            className={inputCls}
           />
         </div>
         <div>
-          <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label
+            htmlFor="password"
+            className={cn(
+              "mb-1.5 block text-sm font-medium",
+              isLight ? "text-slate-700" : "text-slate-300"
+            )}
+          >
             Parol
           </label>
           <input
@@ -40,21 +58,23 @@ export function LoginForm() {
             required
             autoComplete="current-password"
             placeholder="••••••••"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+            className={inputCls}
           />
         </div>
 
         {state.error && (
-          <div className="animate-shake rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+          <div
+            className={
+              isLight
+                ? "animate-shake rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700"
+                : "animate-shake rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300"
+            }
+          >
             {state.error}
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-60"
-        >
+        <button type="submit" disabled={pending} className={cn(btn.primary, "w-full py-3")}>
           {pending ? "Tekshirilmoqda..." : "Kirish"}
         </button>
       </div>

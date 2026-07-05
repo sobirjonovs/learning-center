@@ -23,6 +23,7 @@ import {
 import { SegmentBar } from "@/components/charts";
 import { Modal } from "@/components/modal";
 import { ConfirmButton } from "@/components/confirm-button";
+import { RankMedal } from "@/components/rank-medal";
 import { addStudentToGroup, removeStudentFromGroup } from "../actions";
 
 const STATUS_COLORS: Record<AttendanceStatus, string> = {
@@ -32,10 +33,8 @@ const STATUS_COLORS: Record<AttendanceStatus, string> = {
   EXCUSED: "#0ea5e9",
 };
 
-const MEDALS = ["🥇", "🥈", "🥉"];
-
 const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50";
+  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
 
 const isPresent = (s: string) => s === "PRESENT" || s === "LATE";
 
@@ -50,6 +49,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
   const group = await db.group.findUnique({
     where: { id },
     include: {
+      subject: { select: { id: true, name: true } },
       teacher: { select: { id: true, name: true, image: true, teacherType: true } },
       students: {
         orderBy: { joinedAt: "asc" },
@@ -133,16 +133,26 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
           <CardTitle>Guruh ma'lumotlari</CardTitle>
           <dl className="space-y-2.5 text-sm">
             <div className="flex justify-between gap-2">
+              <dt className="text-slate-400">Fan kategoriyasi</dt>
+              <dd>
+                {group.subject ? (
+                  <Badge className="bg-violet-500/15 text-violet-400">{group.subject.name}</Badge>
+                ) : (
+                  <span className="text-slate-500">—</span>
+                )}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-2">
               <dt className="text-slate-400">Turi</dt>
               <dd>
-                <Badge className="bg-sky-100 text-sky-700">{group.type ?? "—"}</Badge>
+                <Badge className="bg-cyan-500/15 text-cyan-400">{group.type ?? "—"}</Badge>
               </dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-slate-400">O'qituvchi</dt>
-              <dd className="font-medium text-slate-700">
+              <dd className="font-medium text-slate-200">
                 {group.teacher ? (
-                  <Link href={`/admin/teachers/${group.teacher.id}`} className="hover:text-indigo-600">
+                  <Link href={`/admin/teachers/${group.teacher.id}`} className="hover:text-blue-400">
                     {group.teacher.name}
                   </Link>
                 ) : (
@@ -152,15 +162,15 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-slate-400">O'quvchilar soni</dt>
-              <dd className="font-medium text-slate-700">{group.students.length} ta</dd>
+              <dd className="font-medium text-slate-200">{group.students.length} ta</dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-slate-400">Boshlanish sanasi</dt>
-              <dd className="font-medium text-slate-700">{fmtDate(group.startDate)}</dd>
+              <dd className="font-medium text-slate-200">{fmtDate(group.startDate)}</dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-slate-400">Tugash sanasi</dt>
-              <dd className="font-medium text-slate-700">{fmtDate(group.endDate)}</dd>
+              <dd className="font-medium text-slate-200">{fmtDate(group.endDate)}</dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-slate-400">Holat</dt>
@@ -179,7 +189,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
               <div className="flex flex-wrap gap-1.5">
                 {days.length > 0 ? (
                   days.map((d) => (
-                    <Badge key={d} className="bg-indigo-100 text-indigo-700">
+                    <Badge key={d} className="bg-blue-500/15 text-blue-400">
                       {d}
                     </Badge>
                   ))
@@ -190,11 +200,11 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
             </div>
             <div className="flex justify-between gap-2">
               <span className="text-slate-400">Dars vaqti</span>
-              <span className="font-medium text-slate-700">{group.time}</span>
+              <span className="font-medium text-slate-200">{group.time}</span>
             </div>
             <div className="flex justify-between gap-2">
               <span className="text-slate-400">Xona</span>
-              <span className="font-medium text-slate-700">{group.room ?? "—"}</span>
+              <span className="font-medium text-slate-200">{group.room ?? "—"}</span>
             </div>
           </div>
         </Card>
@@ -208,7 +218,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
       {/* O'quvchilar */}
       <div className="mt-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">O'quvchilar ro'yxati</h2>
+          <h2 className="text-sm font-semibold text-slate-200">O'quvchilar ro'yxati</h2>
           <Modal
             trigger={<button className={btn.primary}>+ O'quvchi qo'shish</button>}
             title="Guruhga o'quvchi qo'shish"
@@ -221,7 +231,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
               <form action={addStudentToGroup} className="space-y-4">
                 <input type="hidden" name="groupId" value={group.id} />
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  <label className="mb-1.5 block text-sm font-medium text-slate-200">
                     O'quvchini tanlang
                   </label>
                   <select name="studentId" required className={inputCls}>
@@ -261,11 +271,11 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
             {group.students.map((m) => {
               const p = memberPercent(m.student.id);
               return (
-                <tr key={m.id} className="hover:bg-slate-50/60">
+                <tr key={m.id} className="hover:bg-white/[0.04]">
                   <Td>
                     <Link href={`/admin/students/${m.student.id}`} className="flex items-center gap-3">
                       <Avatar name={m.student.name} image={m.student.image} size="sm" />
-                      <span className="font-medium text-slate-800 hover:text-indigo-600">
+                      <span className="font-medium text-slate-100 hover:text-blue-400">
                         {m.student.name}
                       </span>
                     </Link>
@@ -320,7 +330,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
                   </div>
                   <span className="w-20 shrink-0 text-right text-xs text-slate-500">
                     {l.present}/{l.total} —{" "}
-                    <span className="font-semibold text-slate-700">{l.percent}%</span>
+                    <span className="font-semibold text-slate-200">{l.percent}%</span>
                   </span>
                 </div>
               ))}
@@ -336,20 +346,20 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
             <div className="space-y-3">
               {rating.map((r) => (
                 <div key={r.studentId} className="flex items-center gap-3">
-                  <span className="w-8 text-center text-lg">
-                    {MEDALS[r.place - 1] ?? <span className="text-sm font-bold text-slate-400">{r.place}</span>}
+                  <span className="flex w-8 justify-center">
+                    <RankMedal place={r.place} size="sm" showBadge />
                   </span>
                   <Avatar name={r.name} image={r.image} size="sm" />
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/admin/students/${r.studentId}`}
-                      className="block truncate text-sm font-medium text-slate-800 hover:text-indigo-600"
+                      className="block truncate text-sm font-medium text-slate-100 hover:text-blue-400"
                     >
                       {r.name}
                     </Link>
                     <div className="text-xs text-slate-400">{r.level}-daraja</div>
                   </div>
-                  <Badge className="bg-violet-100 text-violet-700">{fmtNumber(r.xp)} XP</Badge>
+                  <Badge className="bg-violet-500/15 text-violet-400">{fmtNumber(r.xp)} XP</Badge>
                 </div>
               ))}
             </div>
@@ -363,14 +373,14 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
           {group.homeworks.length === 0 ? (
             <p className="py-6 text-center text-sm text-slate-400">Uyga vazifalar yo'q</p>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-white/5">
               {group.homeworks.map((h) => (
                 <div key={h.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-slate-800">{h.title}</div>
+                    <div className="truncate text-sm font-medium text-slate-100">{h.title}</div>
                     <div className="text-xs text-slate-400">Muddat: {fmtDateTime(h.dueAt)}</div>
                   </div>
-                  <Badge className="bg-indigo-100 text-indigo-700">
+                  <Badge className="bg-blue-500/15 text-blue-400">
                     {h._count.submissions}/{group.students.length} topshirdi
                   </Badge>
                 </div>
@@ -384,7 +394,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
           {group.exams.length === 0 ? (
             <p className="py-6 text-center text-sm text-slate-400">Imtihonlar yo'q</p>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-white/5">
               {group.exams.map((e) => {
                 const avg =
                   e.results.length > 0
@@ -393,12 +403,12 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
                 return (
                   <div key={e.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-slate-800">{e.title}</div>
+                      <div className="truncate text-sm font-medium text-slate-100">{e.title}</div>
                       <div className="text-xs text-slate-400">
                         {fmtDate(e.date)} · {e.results.length} ta natija
                       </div>
                     </div>
-                    <Badge className="bg-emerald-100 text-emerald-700">
+                    <Badge className="bg-emerald-500/15 text-emerald-400">
                       O'rtacha: {avg !== null ? `${avg} / ${e.maxScore}` : "—"}
                     </Badge>
                   </div>

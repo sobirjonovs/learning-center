@@ -6,6 +6,7 @@ import { homeworkViewStatus } from "@/lib/homework";
 import { computeHomeworkScore } from "@/lib/gamification";
 import { HOMEWORK_VIEW_STATUS, RATES } from "@/lib/constants";
 import { fmtDateTime, fmtNumber } from "@/lib/utils";
+import { AlertTriangle, Hourglass, PartyPopper, RotateCcw, Send } from "lucide-react";
 import { Badge, Card, CardTitle, PageHeader } from "@/components/ui";
 import { SubmissionForm } from "./submission-form";
 
@@ -53,52 +54,55 @@ export default async function StudentHomeworkDetailPage({
           <Card className="animate-slide-up">
             <CardTitle>📋 Vazifa tafsilotlari</CardTitle>
             {hw.description ? (
-              <p className="whitespace-pre-line text-sm text-slate-700">{hw.description}</p>
+              <p className="whitespace-pre-line text-sm text-slate-300">{hw.description}</p>
             ) : (
               <p className="text-sm text-slate-400">Tavsif berilmagan.</p>
             )}
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-3">
+              <div className="rounded-xl bg-white/5 p-3">
                 <div className="text-xs text-slate-400">Boshlanish</div>
-                <div className="text-sm font-semibold text-slate-800">{fmtDateTime(hw.startAt)}</div>
+                <div className="text-sm font-semibold text-slate-100">{fmtDateTime(hw.startAt)}</div>
               </div>
-              <div className="rounded-xl bg-slate-50 p-3">
+              <div className="rounded-xl bg-white/5 p-3">
                 <div className="text-xs text-slate-400">Muddat (deadline)</div>
-                <div className="text-sm font-semibold text-slate-800">{fmtDateTime(hw.dueAt)}</div>
+                <div className="text-sm font-semibold text-slate-100">{fmtDateTime(hw.dueAt)}</div>
               </div>
-              <div className="rounded-xl bg-slate-50 p-3">
+              <div className="rounded-xl bg-white/5 p-3">
                 <div className="text-xs text-slate-400">Maksimal ball</div>
-                <div className="text-sm font-semibold text-slate-800">{hw.maxScore} ball</div>
+                <div className="text-sm font-semibold text-slate-100">{hw.maxScore} ball</div>
               </div>
-              <div className="rounded-xl bg-slate-50 p-3">
+              <div className="rounded-xl bg-white/5 p-3">
                 <div className="text-xs text-slate-400">Guruh</div>
-                <div className="text-sm font-semibold text-slate-800">{hw.group.name}</div>
+                <div className="text-sm font-semibold text-slate-100">{hw.group.name}</div>
               </div>
             </div>
 
             {(hw.earlyBonus > 0 || hw.latePenalty > 0) && (
-              <div className="mt-4 space-y-1 rounded-xl border border-violet-100 bg-violet-50/60 p-3 text-sm">
-                <div className="text-xs font-semibold text-violet-700">Bonus va jarima shartlari</div>
+              <div className="mt-4 space-y-1 rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-sm">
+                <div className="text-xs font-semibold text-blue-300">Bonus va jarima shartlari</div>
                 {hw.earlyBonus > 0 && (
-                  <div className="text-emerald-700">🎁 Har bir kun oldin: +{hw.earlyBonus} ball</div>
+                  <div className="text-emerald-400">🎁 Har bir kun oldin: +{hw.earlyBonus} ball</div>
                 )}
                 {hw.latePenalty > 0 && (
-                  <div className="text-rose-700">⚠️ Har bir kechikkan kun: -{hw.latePenalty} ball</div>
+                  <div className="inline-flex items-center gap-1.5 text-rose-400">
+                    <AlertTriangle className="h-4 w-4" strokeWidth={1.75} />
+                    Har bir kechikkan kun: -{hw.latePenalty} ball
+                  </div>
                 )}
               </div>
             )}
 
             {hw.earlyBonus > 0 && (
-              <div className="mt-3 rounded-xl border border-dashed border-slate-200 bg-white p-3 text-xs text-slate-500">
-                <span className="font-semibold text-slate-600">Ball hisoblash misoli:</span>{" "}
+              <div className="mt-3 rounded-xl border border-dashed border-white/10 bg-white/5 p-3 text-xs text-slate-400">
+                <span className="font-semibold text-slate-300">Ball hisoblash misoli:</span>{" "}
                 Asosiy: {hw.maxScore} · 2 kun oldin: +{hw.earlyBonus * 2} · Yakuniy:{" "}
-                <span className="font-bold text-emerald-600">{hw.maxScore + hw.earlyBonus * 2}</span>
+                <span className="font-bold text-emerald-400">{hw.maxScore + hw.earlyBonus * 2}</span>
                 {hw.latePenalty > 0 && (
                   <>
                     {" "}
                     | 1 kun kech: -{hw.latePenalty} · Yakuniy:{" "}
-                    <span className="font-bold text-rose-600">
+                    <span className="font-bold text-rose-400">
                       {Math.max(0, hw.maxScore - hw.latePenalty)}
                     </span>
                   </>
@@ -113,7 +117,7 @@ export default async function StudentHomeworkDetailPage({
                     href={hw.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-sm font-medium text-slate-200 shadow-sm transition hover:bg-white/5"
                   >
                     📎 Biriktirilgan fayl
                   </a>
@@ -123,7 +127,7 @@ export default async function StudentHomeworkDetailPage({
                     href={hw.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-sm font-medium text-slate-200 shadow-sm transition hover:bg-white/5"
                   >
                     🔗 Qo&apos;shimcha havola
                   </a>
@@ -134,34 +138,39 @@ export default async function StudentHomeworkDetailPage({
 
           {/* Tekshirilgan natija */}
           {sub && sub.status === "ACCEPTED" && (
-            <Card className="animate-pop border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-white">
-              <CardTitle>🎉 Natijangiz</CardTitle>
+            <Card className="animate-pop border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-surface to-blue-500/5" glow="blue">
+              <CardTitle>
+                <span className="inline-flex items-center gap-2">
+                  <PartyPopper className="h-4 w-4 text-emerald-400" strokeWidth={1.75} />
+                  Natijangiz
+                </span>
+              </CardTitle>
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl bg-white p-3 text-center shadow-sm">
+                <div className="rounded-xl bg-white/5 p-3 text-center shadow-sm">
                   <div className="text-xs text-slate-400">Asosiy ball</div>
-                  <div className="text-xl font-bold text-slate-800">{sub.baseScore ?? 0}</div>
+                  <div className="text-xl font-bold text-slate-100">{sub.baseScore ?? 0}</div>
                 </div>
-                <div className="rounded-xl bg-white p-3 text-center shadow-sm">
+                <div className="rounded-xl bg-white/5 p-3 text-center">
                   <div className="text-xs text-slate-400">Bonus</div>
-                  <div className="text-xl font-bold text-emerald-600">+{sub.bonus}</div>
+                  <div className="text-xl font-bold text-emerald-400">+{sub.bonus}</div>
                 </div>
-                <div className="rounded-xl bg-white p-3 text-center shadow-sm">
+                <div className="rounded-xl bg-white/5 p-3 text-center">
                   <div className="text-xs text-slate-400">Jarima</div>
-                  <div className="text-xl font-bold text-rose-600">-{sub.penalty}</div>
+                  <div className="text-xl font-bold text-rose-400">-{sub.penalty}</div>
                 </div>
               </div>
-              <div className="mt-4 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 p-4 text-center text-white">
-                <div className="text-xs uppercase tracking-wide text-violet-100">Yakuniy ball</div>
-                <div className="text-4xl font-extrabold">{sub.score ?? 0}</div>
-                <div className="mt-1 text-xs text-violet-100">
+              <div className="mt-4 rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-700/80 to-blue-500/70 p-4 text-center text-white glow-blue">
+                <div className="font-display text-xs uppercase tracking-wide text-blue-200">Yakuniy ball</div>
+                <div className="font-display text-4xl font-extrabold">{sub.score ?? 0}</div>
+                <div className="mt-1 text-xs text-blue-100">
                   +{fmtNumber(Math.round((sub.score ?? 0) * RATES.homeworkXp))} XP · +
                   {fmtNumber(Math.round((sub.score ?? 0) * RATES.homeworkPoints))} ball olindi
                 </div>
               </div>
               {sub.feedback && (
-                <div className="mt-4 rounded-xl bg-slate-50 p-3">
+                <div className="mt-4 rounded-xl bg-white/5 p-3">
                   <div className="text-xs font-semibold text-slate-500">O&apos;qituvchi izohi</div>
-                  <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{sub.feedback}</p>
+                  <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{sub.feedback}</p>
                 </div>
               )}
             </Card>
@@ -173,37 +182,48 @@ export default async function StudentHomeworkDetailPage({
           {canSubmit && (
             <Card className="animate-slide-up">
               <CardTitle>
-                {sub?.status === "RETURNED" ? "🔄 Qayta topshirish" : "🚀 Vazifani topshirish"}
+                {sub?.status === "RETURNED" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <RotateCcw className="h-4 w-4 text-amber-400" strokeWidth={1.75} />
+                    Qayta topshirish
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <Send className="h-4 w-4 text-cyan-400" strokeWidth={1.75} />
+                    Vazifani topshirish
+                  </span>
+                )}
               </CardTitle>
 
               {sub?.status === "RETURNED" && (
-                <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
-                  <div className="font-semibold text-amber-800">Vazifa qayta ishlashga qaytarildi</div>
+                <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+                  <div className="font-semibold text-amber-300">Vazifa qayta ishlashga qaytarildi</div>
                   {sub.feedback && (
-                    <p className="mt-1 whitespace-pre-line text-amber-700">{sub.feedback}</p>
+                    <p className="mt-1 whitespace-pre-line text-amber-200/80">{sub.feedback}</p>
                   )}
                 </div>
               )}
 
               {overdue && hw.latePenalty > 0 && (
-                <div className="mb-4 animate-pulse-soft rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-                  ⚠️ Muddat o&apos;tgan — jarima qo&apos;llanadi
+                <div className="mb-4 animate-pulse-soft flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300">
+                  <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                  Muddat o&apos;tgan — jarima qo&apos;llanadi
                 </div>
               )}
               {overdue && hw.latePenalty === 0 && (
-                <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
-                  ⏰ Muddat o&apos;tgan — imkon qadar tezroq topshiring
+                <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-300">
+                  ⏰ Muddat o&apos;tgan — imkon qadar tezroq bajaring
                 </div>
               )}
 
               {!overdue && preview.bonus > 0 && (
-                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-300">
                   🎁 Hozir topshirsangiz: taxminan +{preview.bonus} bonus ball ({preview.daysEarly}{" "}
                   kun oldin)
                 </div>
               )}
               {overdue && preview.penalty > 0 && (
-                <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300">
                   📉 Hozir topshirsangiz: taxminan -{preview.penalty} jarima ({preview.daysLate} kun
                   kechikish)
                 </div>
@@ -214,11 +234,11 @@ export default async function StudentHomeworkDetailPage({
           )}
 
           {sub && sub.status === "SUBMITTED" && (
-            <Card className="animate-slide-up border-sky-200 bg-sky-50/50">
+            <Card className="animate-slide-up border-cyan-400/30 bg-cyan-400/5">
               <div className="flex items-center gap-3">
-                <div className="animate-float text-4xl">⏳</div>
+                <Hourglass className="h-10 w-10 shrink-0 animate-float text-cyan-400" strokeWidth={1.75} />
                 <div>
-                  <div className="font-semibold text-slate-900">Tekshirilmoqda</div>
+                  <div className="font-semibold text-white">Tekshirilmoqda</div>
                   <div className="text-xs text-slate-500">
                     Vazifangiz o&apos;qituvchiga yuborildi. Natija tez orada chiqadi.
                   </div>
@@ -234,10 +254,10 @@ export default async function StudentHomeworkDetailPage({
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-slate-500">Topshirilgan vaqt</span>
-                  <span className="font-medium text-slate-800">{fmtDateTime(sub.submittedAt)}</span>
+                  <span className="font-medium text-slate-100">{fmtDateTime(sub.submittedAt)}</span>
                 </div>
                 {sub.submittedAt > hw.dueAt && (
-                  <div className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
+                  <div className="rounded-lg bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-300">
                     Kechikib topshirilgan
                   </div>
                 )}
@@ -248,7 +268,7 @@ export default async function StudentHomeworkDetailPage({
                       href={sub.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="max-w-[60%] truncate font-medium text-violet-600 hover:underline"
+                      className="max-w-[60%] truncate font-medium text-blue-400 hover:underline"
                     >
                       {sub.link}
                     </a>
@@ -261,16 +281,16 @@ export default async function StudentHomeworkDetailPage({
                       href={sub.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium text-violet-600 hover:underline"
+                      className="font-medium text-blue-400 hover:underline"
                     >
                       📎 Yuklab olish
                     </a>
                   </div>
                 )}
                 {sub.comment && (
-                  <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="rounded-xl bg-white/5 p-3">
                     <div className="text-xs font-semibold text-slate-500">Izohim</div>
-                    <p className="mt-1 whitespace-pre-line text-slate-700">{sub.comment}</p>
+                    <p className="mt-1 whitespace-pre-line text-slate-300">{sub.comment}</p>
                   </div>
                 )}
               </div>

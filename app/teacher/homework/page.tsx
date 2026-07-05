@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fmtDateTime } from "@/lib/utils";
 import { ConfirmButton } from "@/components/confirm-button";
+import { BookOpen } from "lucide-react";
 import {
   Badge,
   Card,
@@ -89,7 +90,7 @@ export default async function TeacherHomeworkPage({
 
       {homeworks.length === 0 ? (
         <EmptyState
-          icon="📚"
+          icon={BookOpen}
           title="Vazifalar topilmadi"
           hint="Yangi vazifa yaratish uchun yuqoridagi tugmani bosing."
           action={
@@ -117,11 +118,11 @@ export default async function TeacherHomeworkPage({
             const st = hwStats.get(hw.id) ?? { submitted: 0, ungraded: 0 };
             const total = studentCount.get(hw.groupId) ?? 0;
             return (
-              <tr key={hw.id} className="hover:bg-slate-50/60">
+              <tr key={hw.id} className="hover:bg-white/[0.04]">
                 <Td>
                   <Link
                     href={`/teacher/homework/${hw.id}`}
-                    className="font-medium text-slate-700 hover:text-indigo-600"
+                    className="font-medium text-slate-200 hover:text-blue-400"
                   >
                     {hw.title}
                   </Link>
@@ -129,13 +130,13 @@ export default async function TeacherHomeworkPage({
                 <Td className="text-slate-500">{hw.group.name}</Td>
                 <Td className="text-slate-500">{fmtDateTime(hw.startAt)}</Td>
                 <Td className="text-slate-500">{fmtDateTime(hw.dueAt)}</Td>
-                <Td className="text-center font-semibold text-slate-700">{hw.maxScore}</Td>
+                <Td className="text-center font-semibold text-slate-200">{hw.maxScore}</Td>
                 <Td className="text-center text-slate-600">
                   {st.submitted}/{total}
                 </Td>
                 <Td className="text-center">
                   {st.ungraded > 0 ? (
-                    <Badge className="bg-amber-100 text-amber-700">{st.ungraded}</Badge>
+                    <Badge className="bg-amber-500/15 text-amber-400">{st.ungraded}</Badge>
                   ) : (
                     <span className="text-slate-300">—</span>
                   )}
@@ -152,7 +153,7 @@ export default async function TeacherHomeworkPage({
                       <input type="hidden" name="id" value={hw.id} />
                       <ConfirmButton
                         message={`"${hw.title}" vazifasini o'chirmoqchimisiz? Barcha topshiriqlar ham o'chadi.`}
-                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                        className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                       >
                         O'chirish
                       </ConfirmButton>

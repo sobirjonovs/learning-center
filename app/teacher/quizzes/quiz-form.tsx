@@ -103,24 +103,24 @@ export function QuizForm({
             <img
               src={quiz.image}
               alt="Joriy rasm"
-              className="h-20 w-32 rounded-xl border border-slate-100 object-cover"
+              className="h-20 w-32 rounded-xl border border-white/10 object-cover"
             />
           )}
           <input type="file" name="image" accept="image/*" className={inputCls} />
         </div>
       </Field>
 
-      <label className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-3 text-sm font-medium text-slate-700">
+      <label className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm font-medium text-slate-200">
         <input
           type="checkbox"
           name="countsToRating"
           defaultChecked={quiz ? quiz.countsToRating : true}
-          className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+          className="h-4 w-4 rounded border-slate-300 text-blue-400 focus:ring-indigo-500"
         />
         Natijalarni reytingga qo&apos;shish (o&apos;quvchilar XP va ball oladi)
       </label>
 
-      <div className="flex justify-end border-t border-slate-100 pt-4">
+      <div className="flex justify-end border-t border-white/10 pt-4">
         <button type="submit" className={btn.primary}>
           {submitLabel}
         </button>

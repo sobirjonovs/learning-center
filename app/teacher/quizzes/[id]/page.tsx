@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cn, fmtDate, parseJsonArray } from "@/lib/utils";
 import { ANSWER_SHAPES, QUIZ_TYPES, type QuizType } from "@/lib/constants";
+import { HelpCircle, Pencil, Target } from "lucide-react";
 import { Badge, Card, CardTitle, EmptyState, PageHeader, btn } from "@/components/ui";
 import { Modal } from "@/components/modal";
 import { ConfirmButton } from "@/components/confirm-button";
@@ -72,8 +73,9 @@ export default async function QuizBuilderPage({
           <Card>
             <CardTitle
               action={
-                <Link href={`/teacher/quizzes/${quiz.id}/edit`} className={btn.small}>
-                  ✏️ Tahrirlash
+                <Link href={`/teacher/quizzes/${quiz.id}/edit`} className={`${btn.small} inline-flex items-center gap-1`}>
+                  <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  Tahrirlash
                 </Link>
               }
             >
@@ -84,29 +86,29 @@ export default async function QuizBuilderPage({
               <img
                 src={quiz.image}
                 alt={quiz.name}
-                className="mb-3 h-36 w-full rounded-xl border border-slate-100 object-cover"
+                className="mb-3 h-36 w-full rounded-xl border border-white/10 object-cover"
               />
             )}
             <dl className="space-y-2.5 text-sm">
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-400">Turi</dt>
                 <dd>
-                  <Badge className="bg-violet-100 text-violet-700">
+                  <Badge className="bg-violet-500/15 text-violet-400">
                     {QUIZ_TYPES[quiz.type as QuizType]?.label ?? quiz.type}
                   </Badge>
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-400">Fan</dt>
-                <dd className="font-medium text-slate-700">{quiz.subject ?? "—"}</dd>
+                <dd className="font-medium text-slate-200">{quiz.subject ?? "—"}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-400">Guruh</dt>
-                <dd className="font-medium text-slate-700">{quiz.group?.name ?? "Guruhsiz"}</dd>
+                <dd className="font-medium text-slate-200">{quiz.group?.name ?? "Guruhsiz"}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-400">Vaqt chegarasi</dt>
-                <dd className="font-medium text-slate-700">
+                <dd className="font-medium text-slate-200">
                   {quiz.timeLimit ? `${quiz.timeLimit} daqiqa` : "—"}
                 </dd>
               </div>
@@ -114,7 +116,7 @@ export default async function QuizBuilderPage({
                 <dt className="text-slate-400">Reytingga</dt>
                 <dd>
                   {quiz.countsToRating ? (
-                    <Badge className="bg-emerald-100 text-emerald-700">✓ Qo&apos;shiladi</Badge>
+                    <Badge className="bg-emerald-500/15 text-emerald-400">✓ Qo&apos;shiladi</Badge>
                   ) : (
                     <Badge className="bg-slate-100 text-slate-500">Qo&apos;shilmaydi</Badge>
                   )}
@@ -122,7 +124,7 @@ export default async function QuizBuilderPage({
               </div>
             </dl>
             {quiz.description && (
-              <p className="mt-3 border-t border-slate-100 pt-3 text-sm text-slate-500">
+              <p className="mt-3 border-t border-white/10 pt-3 text-sm text-slate-500">
                 {quiz.description}
               </p>
             )}
@@ -138,7 +140,7 @@ export default async function QuizBuilderPage({
         <div className="lg:col-span-2">
           {quiz.questions.length === 0 ? (
             <EmptyState
-              icon="❓"
+              icon={HelpCircle}
               title="Hali savollar yo'q"
               hint="Chapdagi forma orqali birinchi savolni qo'shing. O'yinni boshlash uchun kamida bitta savol kerak."
             />
@@ -154,10 +156,13 @@ export default async function QuizBuilderPage({
                           {idx + 1}
                         </span>
                         <div>
-                          <div className="font-semibold text-slate-900">{q.text}</div>
+                          <div className="font-semibold text-white">{q.text}</div>
                           <div className="mt-0.5 flex flex-wrap gap-2 text-xs text-slate-400">
                             <span>⏱ {q.timeSeconds} soniya</span>
-                            <span>🎯 {q.points} ball</span>
+                            <span className="inline-flex items-center gap-1">
+                              <Target className="h-3 w-3" strokeWidth={1.75} />
+                              {q.points} ball
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -168,7 +173,7 @@ export default async function QuizBuilderPage({
                           <button
                             type="submit"
                             disabled={idx === 0}
-                            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30"
+                            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-white/10 hover:text-slate-700 disabled:opacity-30"
                             title="Yuqoriga"
                           >
                             ↑
@@ -180,14 +185,18 @@ export default async function QuizBuilderPage({
                           <button
                             type="submit"
                             disabled={idx === quiz.questions.length - 1}
-                            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30"
+                            className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-white/10 hover:text-slate-700 disabled:opacity-30"
                             title="Pastga"
                           >
                             ↓
                           </button>
                         </form>
                         <Modal
-                          trigger={<button className={btn.small}>✏️</button>}
+                          trigger={
+                            <button className={`${btn.small} inline-flex items-center justify-center`}>
+                              <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
+                            </button>
+                          }
                           title={`${idx + 1}-savolni tahrirlash`}
                         >
                           <QuestionForm
@@ -209,7 +218,7 @@ export default async function QuizBuilderPage({
                           <input type="hidden" name="questionId" value={q.id} />
                           <ConfirmButton
                             message="Bu savolni o'chirishga ishonchingiz komilmi?"
-                            className="rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                            className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                           >
                             🗑
                           </ConfirmButton>
@@ -222,7 +231,7 @@ export default async function QuizBuilderPage({
                       <img
                         src={q.image}
                         alt=""
-                        className="mt-3 max-h-40 rounded-xl border border-slate-100 object-contain"
+                        className="mt-3 max-h-40 rounded-xl border border-white/10 object-contain"
                       />
                     )}
 
@@ -237,7 +246,7 @@ export default async function QuizBuilderPage({
                               "flex items-center gap-2 rounded-xl border px-3 py-2 text-sm",
                               isCorrect
                                 ? "border-emerald-300 bg-emerald-50 font-semibold text-emerald-800"
-                                : "border-slate-100 bg-slate-50/60 text-slate-600"
+                                : "border-white/10 bg-white/5 text-slate-600"
                             )}
                           >
                             <span

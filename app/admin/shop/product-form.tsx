@@ -60,12 +60,12 @@ export function ProductForm({ product }: { product?: ProductData }) {
           />
         </Field>
       </div>
-      <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+      <label className="flex items-center gap-2 text-sm font-medium text-slate-200">
         <input
           type="checkbox"
           name="active"
           defaultChecked={product?.active ?? true}
-          className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+          className="h-4 w-4 rounded border-slate-300 text-blue-400 focus:ring-indigo-500"
         />
         Faol (o'quvchilarga ko'rinadi)
       </label>

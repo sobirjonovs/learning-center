@@ -3,6 +3,7 @@ import { requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ATTENDANCE_STATUS, weekdayNameFor, type AttendanceStatus } from "@/lib/constants";
 import { cn, parseJsonArray, pct, todayStr } from "@/lib/utils";
+import { GraduationCap, Users, AlertTriangle } from "lucide-react";
 import {
   Avatar,
   Badge,
@@ -30,19 +31,19 @@ const STATUS_COLORS: Record<AttendanceStatus, string> = {
 const STATUS_BTN: Record<AttendanceStatus, { on: string; off: string }> = {
   PRESENT: {
     on: "bg-emerald-600 text-white shadow-sm",
-    off: "bg-emerald-100 text-emerald-700 hover:bg-emerald-200",
+    off: "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-200",
   },
   LATE: {
     on: "bg-amber-500 text-white shadow-sm",
-    off: "bg-amber-100 text-amber-700 hover:bg-amber-200",
+    off: "bg-amber-500/15 text-amber-400 hover:bg-amber-200",
   },
   ABSENT: {
     on: "bg-rose-600 text-white shadow-sm",
-    off: "bg-rose-100 text-rose-700 hover:bg-rose-200",
+    off: "bg-rose-500/15 text-rose-400 hover:bg-rose-200",
   },
   EXCUSED: {
     on: "bg-sky-600 text-white shadow-sm",
-    off: "bg-sky-100 text-sky-700 hover:bg-sky-200",
+    off: "bg-cyan-500/15 text-cyan-400 hover:bg-sky-200",
   },
 };
 
@@ -76,7 +77,7 @@ export default async function AttendancePage({
     return (
       <div>
         <PageHeader title="Davomat nazorati" subtitle="Guruh bo'yicha davomat belgilash" />
-        <EmptyState icon="✅" title="Faol guruhlar yo'q" hint="Avval guruh yarating." />
+        <EmptyState icon={Users} title="Faol guruhlar yo'q" hint="Avval guruh yarating." />
       </div>
     );
   }
@@ -136,7 +137,7 @@ export default async function AttendancePage({
       <Card className="mb-4">
         <form action="/admin/attendance" className="flex flex-wrap items-end gap-3">
           <div className="min-w-56">
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">Guruh</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-200">Guruh</label>
             <select name="group" defaultValue={selectedGroup.id} className={inputCls}>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
@@ -146,7 +147,7 @@ export default async function AttendancePage({
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">Sana</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-200">Sana</label>
             <input type="date" name="date" defaultValue={date} className={inputCls} />
           </div>
           <button type="submit" className={btn.primary}>
@@ -155,7 +156,10 @@ export default async function AttendancePage({
         </form>
         {!isLessonDay && (
           <p className="mt-3 rounded-xl bg-amber-50 px-4 py-2.5 text-sm text-amber-700">
-            ⚠️ Tanlangan sana ({weekdayNameFor(dateObj)}) bu guruhning dars kunlariga kirmaydi:{" "}
+            <span className="inline-flex items-center gap-1.5">
+              <AlertTriangle className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              Tanlangan sana ({weekdayNameFor(dateObj)}) bu guruhning dars kunlariga kirmaydi:{" "}
+            </span>
             {parseJsonArray(selectedGroup.days).join(", ")}.
           </p>
         )}
@@ -163,7 +167,7 @@ export default async function AttendancePage({
 
       {/* Davomat jadvali */}
       {members.length === 0 ? (
-        <EmptyState icon="🎓" title="Guruhda o'quvchilar yo'q" hint="Avval guruhga o'quvchi qo'shing." />
+        <EmptyState icon={GraduationCap} title="Guruhda o'quvchilar yo'q" hint="Avval guruhga o'quvchi qo'shing." />
       ) : (
         <Table
           head={
@@ -177,11 +181,11 @@ export default async function AttendancePage({
           {members.map((m) => {
             const current = statusMap.get(m.student.id);
             return (
-              <tr key={m.id} className="hover:bg-slate-50/60">
+              <tr key={m.id} className="hover:bg-white/[0.04]">
                 <Td>
                   <div className="flex items-center gap-3">
                     <Avatar name={m.student.name} image={m.student.image} size="sm" />
-                    <span className="font-medium text-slate-800">{m.student.name}</span>
+                    <span className="font-medium text-slate-100">{m.student.name}</span>
                   </div>
                 </Td>
                 <Td>

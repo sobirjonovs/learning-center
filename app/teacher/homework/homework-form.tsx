@@ -108,7 +108,7 @@ export function HomeworkForm({
         {homework?.fileUrl && (
           <p className="mt-1 text-xs text-slate-400">
             Joriy fayl:{" "}
-            <a href={homework.fileUrl} target="_blank" className="text-indigo-600 hover:underline">
+            <a href={homework.fileUrl} target="_blank" className="text-blue-400 hover:underline">
               yuklab olish
             </a>{" "}
             (yangi fayl tanlansa almashtiriladi)

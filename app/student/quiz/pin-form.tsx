@@ -3,6 +3,9 @@
 // 6 xonali PIN kiritish formasi
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Rocket } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { gameBtnLg } from "@/components/gamification";
 
 export function PinForm() {
   const router = useRouter();
@@ -25,14 +28,21 @@ export function PinForm() {
         autoComplete="off"
         placeholder="000000"
         aria-label="Game PIN"
-        className="w-full rounded-2xl border-0 bg-white/95 px-4 py-4 text-center font-mono text-3xl font-black tracking-[0.5em] text-slate-900 placeholder-slate-300 shadow-inner outline-none ring-4 ring-transparent transition focus:ring-white/40"
+        className="w-full rounded-2xl border-0 bg-white/95 px-4 py-4 text-center font-mono text-3xl font-black tracking-[0.5em] text-white placeholder-slate-300 shadow-inner outline-none ring-4 ring-transparent transition focus:ring-white/40"
       />
       <button
         type="submit"
         disabled={pin.length !== 6 || loading}
-        className="w-full rounded-2xl bg-slate-900/90 px-4 py-4 text-lg font-black text-white shadow-lg transition hover:bg-slate-900 active:scale-[0.98] disabled:opacity-40"
+        className={cn(gameBtnLg, "inline-flex items-center justify-center gap-2")}
       >
-        {loading ? "Ulanmoqda..." : "Qo'shilish 🚀"}
+        {loading ? (
+          "Ulanmoqda..."
+        ) : (
+          <>
+            <Rocket className="h-4 w-4" strokeWidth={1.75} />
+            Qo'shilish
+          </>
+        )}
       </button>
     </form>
   );

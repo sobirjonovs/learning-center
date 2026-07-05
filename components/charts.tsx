@@ -10,9 +10,9 @@ export type ChartPoint = { label: string; value: number };
 
 const W = 600;
 const PAD = { top: 14, right: 12, bottom: 26, left: 40 };
-const GRID = "#e2e8f0"; // slate-200 — bilinar-bilinmas to'r
-const INK_MUTED = "#94a3b8"; // slate-400 — matn har doim matn rangida
-const INK = "#475569"; // slate-600
+const GRID = "var(--chart-grid, rgb(255 255 255 / 0.06))";
+const INK_MUTED = "var(--chart-ink-muted, #64748b)";
+const INK = "var(--chart-ink, #94a3b8)";
 
 function niceMax(max: number): number {
   if (max <= 0) return 10;
@@ -40,10 +40,10 @@ function Tooltip({ x, label, value, suffix }: { x: number; label: string; value:
   const left = Math.min(Math.max((x / W) * 100, 8), 92);
   return (
     <div
-      className="pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs text-white shadow-lg"
+      className="pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-xl border border-white/10 bg-surface-raised px-3 py-2 text-xs text-white shadow-xl backdrop-blur-xl classic:border-slate-200 classic:bg-white classic:text-slate-900 classic:shadow-md classic:backdrop-blur-none"
       style={{ left: `${left}%` }}
     >
-      <div className="text-slate-300">{label}</div>
+      <div className="text-slate-300 classic:text-slate-500">{label}</div>
       <div className="font-semibold">
         {fmtNumber(value)}
         {suffix}
@@ -56,7 +56,7 @@ function Tooltip({ x, label, value, suffix }: { x: number; label: string; value:
 export function LineChart({
   data,
   height = 200,
-  color = "#6366f1",
+  color = "#3b82f6",
   suffix = "",
 }: {
   data: ChartPoint[];
@@ -70,7 +70,7 @@ export function LineChart({
   const max = niceMax(Math.max(...data.map((d) => d.value), 1));
   const { ref, idx, onMove, onLeave } = useHover(data.length, PAD.left, plotW);
 
-  if (data.length === 0) return <div className="py-10 text-center text-sm text-slate-400">Ma'lumot yo'q</div>;
+  if (data.length === 0) return <div className="py-10 text-center text-sm text-slate-500">Ma'lumot yo'q</div>;
 
   const px = (i: number) => PAD.left + (data.length === 1 ? plotW / 2 : (i / (data.length - 1)) * plotW);
   const py = (v: number) => PAD.top + plotH - (v / max) * plotH;
@@ -124,7 +124,7 @@ export function LineChart({
 export function BarChart({
   data,
   height = 200,
-  color = "#6366f1",
+  color = "#3b82f6",
   suffix = "",
   maxValue,
 }: {
@@ -140,7 +140,7 @@ export function BarChart({
   const max = maxValue ?? niceMax(Math.max(...data.map((d) => d.value), 1));
   const { ref, idx, onMove, onLeave } = useHover(data.length, PAD.left, plotW);
 
-  if (data.length === 0) return <div className="py-10 text-center text-sm text-slate-400">Ma'lumot yo'q</div>;
+  if (data.length === 0) return <div className="py-10 text-center text-sm text-slate-500">Ma'lumot yo'q</div>;
 
   const step = plotW / data.length;
   const barW = Math.min(step * 0.6, 42);

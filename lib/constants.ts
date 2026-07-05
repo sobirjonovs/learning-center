@@ -136,6 +136,7 @@ export const PERMISSIONS = [
   { key: "groups.manage", label: "Guruhlarni boshqarish" },
   { key: "attendance.manage", label: "Davomatni boshqarish" },
   { key: "teachers.manage", label: "O'qituvchilarni boshqarish" },
+  { key: "categories.manage", label: "Fan kategoriyalarini boshqarish" },
   { key: "shop.manage", label: "Magazin boshqaruvi" },
   { key: "notifications.send", label: "Bildirishnoma yuborish" },
   { key: "reports.view", label: "Hisobotlarni ko'rish" },
@@ -147,6 +148,16 @@ export type PermissionKey = (typeof PERMISSIONS)[number]["key"];
 export const TEACHER_TYPES = ["Asosiy o'qituvchi", "Yordamchi o'qituvchi", "Master o'qituvchi"];
 export const STUDENT_TYPES = ["Oddiy", "Premium", "VIP"];
 export const GROUP_TYPES = ["Umumiy", "Individual", "Intensiv", "Online"];
+
+// Demo seed uchun standart fan kategoriyalari
+export const DEFAULT_SUBJECTS = [
+  "Matematika",
+  "Ingliz tili",
+  "Frontend",
+  "Backend",
+  "Biologiya",
+  "Python",
+];
 
 export const WEEKDAYS = [
   "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba",

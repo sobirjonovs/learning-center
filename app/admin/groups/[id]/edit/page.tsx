@@ -19,10 +19,15 @@ export default async function EditGroupPage({
   const { id } = await params;
   const { error } = await searchParams;
 
-  const [group, teachers] = await Promise.all([
+  const [group, teachers, subjects] = await Promise.all([
     db.group.findUnique({ where: { id } }),
     db.user.findMany({
       where: { role: "TEACHER", active: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    db.subject.findMany({
+      where: { active: true },
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
@@ -33,7 +38,7 @@ export default async function EditGroupPage({
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Guruhni tahrirlash" subtitle={group.name} backHref={`/admin/groups/${group.id}`} />
       <Card>
-        <GroupForm group={group} teachers={teachers} action={updateGroup} error={error} />
+        <GroupForm group={group} teachers={teachers} subjects={subjects} action={updateGroup} error={error} />
       </Card>
     </div>
   );

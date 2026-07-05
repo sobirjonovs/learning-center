@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cn, parseJsonArray } from "@/lib/utils";
 import { ANSWER_SHAPES } from "@/lib/constants";
+import { Target } from "lucide-react";
 import { PageHeader, btn } from "@/components/ui";
 import { startLiveGame } from "../../actions";
 
@@ -41,9 +42,9 @@ export default async function QuizPreviewPage({
       />
 
       {quiz.questions.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-14 text-center text-sm text-slate-500">
+        <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-14 text-center text-sm text-slate-500">
           Hali savollar yo&apos;q.{" "}
-          <Link href={`/teacher/quizzes/${quiz.id}`} className="font-semibold text-indigo-600">
+          <Link href={`/teacher/quizzes/${quiz.id}`} className="font-semibold text-blue-400">
             Savol qo&apos;shish →
           </Link>
         </div>
@@ -63,7 +64,10 @@ export default async function QuizPreviewPage({
                   </span>
                   <span className="flex items-center gap-3">
                     <span>⏱ {q.timeSeconds} s</span>
-                    <span>🎯 {q.points} ball</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Target className="h-3.5 w-3.5" strokeWidth={1.75} />
+                      {q.points} ball
+                    </span>
                   </span>
                 </div>
 

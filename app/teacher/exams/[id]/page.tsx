@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fmtDate, pct } from "@/lib/utils";
+import { BadgeCheck, BarChart3, Receipt, Rocket, Users } from "lucide-react";
 import {
   Avatar,
   Card,
@@ -56,31 +57,31 @@ export default async function ExamResultsPage({
         <StatCard
           label="O'rtacha ball"
           value={avg !== null ? avg : "—"}
-          icon="📊"
+          icon={BarChart3}
           tone="indigo"
           hint={avg !== null ? `${pct(avg, exam.maxScore)}%` : undefined}
         />
-        <StatCard label="Eng yuqori ball" value={max !== null ? max : "—"} icon="🚀" tone="emerald" />
-        <StatCard label="100% olganlar" value={perfectCount} icon="💯" tone="violet" />
+        <StatCard label="Eng yuqori ball" value={max !== null ? max : "—"} icon={Rocket} tone="emerald" />
+        <StatCard label="100% olganlar" value={perfectCount} icon={BadgeCheck} tone="violet" />
         <StatCard
           label="Natijalar"
           value={`${exam.results.length}/${exam.group.students.length}`}
-          icon="🧾"
+          icon={Receipt}
           tone="sky"
         />
       </div>
 
       {exam.group.students.length === 0 ? (
-        <EmptyState icon="👥" title="Guruhda o'quvchilar yo'q" />
+        <EmptyState icon={Users} title="Guruhda o'quvchilar yo'q" />
       ) : (
         <Card>
           <form action={saveExamResults}>
             <input type="hidden" name="examId" value={exam.id} />
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-white/5">
               {exam.group.students.map((m) => (
                 <div key={m.student.id} className="flex items-center gap-3 py-3">
                   <Avatar name={m.student.name} image={m.student.image} size="sm" />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">
                     {m.student.name}
                   </span>
                   <div className="flex items-center gap-2">

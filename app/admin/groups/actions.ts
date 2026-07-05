@@ -33,10 +33,18 @@ async function readForm(formData: FormData) {
     if (teacher && teacher.role === "TEACHER") teacherId = teacher.id;
   }
 
+  const subjectIdRaw = String(formData.get("subjectId") ?? "");
+  let subjectId: string | null = null;
+  if (subjectIdRaw) {
+    const subject = await db.subject.findUnique({ where: { id: subjectIdRaw } });
+    if (subject && subject.active) subjectId = subject.id;
+  }
+
   return {
     name,
     type,
     teacherId,
+    subjectId,
     days: JSON.stringify(days),
     daysCount: days.length,
     time,
@@ -57,6 +65,7 @@ export async function createGroup(formData: FormData) {
       name: f.name,
       type: f.type,
       teacherId: f.teacherId,
+      subjectId: f.subjectId,
       days: f.days,
       time: f.time,
       room: f.room,
@@ -87,6 +96,7 @@ export async function updateGroup(formData: FormData) {
       name: f.name,
       type: f.type,
       teacherId: f.teacherId,
+      subjectId: f.subjectId,
       days: f.days,
       time: f.time,
       room: f.room,

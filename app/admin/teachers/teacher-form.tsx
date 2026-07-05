@@ -10,7 +10,10 @@ type TeacherData = {
   phone: string | null;
   teacherType: string | null;
   active: boolean;
+  subjectIds?: string[];
 };
+
+type SubjectOption = { id: string; name: string };
 
 const ERROR_TEXT: Record<string, string> = {
   login: "Bu login allaqachon band. Boshqa login tanlang.",
@@ -19,13 +22,16 @@ const ERROR_TEXT: Record<string, string> = {
 
 export function TeacherForm({
   teacher,
+  subjects,
   action,
   error,
 }: {
   teacher?: TeacherData;
+  subjects: SubjectOption[];
   action: (formData: FormData) => Promise<void>;
   error?: string;
 }) {
+  const selectedIds = new Set(teacher?.subjectIds ?? []);
   return (
     <form action={action} className="space-y-4">
       {error && ERROR_TEXT[error] && (
@@ -86,12 +92,42 @@ export function TeacherForm({
           </select>
         </Field>
 
+        <Field label="Fan kategoriyalari" className="sm:col-span-2">
+          {subjects.length === 0 ? (
+            <p className="text-sm text-slate-400">
+              Kategoriyalar yo&apos;q.{" "}
+              <Link href="/admin/categories" className="text-blue-400 hover:underline">
+                Avval kategoriya qo&apos;shing
+              </Link>
+              .
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {subjects.map((s) => (
+                <label
+                  key={s.id}
+                  className="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5"
+                >
+                  <input
+                    type="checkbox"
+                    name="subjectIds"
+                    value={s.id}
+                    defaultChecked={selectedIds.has(s.id)}
+                    className="h-4 w-4 rounded border-slate-300 accent-indigo-600"
+                  />
+                  {s.name}
+                </label>
+              ))}
+            </div>
+          )}
+        </Field>
+
         <Field label="Rasm" className="sm:col-span-2">
           <input name="image" type="file" accept="image/*" className={inputCls} />
         </Field>
       </div>
 
-      <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+      <label className="flex items-center gap-2 text-sm font-medium text-slate-200">
         <input
           type="checkbox"
           name="active"

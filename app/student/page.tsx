@@ -3,8 +3,26 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { levelFromXp, getRating, attendancePercent } from "@/lib/gamification";
-import { cn, fmtNumber, fmtDateTime, timeAgo, pct } from "@/lib/utils";
-import { Avatar, Badge, Card, CardTitle, EmptyState, ProgressBar, StatCard } from "@/components/ui";
+import { fmtNumber, fmtDateTime, timeAgo, pct } from "@/lib/utils";
+import {
+  AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Coins,
+  FileText,
+  Flame,
+  Hourglass,
+  Medal,
+  PartyPopper,
+  Trophy,
+} from "lucide-react";
+import { Badge, Card, CardTitle, EmptyState } from "@/components/ui";
+import {
+  GameHero,
+  GameStat,
+  QuestCard,
+} from "@/components/gamification";
 
 /** Muddatgacha qolgan vaqt (o'zbekcha) */
 function timeLeft(due: Date, now: Date): { text: string; urgent: boolean } {
@@ -20,10 +38,10 @@ function timeLeft(due: Date, now: Date): { text: string; urgent: boolean } {
 }
 
 function examBadge(p: number): string {
-  if (p >= 90) return "bg-emerald-100 text-emerald-700";
-  if (p >= 70) return "bg-sky-100 text-sky-700";
-  if (p >= 50) return "bg-amber-100 text-amber-700";
-  return "bg-rose-100 text-rose-700";
+  if (p >= 90) return "bg-emerald-500/15 text-emerald-400";
+  if (p >= 70) return "bg-cyan-500/15 text-cyan-400";
+  if (p >= 50) return "bg-amber-500/15 text-amber-400";
+  return "bg-rose-500/15 text-rose-400";
 }
 
 export default async function StudentDashboard() {
@@ -81,7 +99,6 @@ export default async function StudentDashboard() {
       }),
     ]);
 
-  // Guruhlar bo'ylab eng yaxshi reyting o'rni
   let best: { place: number; group: string } | null = null;
   for (const m of memberships) {
     const memberIds = (
@@ -101,99 +118,87 @@ export default async function StudentDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <div className="relative animate-slide-up overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 p-6 text-white shadow-lg">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10" />
-        <div className="pointer-events-none absolute -bottom-12 right-28 h-32 w-32 rounded-full bg-white/10" />
-        <div className="relative flex flex-wrap items-center gap-5">
-          <Avatar name={user.name} image={user.image} size="xl" className="ring-4 ring-white/30" />
-          <div className="min-w-0 flex-1">
-            <div className="text-sm text-violet-100">Xush kelibsiz! 👋</div>
-            <h1 className="truncate text-2xl font-bold">{user.name}</h1>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge className="bg-white/20 text-white">🎖️ Level {lvl.level}</Badge>
-              <Badge className="bg-white/20 text-white">🔥 {user.streak} kun</Badge>
-              <Badge className="bg-white/20 text-white">⭐ {fmtNumber(user.points)} ball</Badge>
-            </div>
-            <div className="mt-3 max-w-md">
-              <div className="mb-1 flex items-center justify-between gap-2 text-xs text-violet-100">
-                <span>
-                  Level {lvl.level} — {fmtNumber(lvl.intoLevel)}/{fmtNumber(lvl.needed)} XP keyingi
-                  levelgacha
-                </span>
-                <span className="font-semibold">{Math.round(lvl.progress * 100)}%</span>
-              </div>
-              <ProgressBar value={lvl.progress * 100} className="bg-white/20" barClassName="bg-white" />
-            </div>
-          </div>
-          <div className="hidden animate-float text-6xl sm:block">🚀</div>
-        </div>
-      </div>
+      <GameHero
+        name={user.name}
+        image={user.image}
+        level={lvl.level}
+        streak={user.streak}
+        points={fmtNumber(user.points)}
+        xpProgress={lvl.progress * 100}
+        xpLabel={`Level ${lvl.level} — ${fmtNumber(lvl.intoLevel)}/${fmtNumber(lvl.needed)} XP keyingi levelgacha`}
+      />
 
-      {/* Stat kartalar */}
       <div className="grid animate-fade-in gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
+        <GameStat
           label="Guruhdagi reyting o'rnim"
           value={best ? `#${best.place}` : "—"}
           hint={best?.group}
-          icon="🏆"
-          tone="violet"
+          icon={Trophy}
+          tone="gold"
         />
-        <StatCard label="Davomat" value={`${attendance}%`} icon="📅" tone="emerald" />
-        <StatCard label="Bajarilgan vazifalar" value={fmtNumber(acceptedCount)} icon="✅" tone="sky" />
-        <StatCard label="Bajarilmagan vazifalar" value={fmtNumber(missedCount)} icon="⚠️" tone="rose" />
+        <GameStat label="Davomat" value={`${attendance}%`} icon={Calendar} tone="emerald" />
+        <GameStat label="Bajarilgan vazifalar" value={fmtNumber(acceptedCount)} icon={CheckCircle2} tone="cyan" />
+        <GameStat label="Bajarilmagan vazifalar" value={fmtNumber(missedCount)} icon={AlertTriangle} tone="rose" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Yaqinlashayotgan deadlinelar */}
-        <Card className="animate-slide-up">
+        <Card className="animate-slide-up" glow="blue">
           <CardTitle
             action={
-              <Link href="/student/homework" className="text-xs font-medium text-violet-600 hover:underline">
+              <Link href="/student/homework" className="text-xs font-medium text-cyan-400 classic:text-blue-600 hover:underline">
                 Barchasi →
               </Link>
             }
           >
-            ⏰ Yaqinlashayotgan deadlinelar
+            <span className="font-display inline-flex items-center gap-2">
+              <Clock className="h-4 w-4 text-cyan-400 classic:text-blue-600" strokeWidth={1.75} />
+              Faol missiyalar
+            </span>
           </CardTitle>
           {deadlines.length === 0 ? (
-            <EmptyState icon="🎉" title="Hozircha deadline yo'q" hint="Barcha vazifalar bajarilgan — zo'r ketyapsiz!" />
+            <EmptyState icon={PartyPopper} title="Hozircha deadline yo'q" hint="Barcha vazifalar bajarilgan — zo'r ketyapsiz!" />
           ) : (
             <div className="space-y-2">
               {deadlines.map((hw) => {
                 const left = timeLeft(hw.dueAt, now);
                 return (
-                  <Link
+                  <QuestCard
                     key={hw.id}
                     href={`/student/homework/${hw.id}`}
-                    className={cn(
-                      "flex items-center justify-between gap-3 rounded-xl border p-3 transition hover:shadow-sm",
+                    title={hw.title}
+                    subtitle={`${hw.group.name} · Muddat: ${fmtDateTime(hw.dueAt)}`}
+                    urgent={left.urgent}
+                    badge={
+                      <span className="inline-flex items-center gap-1">
+                        {left.urgent ? (
+                          <Flame className="h-3 w-3" strokeWidth={1.75} />
+                        ) : (
+                          <Hourglass className="h-3 w-3" strokeWidth={1.75} />
+                        )}
+                        {left.text}
+                      </span>
+                    }
+                    badgeClass={
                       left.urgent
-                        ? "border-rose-200 bg-rose-50 hover:bg-rose-100"
-                        : "border-slate-100 bg-white hover:bg-slate-50"
-                    )}
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-slate-800">{hw.title}</div>
-                      <div className="text-xs text-slate-500">
-                        {hw.group.name} · Muddat: {fmtDateTime(hw.dueAt)}
-                      </div>
-                    </div>
-                    <Badge className={left.urgent ? "bg-rose-100 text-rose-700" : "bg-violet-100 text-violet-700"}>
-                      {left.urgent ? "🔥" : "⏳"} {left.text}
-                    </Badge>
-                  </Link>
+                        ? "bg-rose-500/15 text-rose-400"
+                        : "bg-blue-500/15 text-blue-400"
+                    }
+                  />
                 );
               })}
             </div>
           )}
         </Card>
 
-        {/* So'nggi imtihon natijalari */}
         <Card className="animate-slide-up">
-          <CardTitle>📝 So&apos;nggi imtihon natijalari</CardTitle>
+          <CardTitle>
+            <span className="font-display inline-flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-400" strokeWidth={1.75} />
+              So&apos;nggi imtihon natijalari
+            </span>
+          </CardTitle>
           {examResults.length === 0 ? (
-            <EmptyState icon="📝" title="Hozircha imtihon natijalari yo'q" />
+            <EmptyState icon={FileText} title="Hozircha imtihon natijalari yo'q" />
           ) : (
             <div className="space-y-2">
               {examResults.map((r) => {
@@ -201,10 +206,10 @@ export default async function StudentDashboard() {
                 return (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 classic:border-slate-200 classic:bg-slate-50"
                   >
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-slate-800">{r.exam.title}</div>
+                      <div className="truncate text-sm font-semibold text-slate-100 classic:text-slate-800">{r.exam.title}</div>
                       <div className="text-xs text-slate-500">{fmtDateTime(r.exam.date)}</div>
                     </div>
                     <Badge className={examBadge(p)}>
@@ -217,19 +222,21 @@ export default async function StudentDashboard() {
           )}
         </Card>
 
-        {/* Yutuqlarim */}
-        <Card className="animate-slide-up">
+        <Card className="animate-slide-up" glow="orange">
           <CardTitle
             action={
-              <Link href="/student/achievements" className="text-xs font-medium text-violet-600 hover:underline">
+              <Link href="/student/achievements" className="text-xs font-medium text-blue-400 hover:underline">
                 Barchasi →
               </Link>
             }
           >
-            🏅 Yutuqlarim
+            <span className="font-display inline-flex items-center gap-2">
+              <Medal className="h-4 w-4 text-amber-400" strokeWidth={1.75} />
+              Yutuqlarim
+            </span>
           </CardTitle>
           {earned.length === 0 ? (
-            <EmptyState icon="🏅" title="Hozircha yutuq yo'q" hint="Faol bo'ling — birinchi yutuq uzoq emas!" />
+            <EmptyState icon={Medal} title="Hozircha yutuq yo'q" hint="Faol bo'ling — birinchi yutuq uzoq emas!" />
           ) : (
             <div className="flex flex-wrap gap-3">
               {earned.map((e) => (
@@ -237,7 +244,7 @@ export default async function StudentDashboard() {
                   key={e.id}
                   href="/student/achievements"
                   title={e.achievement.name}
-                  className="flex h-16 w-16 animate-pop items-center justify-center rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-fuchsia-50 text-3xl shadow-sm transition hover:scale-105"
+                  className="achievement-earned flex h-16 w-16 animate-pop items-center justify-center rounded-2xl text-3xl transition hover:scale-110"
                 >
                   {e.achievement.icon}
                 </Link>
@@ -246,31 +253,35 @@ export default async function StudentDashboard() {
           )}
         </Card>
 
-        {/* Ball tarixi */}
         <Card className="animate-slide-up">
-          <CardTitle>💰 Ball tarixi</CardTitle>
+          <CardTitle>
+            <span className="font-display inline-flex items-center gap-2">
+              <Coins className="h-4 w-4 text-amber-400" strokeWidth={1.75} />
+              Ball tarixi
+            </span>
+          </CardTitle>
           {txs.length === 0 ? (
-            <EmptyState icon="💰" title="Hozircha tranzaksiyalar yo'q" />
+            <EmptyState icon={Coins} title="Hozircha tranzaksiyalar yo'q" />
           ) : (
             <div className="space-y-2">
               {txs.map((t) => (
                 <div
                   key={t.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 classic:border-slate-200 classic:bg-slate-50"
                 >
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-slate-800">{t.reason}</div>
-                    <div className="text-xs text-slate-400">{timeAgo(t.createdAt)}</div>
+                    <div className="truncate text-sm font-medium text-slate-100 classic:text-slate-800">{t.reason}</div>
+                    <div className="text-xs text-slate-400 classic:text-slate-500">{timeAgo(t.createdAt)}</div>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-0.5 text-xs font-semibold">
                     {t.xp !== 0 && (
-                      <span className={t.xp > 0 ? "text-emerald-600" : "text-rose-600"}>
+                      <span className={t.xp > 0 ? "text-emerald-400" : "text-rose-400"}>
                         {t.xp > 0 ? "+" : ""}
                         {fmtNumber(t.xp)} XP
                       </span>
                     )}
                     {t.points !== 0 && (
-                      <span className={t.points > 0 ? "text-emerald-600" : "text-rose-600"}>
+                      <span className={t.points > 0 ? "text-amber-400" : "text-rose-400"}>
                         {t.points > 0 ? "+" : ""}
                         {fmtNumber(t.points)} ball
                       </span>

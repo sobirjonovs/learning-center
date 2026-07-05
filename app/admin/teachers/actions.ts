@@ -10,6 +10,28 @@ import { logActivity } from "@/lib/log";
 import { saveUpload } from "@/lib/uploads";
 import { TEACHER_TYPES } from "@/lib/constants";
 
+async function syncTeacherSubjects(teacherId: string, subjectIds: string[]) {
+  const valid = await db.subject.findMany({
+    where: { id: { in: subjectIds }, active: true },
+    select: { id: true },
+  });
+  const validIds = valid.map((s) => s.id);
+
+  await db.teacherSubject.deleteMany({
+    where: { teacherId, subjectId: { notIn: validIds } },
+  });
+
+  if (validIds.length > 0) {
+    for (const subjectId of validIds) {
+      await db.teacherSubject.upsert({
+        where: { teacherId_subjectId: { teacherId, subjectId } },
+        create: { teacherId, subjectId },
+        update: {},
+      });
+    }
+  }
+}
+
 async function guard() {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
   requirePermission(session, "teachers.manage");
@@ -49,6 +71,9 @@ export async function createTeacher(formData: FormData) {
     },
   });
 
+  const subjectIds = formData.getAll("subjectIds").map(String);
+  await syncTeacherSubjects(teacher.id, subjectIds);
+
   await logActivity(session.id, "O'qituvchi yaratdi", teacher.name);
   revalidatePath("/admin/teachers");
   revalidatePath("/admin");
@@ -80,6 +105,9 @@ export async function updateTeacher(formData: FormData) {
       ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
     },
   });
+
+  const subjectIds = formData.getAll("subjectIds").map(String);
+  await syncTeacherSubjects(id, subjectIds);
 
   await logActivity(session.id, "O'qituvchini tahrirladi", name);
   revalidatePath("/admin/teachers");

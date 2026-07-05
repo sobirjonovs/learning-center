@@ -2,12 +2,13 @@
 import Link from "next/link";
 import { requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { UserCog } from "lucide-react";
 import { ActiveBadge, Avatar, Badge, EmptyState, PageHeader, Table, Td, Th, btn, inputCls } from "@/components/ui";
 import { ConfirmButton } from "@/components/confirm-button";
 import { deleteTeacher, toggleTeacher } from "./actions";
 
 const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50";
+  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
 
 export default async function TeachersPage({
   searchParams,
@@ -34,6 +35,9 @@ export default async function TeachersPage({
       image: true,
       teacherType: true,
       active: true,
+      teacherSubjects: {
+        include: { subject: { select: { id: true, name: true } } },
+      },
       _count: { select: { teachingGroups: true } },
     },
   });
@@ -64,7 +68,7 @@ export default async function TeachersPage({
 
       {teachers.length === 0 ? (
         <EmptyState
-          icon="👨‍🏫"
+          icon={UserCog}
           title="O'qituvchilar topilmadi"
           hint={query ? "Qidiruv bo'yicha natija yo'q. Boshqa so'z bilan urinib ko'ring." : "Birinchi o'qituvchini qo'shing."}
           action={
@@ -81,6 +85,7 @@ export default async function TeachersPage({
               <Th>Login</Th>
               <Th>Telefon</Th>
               <Th>Turi</Th>
+              <Th>Fanlar</Th>
               <Th>Guruhlar</Th>
               <Th>Holat</Th>
               <Th className="text-right">Amallar</Th>
@@ -88,17 +93,30 @@ export default async function TeachersPage({
           }
         >
           {teachers.map((t) => (
-            <tr key={t.id} className="hover:bg-slate-50/60">
+            <tr key={t.id} className="hover:bg-white/[0.04]">
               <Td>
                 <Link href={`/admin/teachers/${t.id}`} className="flex items-center gap-3">
                   <Avatar name={t.name} image={t.image} size="sm" />
-                  <span className="font-medium text-slate-800 hover:text-indigo-600">{t.name}</span>
+                  <span className="font-medium text-slate-100 hover:text-blue-400">{t.name}</span>
                 </Link>
               </Td>
               <Td className="text-slate-500">{t.login}</Td>
               <Td className="text-slate-500">{t.phone ?? "—"}</Td>
               <Td>
-                <Badge className="bg-indigo-100 text-indigo-700">{t.teacherType ?? "—"}</Badge>
+                <Badge className="bg-blue-500/15 text-blue-400">{t.teacherType ?? "—"}</Badge>
+              </Td>
+              <Td>
+                <div className="flex flex-wrap gap-1">
+                  {t.teacherSubjects.length === 0 ? (
+                    <span className="text-slate-500">—</span>
+                  ) : (
+                    t.teacherSubjects.map((ts) => (
+                      <Badge key={ts.subject.id} className="bg-violet-500/15 text-violet-400">
+                        {ts.subject.name}
+                      </Badge>
+                    ))
+                  )}
+                </div>
               </Td>
               <Td className="text-slate-600">{t._count.teachingGroups} ta</Td>
               <Td>

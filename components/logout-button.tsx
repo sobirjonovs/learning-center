@@ -1,6 +1,10 @@
 "use client";
 
+"use client";
+
 import { logoutAction } from "@/app/login/actions";
+import { btn } from "@/components/ui";
+import { cn } from "@/lib/utils";
 
 export function LogoutButton() {
   return (
@@ -8,7 +12,7 @@ export function LogoutButton() {
       <button
         type="submit"
         title="Chiqish"
-        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"
+        className={cn(btn.ghost, "!px-2 !py-1 text-xs hover:!text-rose-400 classic:hover:!text-rose-600")}
       >
         Chiqish
       </button>

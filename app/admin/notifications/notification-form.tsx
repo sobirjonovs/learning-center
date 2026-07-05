@@ -61,7 +61,7 @@ export function NotificationForm({
   };
 
   const checkboxCls =
-    "h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500";
+    "h-4 w-4 rounded border-slate-300 text-blue-400 focus:ring-indigo-500";
 
   return (
     <form action={saveNotification} className="space-y-4">
@@ -95,7 +95,7 @@ export function NotificationForm({
             <img
               src={notification.image}
               alt="Joriy rasm"
-              className="h-20 w-20 rounded-xl border border-slate-100 object-cover"
+              className="h-20 w-20 rounded-xl border border-white/10 object-cover"
             />
           )}
           <input type="file" name="image" accept="image/*" className={inputCls} />
@@ -139,7 +139,7 @@ export function NotificationForm({
 
       {audience === "CUSTOM" && (
         <Field label="Foydalanuvchilarni tanlang" required>
-          <div className="max-h-64 space-y-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-3">
+          <div className="max-h-64 space-y-3 overflow-y-auto rounded-xl border border-white/10 bg-white/5 p-3">
             {[
               { label: ROLE_LABELS.STUDENT + "lar", list: students },
               { label: ROLE_LABELS.TEACHER + "lar", list: teachers },
@@ -154,7 +154,7 @@ export function NotificationForm({
                       {section.list.map((u) => (
                         <label
                           key={u.id}
-                          className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-slate-700 hover:bg-white"
+                          className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-slate-300 hover:bg-white/10"
                         >
                           <input
                             type="checkbox"
@@ -186,7 +186,7 @@ export function NotificationForm({
         </p>
       </Field>
 
-      <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
+      <div className="flex flex-wrap justify-end gap-2 border-t border-white/10 pt-4">
         <button
           type="submit"
           name="intent"

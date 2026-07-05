@@ -1,29 +1,64 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+@custom-variant classic (&:is(.classic-canvas *));
 
-  --animate-fade-in: fade-in 0.3s ease-out both;
-  --animate-slide-up: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-orbitron), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  /* FAT LOOTZ uslubidagi dark palette */
+  --color-canvas: #14161c;
+  --color-canvas-deep: #0e1014;
+  --color-surface: #1a1d23;
+  --color-surface-raised: #22262e;
+  --color-surface-hover: #2a2f38;
+
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-accent: #f97316;
+  --color-accent-hover: #ea580c;
+  --color-cyan: #22d3ee;
+  --color-neon: #00f0ff;
+  --color-neon-purple: #a855f7;
+  --color-gold: #fbbf24;
+
+  --color-ink: #f1f5f9;
+  --color-ink-muted: #94a3b8;
+  --color-ink-faint: #64748b;
+  --color-border: rgb(255 255 255 / 0.08);
+  --color-border-strong: rgb(255 255 255 / 0.14);
+
+  --shadow-glass: 0 4px 24px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --shadow-glow-blue: 0 0 20px rgb(59 130 246 / 0.35), 0 0 40px rgb(59 130 246 / 0.1);
+  --shadow-glow-orange: 0 0 20px rgb(249 115 22 / 0.4), 0 0 40px rgb(249 115 22 / 0.12);
+  --shadow-glow-neon: 0 0 20px rgb(59 130 246 / 0.35), 0 0 40px rgb(34 211 238 / 0.15);
+  --shadow-glow-violet: 0 0 24px rgb(37 99 235 / 0.4), 0 0 48px rgb(37 99 235 / 0.12);
+
+  --animate-fade-in: fade-in 0.35s ease-out both;
+  --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-pop: pop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   --animate-bounce-in: bounce-in 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   --animate-float: float 3s ease-in-out infinite;
   --animate-shake: shake 0.4s ease-in-out;
   --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
   --animate-timer-urgent: timer-urgent 0.5s ease-in-out infinite alternate;
+  --animate-glow-pulse: glow-pulse 2.5s ease-in-out infinite;
+  --animate-scan: scan-line 4s linear infinite;
+  --animate-neon-flicker: neon-flicker 3s ease-in-out infinite;
 
   @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
   }
   @keyframes slide-up {
-    from { opacity: 0; transform: translateY(14px); }
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
   @keyframes pop {
-    from { opacity: 0; transform: scale(0.6); }
-    to { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: scale(0.92) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
   }
   @keyframes bounce-in {
     0% { opacity: 0; transform: scale(0.3) translateY(30px); }
@@ -47,6 +82,24 @@
     from { transform: scale(1); color: #f43f5e; }
     to { transform: scale(1.15); color: #e11d48; }
   }
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 16px rgb(59 130 246 / 0.25); }
+    50% { box-shadow: 0 0 28px rgb(59 130 246 / 0.45); }
+  }
+  @keyframes scan-line {
+    0% { transform: translateY(-100%); opacity: 0; }
+    10% { opacity: 0.4; }
+    90% { opacity: 0.4; }
+    100% { transform: translateY(100vh); opacity: 0; }
+  }
+  @keyframes neon-flicker {
+    0%, 100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.85; }
+    94% { opacity: 1; }
+    96% { opacity: 0.9; }
+    97% { opacity: 1; }
+  }
 }
 
 html {
@@ -54,11 +107,421 @@ html {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-canvas text-ink antialiased;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Asosiy sahifa foni — qorong'u gradient mesh + futuristik grid */
+.app-canvas {
+  background-color: var(--color-canvas);
+  background-image:
+    radial-gradient(ellipse 70% 50% at 10% 0%, rgb(37 99 235 / 0.12), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 10%, rgb(249 115 22 / 0.07), transparent 50%),
+    radial-gradient(ellipse 60% 50% at 50% 100%, rgb(34 211 238 / 0.05), transparent 55%);
+}
+
+/* Futuristik grid overlay */
+.app-canvas::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 70%);
+}
+
+/* O'quvchi kabineti — kuchliroq neon atmosfera */
+.game-canvas {
+  background-color: var(--color-canvas-deep);
+  background-image:
+    radial-gradient(ellipse 60% 45% at 15% 0%, rgb(37 99 235 / 0.18), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 85% 5%, rgb(34 211 238 / 0.08), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgb(29 78 216 / 0.1), transparent 55%);
+}
+
+.game-canvas::before {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(rgb(59 130 246 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(59 130 246 / 0.04) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, black 10%, transparent 75%);
+}
+
+/* Glassmorphism utility classlar */
+.glass {
+  @apply border border-white/10 bg-white/5 backdrop-blur-xl;
+  box-shadow: var(--shadow-glass);
+}
+
+.glass-card {
+  @apply rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl;
+  box-shadow: var(--shadow-glass);
+}
+
+.glass-card-hover {
+  @apply transition-all duration-200;
+}
+.glass-card-hover:hover {
+  @apply border-white/15 bg-white/[0.07];
+  box-shadow: var(--shadow-glass), 0 8px 32px rgb(0 0 0 / 0.3);
+}
+
+.glass-input {
+  @apply w-full rounded-xl border border-white/12 bg-white/[0.06] px-3.5 py-2.5 text-sm text-ink shadow-sm shadow-black/10 outline-none transition duration-150 placeholder:text-slate-500 hover:border-white/20 hover:bg-white/[0.08] focus:border-brand-500/70 focus:bg-white/[0.09] focus:shadow-[0_0_0_4px_rgb(59_130_246/0.18)] disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.glass-select {
+  @apply w-full cursor-pointer appearance-none rounded-xl border border-white/12 bg-white/[0.06] px-3.5 py-2.5 pr-10 text-sm text-ink shadow-sm shadow-black/10 outline-none transition duration-150 hover:border-white/20 hover:bg-white/[0.08] focus:border-brand-500/70 focus:bg-white/[0.09] focus:shadow-[0_0_0_4px_rgb(59_130_246/0.18)] disabled:cursor-not-allowed disabled:opacity-50;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+}
+
+.glass-textarea {
+  @apply w-full min-h-[6.5rem] resize-y rounded-xl border border-white/12 bg-white/[0.06] px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-sm shadow-black/10 outline-none transition duration-150 placeholder:text-slate-500 hover:border-white/20 hover:bg-white/[0.08] focus:border-brand-500/70 focus:bg-white/[0.09] focus:shadow-[0_0_0_4px_rgb(59_130_246/0.18)] disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.glass-file {
+  @apply w-full rounded-xl border border-dashed border-white/15 bg-white/[0.04] px-3.5 py-2 text-sm text-slate-300 shadow-sm outline-none transition duration-150 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-gradient-to-b file:from-blue-500 file:to-brand-600 file:px-3.5 file:py-1.5 file:text-xs file:font-semibold file:text-white file:shadow-sm hover:border-white/25 hover:bg-white/[0.06] focus:border-brand-500/70 focus:shadow-[0_0_0_4px_rgb(59_130_246/0.18)] disabled:opacity-50;
+}
+
+select.glass-input {
+  @apply cursor-pointer appearance-none pr-10;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+}
+
+/* Dark rejim — native select ochilganda optionlar o'qilishi uchun */
+html[data-theme="dark"] select,
+html[data-theme="dark"] select.glass-input,
+html[data-theme="dark"] .glass-select {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] select option {
+  background-color: var(--color-surface-raised);
+  color: var(--color-ink);
+}
+
+html[data-theme="light"] select,
+html[data-theme="light"] select.glass-input,
+html[data-theme="light"] .glass-select {
+  color-scheme: light;
+}
+
+html[data-theme="light"] select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+input[type="file"].glass-input {
+  @apply border-dashed border-white/15 bg-white/[0.04] px-3.5 py-2 text-slate-300 file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-gradient-to-b file:from-blue-500 file:to-brand-600 file:px-3.5 file:py-1.5 file:text-xs file:font-semibold file:text-white file:shadow-sm hover:border-white/25 hover:bg-white/[0.06];
+}
+
+.glass-panel {
+  @apply rounded-2xl border border-white/10 bg-surface-raised/80 backdrop-blur-xl;
+  box-shadow: var(--shadow-glass);
+}
+
+.glow-blue {
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.glow-orange {
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.glow-neon {
+  box-shadow: var(--shadow-glow-neon);
+}
+
+.glow-violet {
+  box-shadow: var(--shadow-glow-violet);
+}
+
+/* Futuristik neon matn */
+.neon-text {
+  text-shadow: 0 0 8px rgb(59 130 246 / 0.5), 0 0 20px rgb(34 211 238 / 0.3);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ---- Gamifikatsiya komponentlari ---- */
+
+.game-hero {
+  border: 1px solid rgb(59 130 246 / 0.25);
+  background: linear-gradient(135deg, rgb(26 29 35 / 0.95), rgb(15 23 42 / 0.6));
+  box-shadow: var(--shadow-glass), var(--shadow-glow-blue);
+}
+
+.game-card {
+  @apply rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl;
+  box-shadow: var(--shadow-glass);
+}
+
+.game-card:hover {
+  border-color: rgb(59 130 246 / 0.2);
+  box-shadow: var(--shadow-glass), 0 0 16px rgb(37 99 235 / 0.12);
+}
+
+.xp-bar-track {
+  @apply h-2.5 w-full overflow-hidden rounded-full border border-blue-500/20 bg-white/5;
+}
+
+.xp-bar-fill {
+  @apply h-full rounded-full transition-all duration-700 ease-out;
+  background: linear-gradient(90deg, #1d4ed8, #2563eb, #22d3ee);
+  box-shadow: 0 0 12px rgb(37 99 235 / 0.6), 0 0 4px rgb(34 211 238 / 0.4);
+}
+
+.achievement-earned {
+  border-color: rgb(59 130 246 / 0.35);
+  background: linear-gradient(135deg, rgb(37 99 235 / 0.12), rgb(34 211 238 / 0.04));
+  box-shadow: var(--shadow-glass), 0 0 20px rgb(37 99 235 / 0.15);
+}
+
+.podium-first {
+  border-color: rgb(251 191 36 / 0.35);
+  background: linear-gradient(180deg, rgb(251 191 36 / 0.12), rgb(26 29 35 / 0.8));
+  box-shadow: var(--shadow-glass), 0 0 24px rgb(251 191 36 / 0.2);
+}
+
+.coin-balance {
+  border: 1px solid rgb(59 130 246 / 0.25);
+  background: linear-gradient(135deg, rgb(29 78 216 / 0.6), rgb(37 99 235 / 0.5), rgb(14 165 233 / 0.35));
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.quest-urgent {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Gamifikatsiya — yorug' rejim */
+.classic-canvas .game-hero {
+  border: 1px solid rgb(59 130 246 / 0.18);
+  background: linear-gradient(135deg, rgb(239 246 255), rgb(255 255 255));
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06), 0 4px 16px rgb(59 130 246 / 0.08);
+}
+
+.classic-canvas .game-card {
+  @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  backdrop-filter: none;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
+}
+
+.classic-canvas .game-card:hover {
+  @apply border-blue-200;
+  box-shadow: 0 4px 12px rgb(59 130 246 / 0.1);
+}
+
+.classic-canvas .xp-bar-track {
+  @apply border-blue-200 bg-slate-100;
+}
+
+.classic-canvas .xp-bar-fill {
+  box-shadow: 0 0 8px rgb(37 99 235 / 0.2);
+}
+
+.classic-canvas .achievement-earned {
+  border-color: rgb(59 130 246 / 0.22);
+  background: linear-gradient(135deg, rgb(239 246 255), rgb(255 255 255));
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
+}
+
+.classic-canvas .podium-first {
+  border-color: rgb(251 191 36 / 0.35);
+  background: linear-gradient(180deg, rgb(254 243 199 / 0.6), rgb(255 255 255));
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06), 0 4px 16px rgb(251 191 36 / 0.15);
+}
+
+.classic-canvas .quest-urgent {
+  animation: none;
+}
+
+/* Klassik admin/o'qituvchi paneli — yengil, toza dashboard */
+.classic-canvas {
+  --color-canvas: #f1f5f9;
+  --color-canvas-deep: #e2e8f0;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-hover: #f8fafc;
+  --color-ink: #0f172a;
+  --color-ink-muted: #64748b;
+  --color-ink-faint: #94a3b8;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --chart-grid: #e2e8f0;
+  --chart-ink-muted: #64748b;
+  --chart-ink: #334155;
+  --shadow-glass: 0 1px 3px rgb(15 23 42 / 0.06), 0 1px 2px rgb(15 23 42 / 0.04);
+  background-color: var(--color-canvas);
+  background-image: none;
+  color: var(--color-ink);
+}
+
+.classic-canvas::before {
+  display: none;
+}
+
+.classic-canvas .glass-card {
+  @apply rounded-lg border border-slate-200 bg-white p-5 shadow-sm;
+  backdrop-filter: none;
+  box-shadow: var(--shadow-glass);
+}
+
+.classic-canvas .glass-card-hover:hover {
+  @apply border-slate-300 bg-white;
+  box-shadow: 0 4px 12px rgb(15 23 42 / 0.08);
+}
+
+.classic-canvas .glass-input {
+  @apply rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(59_130_246/0.12)];
+}
+
+.classic-canvas .glass-select {
+  @apply rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 pr-10 text-sm text-slate-900 shadow-sm hover:border-slate-300 hover:bg-white focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(59_130_246/0.12)];
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.classic-canvas .glass-textarea {
+  @apply rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(59_130_246/0.12)];
+}
+
+.classic-canvas .glass-file {
+  @apply rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-600 hover:border-slate-400 hover:bg-white focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(59_130_246/0.12)];
+}
+
+.classic-canvas select.glass-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.classic-canvas input[type="file"].glass-input {
+  @apply border-dashed border-slate-300 bg-slate-50 text-slate-600 hover:border-slate-400 hover:bg-white;
+}
+
+/* Login va boshqa sahifalar — html[data-theme] orqali */
+html[data-theme="light"] .glass-input {
+  @apply rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(59_130_246/0.12)];
+}
+
+html[data-theme="light"] select.glass-input,
+html[data-theme="light"] .glass-select {
+  @apply rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 pr-10 text-sm text-slate-900 shadow-sm hover:border-slate-300 hover:bg-white focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(59_130_246/0.12)];
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+html[data-theme="light"] .glass-textarea {
+  @apply rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-brand-500 focus:shadow-[0_0_0_4px_rgb(59_130_246/0.12)];
+}
+
+.classic-canvas .glass-panel {
+  @apply rounded-lg border border-slate-200 bg-white shadow-sm;
+  backdrop-filter: none;
+}
+
+.classic-canvas .row-hover:hover {
+  @apply bg-slate-50;
+}
+
+/* Klassik panel ichidagi matn ranglari */
+.classic-canvas main .text-white:not([class*="bg-brand"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-rose"]):not([class*="bg-sky"]):not([class*="bg-gradient"]) {
+  color: var(--color-ink);
+}
+
+.classic-canvas main .text-slate-100 {
+  color: #1e293b;
+}
+
+.classic-canvas main .text-slate-200 {
+  color: #334155;
+}
+
+.classic-canvas main .text-slate-300 {
+  color: #475569;
+}
+
+.classic-canvas main .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #f1f5f9;
+}
+
+.classic-canvas main .border-white\/10 {
+  border-color: #e2e8f0;
+}
+
+.classic-canvas main .hover\:bg-white\/\[0\.04\]:hover {
+  background-color: #f8fafc;
+}
+
+.classic-canvas main .bg-white\/5 {
+  background-color: #f8fafc;
+}
+
+.classic-canvas main .bg-white\/\[0\.03\] {
+  background-color: #f8fafc;
+}
+
+.classic-canvas main .bg-white\/\[0\.02\] {
+  background-color: #f8fafc;
+}
+
+.classic-canvas main .bg-white\/10 {
+  background-color: #e2e8f0;
+}
+
+.classic-canvas .progress-classic-track {
+  @apply bg-slate-100;
+}
+
+/* Yorug' rejim — scrollbar */
+html[data-theme="light"] *,
+.classic-canvas * {
+  scrollbar-color: rgb(148 163 184 / 0.4) transparent;
+}
+
+/* Futuristik panel — admin/o'qituvchi */
+.future-panel {
+  @apply rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl;
+  box-shadow: var(--shadow-glass);
+  position: relative;
+  overflow: hidden;
+}
+
+.future-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(59 130 246 / 0.4), rgb(0 240 255 / 0.3), transparent);
+}
+
+/* Jadval qatorlari */
+.row-hover {
+  @apply transition-colors hover:bg-white/[0.04];
 }
 
 /* Ingichka scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: theme(--color-slate-300) transparent;
+  scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

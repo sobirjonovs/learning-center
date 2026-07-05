@@ -3,12 +3,13 @@ import Link from "next/link";
 import { can, requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parseJsonArray } from "@/lib/utils";
+import { Users } from "lucide-react";
 import { ActiveBadge, Badge, EmptyState, PageHeader, Table, Td, Th, btn, inputCls } from "@/components/ui";
 import { ConfirmButton } from "@/components/confirm-button";
 import { deleteGroup, toggleGroup } from "./actions";
 
 const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50";
+  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
 
 export default async function GroupsPage({
   searchParams,
@@ -27,6 +28,7 @@ export default async function GroupsPage({
     orderBy: { createdAt: "desc" },
     include: {
       teacher: { select: { id: true, name: true } },
+      subject: { select: { id: true, name: true } },
       _count: { select: { students: true } },
     },
   });
@@ -54,7 +56,7 @@ export default async function GroupsPage({
 
       {groups.length === 0 ? (
         <EmptyState
-          icon="👥"
+          icon={Users}
           title="Guruhlar topilmadi"
           hint={query ? "Qidiruv bo'yicha natija yo'q." : "Birinchi guruhni yarating."}
           action={
@@ -70,6 +72,7 @@ export default async function GroupsPage({
           head={
             <>
               <Th>Nomi</Th>
+              <Th>Kategoriya</Th>
               <Th>Turi</Th>
               <Th>O'qituvchi</Th>
               <Th>O'quvchilar</Th>
@@ -82,18 +85,25 @@ export default async function GroupsPage({
           }
         >
           {groups.map((g) => (
-            <tr key={g.id} className="hover:bg-slate-50/60">
+            <tr key={g.id} className="hover:bg-white/[0.04]">
               <Td>
-                <Link href={`/admin/groups/${g.id}`} className="font-medium text-slate-800 hover:text-indigo-600">
+                <Link href={`/admin/groups/${g.id}`} className="font-medium text-slate-100 hover:text-blue-400">
                   {g.name}
                 </Link>
               </Td>
               <Td>
-                <Badge className="bg-sky-100 text-sky-700">{g.type ?? "—"}</Badge>
+                {g.subject ? (
+                  <Badge className="bg-violet-500/15 text-violet-400">{g.subject.name}</Badge>
+                ) : (
+                  <span className="text-slate-500">—</span>
+                )}
+              </Td>
+              <Td>
+                <Badge className="bg-cyan-500/15 text-cyan-400">{g.type ?? "—"}</Badge>
               </Td>
               <Td className="text-slate-600">
                 {g.teacher ? (
-                  <Link href={`/admin/teachers/${g.teacher.id}`} className="hover:text-indigo-600">
+                  <Link href={`/admin/teachers/${g.teacher.id}`} className="hover:text-blue-400">
                     {g.teacher.name}
                   </Link>
                 ) : (

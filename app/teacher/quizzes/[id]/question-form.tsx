@@ -65,7 +65,7 @@ export function QuestionForm({
             <img
               src={question.image}
               alt="Joriy rasm"
-              className="h-20 w-32 rounded-xl border border-slate-100 object-cover"
+              className="h-20 w-32 rounded-xl border border-white/10 object-cover"
             />
           )}
           <input type="file" name="image" accept="image/*" className={inputCls} />
@@ -74,7 +74,7 @@ export function QuestionForm({
 
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-700">
+          <span className="text-sm font-medium text-slate-200">
             Variantlar <span className="text-rose-500">*</span>
           </span>
           <div className="flex gap-1 rounded-lg bg-slate-100 p-0.5">
@@ -85,7 +85,7 @@ export function QuestionForm({
                 onClick={() => changeCount(n)}
                 className={cn(
                   "rounded-md px-2.5 py-1 text-xs font-semibold transition",
-                  count === n ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-800"
+                  count === n ? "bg-brand-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-500 hover:text-slate-100"
                 )}
               >
                 {n} ta
@@ -117,7 +117,7 @@ export function QuestionForm({
                   "flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-medium transition",
                   correct === i
                     ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                    : "border-slate-200 text-slate-400 hover:border-emerald-200 hover:text-emerald-600"
+                    : "border-white/10 text-slate-500 hover:border-emerald-500/30 hover:text-emerald-400"
                 )}
               >
                 <input
@@ -163,7 +163,7 @@ export function QuestionForm({
         </Field>
       </div>
 
-      <div className="flex justify-end border-t border-slate-100 pt-4">
+      <div className="flex justify-end border-t border-white/10 pt-4">
         <button type="submit" className={btn.primary}>
           {submitLabel}
         </button>

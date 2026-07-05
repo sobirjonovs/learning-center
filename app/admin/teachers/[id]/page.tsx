@@ -5,6 +5,7 @@ import { requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ATTENDANCE_STATUS, type AttendanceStatus } from "@/lib/constants";
 import { fmtDate, fmtNumber, parseJsonArray, pct } from "@/lib/utils";
+import { BookOpen, FileText, GraduationCap, Users } from "lucide-react";
 import {
   ActiveBadge,
   Avatar,
@@ -45,9 +46,15 @@ export default async function TeacherProfilePage({
   const teacher = await db.user.findUnique({
     where: { id },
     include: {
+      teacherSubjects: {
+        include: { subject: { select: { id: true, name: true } } },
+      },
       teachingGroups: {
         orderBy: { name: "asc" },
-        include: { _count: { select: { students: true } } },
+        include: {
+          subject: { select: { id: true, name: true } },
+          _count: { select: { students: true } },
+        },
       },
     },
   });
@@ -121,37 +128,46 @@ export default async function TeacherProfilePage({
           <Card>
             <div className="flex flex-col items-center text-center">
               <Avatar name={teacher.name} image={teacher.image} size="xl" />
-              <div className="mt-3 text-lg font-bold text-slate-900">{teacher.name}</div>
-              <div className="mt-1 flex items-center gap-2">
-                <Badge className="bg-indigo-100 text-indigo-700">
+              <div className="mt-3 text-lg font-bold text-white">{teacher.name}</div>
+              <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+                <Badge className="bg-blue-500/15 text-blue-400">
                   {teacher.teacherType ?? "O'qituvchi"}
                 </Badge>
                 <ActiveBadge active={teacher.active} />
               </div>
+              {teacher.teacherSubjects.length > 0 && (
+                <div className="mt-2 flex flex-wrap justify-center gap-1">
+                  {teacher.teacherSubjects.map((ts) => (
+                    <Badge key={ts.subject.id} className="bg-violet-500/15 text-violet-400">
+                      {ts.subject.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
             <dl className="mt-5 space-y-2.5 text-sm">
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-400">Login</dt>
-                <dd className="font-medium text-slate-700">{teacher.login}</dd>
+                <dd className="font-medium text-slate-200">{teacher.login}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-400">Telefon</dt>
-                <dd className="font-medium text-slate-700">{teacher.phone ?? "—"}</dd>
+                <dd className="font-medium text-slate-200">{teacher.phone ?? "—"}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-400">Turi</dt>
-                <dd className="font-medium text-slate-700">{teacher.teacherType ?? "—"}</dd>
+                <dd className="font-medium text-slate-200">{teacher.teacherType ?? "—"}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-400">Qo'shilgan sana</dt>
-                <dd className="font-medium text-slate-700">{fmtDate(teacher.createdAt)}</dd>
+                <dd className="font-medium text-slate-200">{fmtDate(teacher.createdAt)}</dd>
               </div>
             </dl>
           </Card>
 
           <Card>
             <CardTitle>O'qituvchi reytingi</CardTitle>
-            <div className="text-4xl font-bold text-indigo-600">{rating}%</div>
+            <div className="text-4xl font-bold text-blue-400">{rating}%</div>
             <div className="mt-3">
               <ProgressBar value={rating} />
             </div>
@@ -164,19 +180,19 @@ export default async function TeacherProfilePage({
         {/* O'ng ustun */}
         <div className="space-y-4 lg:col-span-2">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Guruhlari" value={fmtNumber(teacher.teachingGroups.length)} icon="👥" tone="sky" />
-            <StatCard label="Jami o'quvchilari" value={fmtNumber(totalStudents)} icon="🎓" tone="violet" />
+            <StatCard label="Guruhlari" value={fmtNumber(teacher.teachingGroups.length)} icon={Users} tone="sky" />
+            <StatCard label="Jami o'quvchilari" value={fmtNumber(totalStudents)} icon={GraduationCap} tone="violet" />
             <StatCard
               label="O'rtacha vazifa bali"
               value={avgHomework !== null ? avgHomework : "—"}
-              icon="📚"
+              icon={BookOpen}
               tone="emerald"
               hint="Qabul qilingan vazifalar"
             />
             <StatCard
               label="O'rtacha imtihon bali"
               value={avgExam !== null ? avgExam : "—"}
-              icon="📝"
+              icon={FileText}
               tone="amber"
               hint="Barcha imtihonlar"
             />
@@ -197,7 +213,7 @@ export default async function TeacherProfilePage({
                     <form action={assignGroupToTeacher} className="space-y-4">
                       <input type="hidden" name="teacherId" value={teacher.id} />
                       <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                        <label className="mb-1.5 block text-sm font-medium text-slate-200">
                           Guruhni tanlang
                         </label>
                         <select name="groupId" required className={inputCls}>
@@ -228,8 +244,9 @@ export default async function TeacherProfilePage({
               <div className="-m-5 mt-0 overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/60 text-xs uppercase tracking-wide text-slate-500">
+                    <tr className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-wide text-slate-500">
                       <Th>Guruh</Th>
+                      <Th>Kategoriya</Th>
                       <Th>Dars kunlari</Th>
                       <Th>Vaqti</Th>
                       <Th>Xona</Th>
@@ -237,16 +254,23 @@ export default async function TeacherProfilePage({
                       <Th>Holat</Th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-white/5">
                     {teacher.teachingGroups.map((g) => (
-                      <tr key={g.id} className="hover:bg-slate-50/60">
+                      <tr key={g.id} className="hover:bg-white/[0.04]">
                         <Td>
                           <Link
                             href={`/admin/groups/${g.id}`}
-                            className="font-medium text-slate-800 hover:text-indigo-600"
+                            className="font-medium text-slate-100 hover:text-blue-400"
                           >
                             {g.name}
                           </Link>
+                        </Td>
+                        <Td>
+                          {g.subject ? (
+                            <Badge className="bg-violet-500/15 text-violet-400">{g.subject.name}</Badge>
+                          ) : (
+                            <span className="text-slate-500">—</span>
+                          )}
                         </Td>
                         <Td className="text-slate-600">{parseJsonArray(g.days).join(", ")}</Td>
                         <Td className="text-slate-600">{g.time}</Td>

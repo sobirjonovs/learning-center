@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cn, fmtNumber, startOfMonth, startOfWeek } from "@/lib/utils";
 import { getRating } from "@/lib/gamification";
+import { Star, Trophy } from "lucide-react";
 import {
   Avatar,
   Badge,
@@ -17,8 +18,7 @@ import {
   btn,
   inputCls,
 } from "@/components/ui";
-
-const MEDALS = ["🥇", "🥈", "🥉"];
+import { RankMedal } from "@/components/rank-medal";
 
 export default async function TeacherRatingPage({
   searchParams,
@@ -59,10 +59,18 @@ export default async function TeacherRatingPage({
 
   return (
     <div>
-      <PageHeader title="O'quvchilar reytingi" subtitle="Guruhlaringiz bo'yicha faollik reytingi" />
+      <PageHeader
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-amber-500" strokeWidth={1.75} />
+            O&apos;quvchilar reytingi
+          </span>
+        }
+        subtitle="Guruhlaringiz bo'yicha faollik reytingi"
+      />
 
       {groups.length === 0 ? (
-        <EmptyState icon="🏆" title="Sizga hali guruh biriktirilmagan" />
+        <EmptyState icon={Trophy} title="Sizga hali guruh biriktirilmagan" />
       ) : (
         <>
           <Card className="mb-6">
@@ -87,7 +95,7 @@ export default async function TeacherRatingPage({
           <LinkTabs tabs={tabs} current={davr} />
 
           {rating.length === 0 ? (
-            <EmptyState icon="🏆" title="Reyting uchun ma'lumot yo'q" />
+            <EmptyState icon={Trophy} title="Reyting uchun ma'lumot yo'q" />
           ) : (
             <>
               <Table
@@ -105,29 +113,32 @@ export default async function TeacherRatingPage({
                   <tr
                     key={r.studentId}
                     className={cn(
-                      "hover:bg-slate-50/60",
+                      "hover:bg-white/[0.04]",
                       r.place === 1 && "bg-amber-50/70",
-                      r.place === 2 && "bg-slate-50/80",
+                      r.place === 2 && "bg-white/5",
                       r.place === 3 && "bg-orange-50/60"
                     )}
                   >
-                    <Td className="text-center text-base font-bold text-slate-500">
-                      {r.place <= 3 ? MEDALS[r.place - 1] : r.place}
+                    <Td className="text-center">
+                      <RankMedal place={r.place} size="sm" showBadge />
                     </Td>
                     <Td>
                       <div className="flex items-center gap-3">
                         <Avatar name={r.name} image={r.image} size="sm" />
-                        <span className="font-medium text-slate-700">{r.name}</span>
+                        <span className="font-medium text-slate-200">{r.name}</span>
                       </div>
                     </Td>
                     <Td className="text-center">
-                      <Badge className="bg-violet-100 text-violet-700">Lv {r.level}</Badge>
+                      <Badge className="bg-violet-500/15 text-violet-400">Lv {r.level}</Badge>
                     </Td>
-                    <Td className="text-right font-semibold text-indigo-600">
+                    <Td className="text-right font-semibold text-blue-400">
                       {fmtNumber(r.xp)}
                     </Td>
                     <Td className="text-right font-semibold text-amber-600">
-                      {fmtNumber(r.points)}
+                      <span className="inline-flex items-center justify-end gap-1">
+                        <Star className="h-3.5 w-3.5 text-amber-500" strokeWidth={1.75} />
+                        {fmtNumber(r.points)}
+                      </span>
                     </Td>
                   </tr>
                 ))}

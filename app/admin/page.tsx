@@ -1,8 +1,8 @@
 // Super admin dashboard — umumiy ko'rsatkichlar, grafiklar va reytinglar
 import Link from "next/link";
-import { requireRole } from "@/lib/auth";
+import { requireRole, can } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { weekdayNameFor } from "@/lib/constants";
+import { weekdayNameFor, PURCHASE_STATUS, type PurchaseStatus } from "@/lib/constants";
 import { levelFromXp } from "@/lib/gamification";
 import {
   addDays,
@@ -15,6 +15,7 @@ import {
   timeAgo,
   todayStr,
 } from "@/lib/utils";
+import { Calendar, CheckCircle2, GraduationCap, ShoppingBag, UserCog, Users } from "lucide-react";
 import { Avatar, Badge, Card, CardTitle, PageHeader, ProgressBar, StatCard } from "@/components/ui";
 import { BarChart, LineChart } from "@/components/charts";
 
@@ -23,13 +24,15 @@ const MONTH_SHORT = ["Yan", "Fev", "Mar", "Apr", "May", "Iyn", "Iyl", "Avg", "Se
 const isPresent = (s: string) => s === "PRESENT" || s === "LATE";
 
 export default async function AdminDashboardPage() {
-  await requireRole("SUPER_ADMIN", "ADMIN");
+  const session = await requireRole("SUPER_ADMIN", "ADMIN");
+  const showShop = can(session, "shop.manage");
 
   const now = new Date();
   const today = todayStr();
   const since = dateStr(addDays(now, -34));
 
-  const [teachers, students, groups, recentAttendance, attendanceByGroup, activities] = await Promise.all([
+  const [teachers, students, groups, recentAttendance, attendanceByGroup, activities, shopPurchases] =
+    await Promise.all([
     db.user.findMany({
       where: { role: "TEACHER" },
       select: {
@@ -53,6 +56,13 @@ export default async function AdminDashboardPage() {
       orderBy: { createdAt: "desc" },
       include: { user: { select: { name: true } } },
     }),
+    showShop
+      ? db.purchase.findMany({
+          take: 5,
+          orderBy: { createdAt: "desc" },
+          include: { student: true, product: true },
+        })
+      : Promise.resolve([]),
   ]);
 
   // ---- Stat kartalar ----
@@ -139,35 +149,35 @@ export default async function AdminDashboardPage() {
         <StatCard
           label="Faol o'qituvchilar"
           value={fmtNumber(activeTeachers)}
-          icon="👨‍🏫"
+          icon={UserCog}
           tone="indigo"
           hint={`Jami: ${fmtNumber(teachers.length)} ta`}
         />
         <StatCard
           label="Faol o'quvchilar"
           value={fmtNumber(activeStudents)}
-          icon="🎓"
+          icon={GraduationCap}
           tone="violet"
           hint={`Jami: ${fmtNumber(students.length)} ta`}
         />
         <StatCard
           label="Faol guruhlar"
           value={fmtNumber(activeGroups.length)}
-          icon="👥"
+          icon={Users}
           tone="sky"
           hint={`Jami: ${fmtNumber(groups.length)} ta`}
         />
         <StatCard
           label="Bugungi darslar"
           value={fmtNumber(todayLessons)}
-          icon="📅"
+          icon={Calendar}
           tone="amber"
           hint={todayWeekday}
         />
         <StatCard
           label="Bugungi davomat"
           value={`${todayPct}%`}
-          icon="✅"
+          icon={CheckCircle2}
           tone="emerald"
           hint={`${fmtNumber(todayRows.length)} ta yozuv`}
         />
@@ -194,7 +204,7 @@ export default async function AdminDashboardPage() {
         <Card>
           <CardTitle
             action={
-              <Link href="/admin/teachers" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
+              <Link href="/admin/teachers" className="text-xs font-medium text-blue-400 hover:text-blue-300">
                 Barchasi →
               </Link>
             }
@@ -211,13 +221,13 @@ export default async function AdminDashboardPage() {
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/admin/teachers/${t.id}`}
-                      className="block truncate text-sm font-medium text-slate-800 hover:text-indigo-600"
+                      className="block truncate text-sm font-medium text-slate-100 hover:text-blue-400"
                     >
                       {t.name}
                     </Link>
                     <div className="text-xs text-slate-400">{t.teacherType ?? "O'qituvchi"}</div>
                   </div>
-                  <Badge className="bg-indigo-100 text-indigo-700">
+                  <Badge className="bg-blue-500/15 text-blue-400">
                     {t._count.teachingGroups} ta faol guruh
                   </Badge>
                 </div>
@@ -229,7 +239,7 @@ export default async function AdminDashboardPage() {
         <Card>
           <CardTitle
             action={
-              <Link href="/admin/groups" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
+              <Link href="/admin/groups" className="text-xs font-medium text-blue-400 hover:text-blue-300">
                 Barchasi →
               </Link>
             }
@@ -245,11 +255,11 @@ export default async function AdminDashboardPage() {
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <Link
                       href={`/admin/groups/${g.id}`}
-                      className="truncate text-sm font-medium text-slate-800 hover:text-indigo-600"
+                      className="truncate text-sm font-medium text-slate-100 hover:text-blue-400"
                     >
                       {g.name}
                     </Link>
-                    <span className="text-sm font-semibold text-slate-700">{g.percent}%</span>
+                    <span className="text-sm font-semibold text-slate-200">{g.percent}%</span>
                   </div>
                   <ProgressBar value={g.percent} barClassName="bg-emerald-500" />
                 </div>
@@ -261,7 +271,7 @@ export default async function AdminDashboardPage() {
         <Card>
           <CardTitle
             action={
-              <Link href="/admin/students" className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
+              <Link href="/admin/students" className="text-xs font-medium text-blue-400 hover:text-blue-300">
                 Barchasi →
               </Link>
             }
@@ -281,13 +291,13 @@ export default async function AdminDashboardPage() {
                     <div className="min-w-0 flex-1">
                       <Link
                         href={`/admin/students/${s.id}`}
-                        className="block truncate text-sm font-medium text-slate-800 hover:text-indigo-600"
+                        className="block truncate text-sm font-medium text-slate-100 hover:text-blue-400"
                       >
                         {s.name}
                       </Link>
                       <div className="text-xs text-slate-400">{lvl.level}-daraja</div>
                     </div>
-                    <Badge className="bg-violet-100 text-violet-700">{fmtNumber(s.xp)} XP</Badge>
+                    <Badge className="bg-violet-500/15 text-violet-400">{fmtNumber(s.xp)} XP</Badge>
                   </div>
                 );
               })}
@@ -296,7 +306,7 @@ export default async function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <CardTitle>So'nggi tizim faoliyatlari</CardTitle>
+          <CardTitle>So&apos;nggi tizim faoliyatlari</CardTitle>
           {activities.length === 0 ? (
             <p className="py-6 text-center text-sm text-slate-400">Faoliyat qayd etilmagan</p>
           ) : (
@@ -305,7 +315,7 @@ export default async function AdminDashboardPage() {
                 <div key={a.id} className="flex items-start gap-3">
                   <Avatar name={a.user?.name ?? "Tizim"} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm text-slate-700">
+                    <div className="text-sm text-slate-100 classic:text-slate-700">
                       <span className="font-semibold">{a.user?.name ?? "Tizim"}</span> — {a.action}
                     </div>
                     {a.detail && <div className="truncate text-xs text-slate-400">{a.detail}</div>}
@@ -316,6 +326,46 @@ export default async function AdminDashboardPage() {
             </div>
           )}
         </Card>
+
+        {showShop && (
+          <Card>
+            <CardTitle
+              action={
+                <Link href="/admin/shop/history" className="text-xs font-medium text-blue-400 hover:text-blue-300">
+                  Barchasi →
+                </Link>
+              }
+            >
+              <span className="inline-flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4 text-blue-400" strokeWidth={1.75} />
+                Magazin xaridlari
+              </span>
+            </CardTitle>
+            {shopPurchases.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-400">Hozircha xaridlar yo&apos;q</p>
+            ) : (
+              <div className="space-y-3">
+                {shopPurchases.map((p) => {
+                  const st = PURCHASE_STATUS[p.status as PurchaseStatus] ?? PURCHASE_STATUS.NEW;
+                  return (
+                    <div key={p.id} className="flex items-center gap-3">
+                      <Avatar name={p.student.name} image={p.student.image} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium text-slate-100 classic:text-slate-800">
+                          {p.student.name}
+                        </div>
+                        <div className="truncate text-xs text-slate-400">
+                          {p.product.name} · {fmtNumber(p.points)} ball
+                        </div>
+                      </div>
+                      <Badge className={st.badge}>{st.label}</Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        )}
       </div>
     </div>
   );

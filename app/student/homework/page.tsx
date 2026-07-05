@@ -5,7 +5,8 @@ import { db } from "@/lib/db";
 import { homeworkViewStatus } from "@/lib/homework";
 import { HOMEWORK_VIEW_STATUS, type HomeworkViewStatus } from "@/lib/constants";
 import { fmtDateTime } from "@/lib/utils";
-import { Badge, Card, EmptyState, LinkTabs, PageHeader } from "@/components/ui";
+import { BookOpen, Inbox, Star, Users } from "lucide-react";
+import { Badge, EmptyState, LinkTabs, PageHeader } from "@/components/ui";
 
 const TABS = [
   { key: "barchasi", label: "Barchasi" },
@@ -53,7 +54,15 @@ export default async function StudentHomeworkPage({
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title="Vazifalarim 📚" subtitle="Guruhlaringizdagi barcha uyga vazifalar" />
+      <PageHeader
+        title={
+          <span className="font-display inline-flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-cyan-400" strokeWidth={1.75} />
+            Vazifalarim
+          </span>
+        }
+        subtitle="Guruhlaringizdagi barcha uyga vazifalar — missiya sifatida bajaring!"
+      />
 
       <LinkTabs
         current={tab}
@@ -66,7 +75,7 @@ export default async function StudentHomeworkPage({
 
       {visible.length === 0 ? (
         <EmptyState
-          icon="📭"
+          icon={Inbox}
           title="Bu bo'limda vazifa yo'q"
           hint="Boshqa bo'limlarni ham ko'rib chiqing yoki keyinroq qaytib keling."
         />
@@ -77,23 +86,29 @@ export default async function StudentHomeworkPage({
             const graded = sub?.status === "ACCEPTED" && sub.score !== null;
             return (
               <Link key={hw.id} href={`/student/homework/${hw.id}`} className="group">
-                <Card className="flex h-full animate-slide-up flex-col transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <div className="game-card flex h-full animate-slide-up flex-col p-5 transition group-hover:-translate-y-1 group-hover:border-blue-500/30">
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <div className="text-2xl">📘</div>
                     <Badge className={st.badge}>{st.label}</Badge>
                   </div>
-                  <div className="font-semibold text-slate-900 group-hover:text-violet-700">
+                  <div className="font-semibold text-white group-hover:text-blue-300">
                     {hw.title}
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">👥 {hw.group.name}</div>
+                  <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                    <Users className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    {hw.group.name}
+                  </div>
                   <div className="mt-1 text-xs text-slate-500">⏰ Muddat: {fmtDateTime(hw.dueAt)}</div>
                   <div className="mt-auto flex items-center justify-between pt-3">
                     <span className="text-xs text-slate-400">Maks: {hw.maxScore} ball</span>
                     {graded && (
-                      <Badge className="bg-emerald-100 text-emerald-700">⭐ {sub!.score} ball</Badge>
+                      <Badge className="inline-flex items-center gap-1 bg-emerald-500/15 text-emerald-400">
+                        <Star className="h-3 w-3" strokeWidth={1.75} />
+                        {sub!.score} ball
+                      </Badge>
                     )}
                   </div>
-                </Card>
+                </div>
               </Link>
             );
           })}

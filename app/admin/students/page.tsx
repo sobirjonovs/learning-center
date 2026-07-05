@@ -4,12 +4,13 @@ import { can, requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { levelFromXp } from "@/lib/gamification";
 import { fmtNumber, pct } from "@/lib/utils";
+import { GraduationCap } from "lucide-react";
 import { ActiveBadge, Avatar, Badge, EmptyState, PageHeader, Table, Td, Th, btn, inputCls } from "@/components/ui";
 import { ConfirmButton } from "@/components/confirm-button";
 import { deleteStudent, toggleStudent } from "./actions";
 
 const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50";
+  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
 
 export default async function StudentsPage({
   searchParams,
@@ -89,7 +90,7 @@ export default async function StudentsPage({
 
       {students.length === 0 ? (
         <EmptyState
-          icon="🎓"
+          icon={GraduationCap}
           title="O'quvchilar topilmadi"
           hint={query ? "Qidiruv bo'yicha natija yo'q." : "Birinchi o'quvchini qo'shing."}
           action={
@@ -119,17 +120,17 @@ export default async function StudentsPage({
           }
         >
           {students.map((s) => (
-            <tr key={s.id} className="hover:bg-slate-50/60">
+            <tr key={s.id} className="hover:bg-white/[0.04]">
               <Td>
                 <Link href={`/admin/students/${s.id}`} className="flex items-center gap-3">
                   <Avatar name={s.name} image={s.image} size="sm" />
-                  <span className="font-medium text-slate-800 hover:text-indigo-600">{s.name}</span>
+                  <span className="font-medium text-slate-100 hover:text-blue-400">{s.name}</span>
                 </Link>
               </Td>
               <Td className="whitespace-nowrap text-slate-500">{s.phone ?? "—"}</Td>
               <Td className="whitespace-nowrap text-slate-500">{s.parentPhone ?? "—"}</Td>
               <Td>
-                <Badge className="bg-violet-100 text-violet-700">{s.studentType ?? "—"}</Badge>
+                <Badge className="bg-violet-500/15 text-violet-400">{s.studentType ?? "—"}</Badge>
               </Td>
               <Td className="max-w-48 text-slate-600">
                 {s.groupMemberships.length > 0
@@ -139,9 +140,9 @@ export default async function StudentsPage({
               <Td className="text-slate-600">{fmtNumber(s.points)}</Td>
               <Td className="text-slate-600">{fmtNumber(s.xp)}</Td>
               <Td>
-                <Badge className="bg-indigo-100 text-indigo-700">{levelFromXp(s.xp).level}</Badge>
+                <Badge className="bg-blue-500/15 text-blue-400">{levelFromXp(s.xp).level}</Badge>
               </Td>
-              <Td className="font-semibold text-slate-700">{attendancePct(s.id)}%</Td>
+              <Td className="font-semibold text-slate-200">{attendancePct(s.id)}%</Td>
               <Td>
                 <ActiveBadge active={s.active} />
               </Td>
