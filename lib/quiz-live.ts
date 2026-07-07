@@ -2,12 +2,13 @@
 // Holat globalThis da saqlanadi (dev rejimida HMR dan omon qoladi).
 import { db } from "./db";
 import { parseJsonArray } from "./utils";
-import { awardScore, getQuizRates } from "./gamification";
+import { QUIZ_SCORING } from "./constants";
+import { awardScore, getQuizRates, getQuizScoring, type QuizScoringConfig } from "./gamification";
 import { logActivity } from "./log";
 
 export type GamePhase = "LOBBY" | "QUESTION" | "REVEAL" | "LEADERBOARD" | "PODIUM" | "ENDED";
 
-export type AnswerBreakdown = { base: number; speed: number; streakBonus: number };
+export type AnswerBreakdown = { base: number; speed: number; streakBonus: number; penalty: number };
 
 export type PlayerAnswer = {
   qIndex: number;
@@ -26,6 +27,33 @@ export type LastResult = {
   streak: number;
   streakBroken: boolean;
 };
+
+/** Tezlik bonusi: qolgan vaqt ulushiga qarab asosiy ballning bir qismi. */
+export function calcSpeedBonus(
+  basePoints: number,
+  ms: number,
+  timeSeconds: number,
+  scoring: QuizScoringConfig = QUIZ_SCORING
+): number {
+  const remainingFrac = Math.max(0, 1 - ms / (timeSeconds * 1000));
+  return Math.round(basePoints * scoring.speedBonusFraction * remainingFrac);
+}
+
+export function maxSpeedBonus(
+  basePoints: number,
+  scoring: QuizScoringConfig = QUIZ_SCORING
+): number {
+  return Math.round(basePoints * scoring.speedBonusFraction);
+}
+
+export function calcStreakBonus(
+  streak: number,
+  scoring: QuizScoringConfig = QUIZ_SCORING
+): number {
+  return streak >= 2
+    ? Math.min(scoring.streakBonusPerStep * (streak - 1), scoring.streakBonusMax)
+    : 0;
+}
 
 export type Player = {
   id: string;
@@ -54,6 +82,7 @@ export type LiveQuestion = {
   correctIndex: number;
   timeSeconds: number;
   points: number;
+  penaltyOnWrong: boolean;
 };
 
 type Listener = (game: Game) => void;
@@ -64,6 +93,7 @@ export type Game = {
   hostId: string;
   quiz: { name: string; image: string | null; countsToRating: boolean };
   questions: LiveQuestion[];
+  scoring: QuizScoringConfig;
   phase: GamePhase;
   qIndex: number;
   questionStartedAt: number; // ms
@@ -118,6 +148,8 @@ export async function createGame(quizId: string, hostId: string): Promise<string
   if (!quiz) throw new Error("Quiz topilmadi");
   if (quiz.questions.length === 0) throw new Error("Quizda kamida bitta savol bo'lishi kerak");
 
+  const scoring = await getQuizScoring();
+
   let pin: string;
   do {
     pin = String(Math.floor(100000 + Math.random() * 900000));
@@ -135,7 +167,9 @@ export async function createGame(quizId: string, hostId: string): Promise<string
       correctIndex: q.correctIndex,
       timeSeconds: q.timeSeconds,
       points: q.points,
+      penaltyOnWrong: q.penaltyOnWrong,
     })),
+    scoring,
     phase: "LOBBY",
     qIndex: 0,
     questionStartedAt: 0,
@@ -235,6 +269,18 @@ export function start(pin: string, hostId: string): { error?: string } {
   if (game.hostId !== hostId) return { error: "Ruxsat yo'q" };
   if (game.phase !== "LOBBY") return { error: "O'yin allaqachon boshlangan" };
   if (activePlayers(game).length === 0) return { error: "Hali hech kim qo'shilmadi" };
+  for (const p of game.players.values()) {
+    if (p.kicked) continue;
+    p.score = 0;
+    p.streak = 0;
+    p.bestStreak = 0;
+    p.correct = 0;
+    p.wrong = 0;
+    p.fastestMs = null;
+    p.answers = [];
+    p.currentAnswer = null;
+    p.lastResult = null;
+  }
   game.phase = "QUESTION";
   game.qIndex = 0;
   beginQuestion(game);
@@ -296,16 +342,15 @@ function closeQuestion(game: Game): void {
     const ans = p.currentAnswer;
     const answered = ans !== null;
     const correct = answered && ans!.option === q.correctIndex;
-    const breakdown: AnswerBreakdown = { base: 0, speed: 0, streakBonus: 0 };
+    const breakdown: AnswerBreakdown = { base: 0, speed: 0, streakBonus: 0, penalty: 0 };
     let delta = 0;
     let streakBroken = false;
 
     if (correct) {
       breakdown.base = q.points;
-      const remainingFrac = Math.max(0, 1 - ans!.ms / (q.timeSeconds * 1000));
-      breakdown.speed = Math.round(q.points * 0.5 * remainingFrac);
+      breakdown.speed = calcSpeedBonus(q.points, ans!.ms, q.timeSeconds, game.scoring);
       p.streak += 1;
-      breakdown.streakBonus = p.streak >= 2 ? Math.min(100 * (p.streak - 1), 500) : 0;
+      breakdown.streakBonus = calcStreakBonus(p.streak, game.scoring);
       delta = breakdown.base + breakdown.speed + breakdown.streakBonus;
       p.score += delta;
       p.correct += 1;
@@ -315,6 +360,12 @@ function closeQuestion(game: Game): void {
       streakBroken = p.streak >= 2;
       p.streak = 0;
       p.wrong += 1;
+      // Faqat noto'g'ri javob tanlanganida jarima (vaqt tugaganda emas)
+      if (answered && q.penaltyOnWrong) {
+        breakdown.penalty = q.points;
+        delta = -q.points;
+        p.score += delta;
+      }
     }
 
     p.answers.push({
@@ -405,8 +456,8 @@ async function persistResults(game: Game): Promise<void> {
   for (let i = 0; i < ranked.length; i++) {
     const p = ranked[i];
     const place = i + 1;
-    const xpEarned = game.quiz.countsToRating ? Math.round(p.score * xpRate) : 0;
-    const pointsEarned = game.quiz.countsToRating ? Math.round(p.score * pointRate) : 0;
+    const xpEarned = game.quiz.countsToRating ? Math.max(0, Math.round(p.score * xpRate)) : 0;
+    const pointsEarned = game.quiz.countsToRating ? Math.max(0, Math.round(p.score * pointRate)) : 0;
     p.place = place;
     p.xpEarned = xpEarned;
     p.pointsEarned = pointsEarned;
@@ -485,6 +536,11 @@ export function hostView(game: Game) {
           options: q.options,
           timeSeconds: q.timeSeconds,
           points: q.points,
+          penaltyOnWrong: q.penaltyOnWrong,
+          maxSpeedBonus: maxSpeedBonus(q.points, game.scoring),
+          speedBonusPercent: Math.round(game.scoring.speedBonusFraction * 100),
+          streakBonusPerStep: game.scoring.streakBonusPerStep,
+          streakBonusMax: game.scoring.streakBonusMax,
           correctIndex: game.phase === "REVEAL" ? q.correctIndex : null,
         }
       : null,
@@ -501,7 +557,18 @@ export function hostView(game: Game) {
               .filter((p) => p.currentAnswer && p.currentAnswer.option === q.correctIndex)
               .sort((a, b) => a.currentAnswer!.ms - b.currentAnswer!.ms)
               .slice(0, 3)
-              .map((p) => ({ name: p.name, emoji: p.emoji, ms: p.currentAnswer!.ms })),
+              .map((p) => ({
+                name: p.name,
+                emoji: p.emoji,
+                ms: p.currentAnswer!.ms,
+                delta: p.lastResult?.delta ?? 0,
+                breakdown: p.lastResult?.breakdown ?? {
+                  base: 0,
+                  speed: 0,
+                  streakBonus: 0,
+                  penalty: 0,
+                },
+              })),
           }
         : null,
     leaderboard: ranked.map((p, i) => {

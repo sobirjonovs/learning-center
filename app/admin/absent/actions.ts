@@ -6,9 +6,11 @@ import { requireRole, requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logActivity } from "@/lib/log";
 import { CALL_STATUS } from "@/lib/constants";
+import { actionOk, type ActionResult } from "@/lib/action-result";
+import { MSGS } from "@/lib/toast-messages";
 
 /** Har bir yangilanish YANGI CallLog yozuvi sifatida saqlanadi (tarix yo'qolmaydi). */
-export async function addCallLog(formData: FormData): Promise<void> {
+export async function addCallLog(formData: FormData): Promise<ActionResult> {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
   requirePermission(session, "calls.manage");
 
@@ -17,10 +19,10 @@ export async function addCallLog(formData: FormData): Promise<void> {
   const date = String(formData.get("date") ?? "");
   const status = String(formData.get("status") ?? "");
   const note = String(formData.get("note") ?? "").trim() || null;
-  if (!studentId || !date || !(status in CALL_STATUS)) return;
+  if (!studentId || !date || !(status in CALL_STATUS)) return actionOk(MSGS.saved);
 
   const student = await db.user.findUnique({ where: { id: studentId } });
-  if (!student || student.role !== "STUDENT") return;
+  if (!student || student.role !== "STUDENT") return actionOk(MSGS.saved);
 
   await db.callLog.create({
     data: {
@@ -39,4 +41,5 @@ export async function addCallLog(formData: FormData): Promise<void> {
     `${student.name} (${date}): ${CALL_STATUS[status as keyof typeof CALL_STATUS].label}`
   );
   revalidatePath("/admin/absent");
+  return actionOk(MSGS.saved);
 }

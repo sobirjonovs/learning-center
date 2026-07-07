@@ -15,7 +15,7 @@ import {
   EmptyState,
   btn,
 } from "@/components/ui";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { toggleAdmin, deleteAdmin } from "./actions";
 
 export default async function AdminsPage() {
@@ -81,21 +81,23 @@ export default async function AdminsPage() {
                     <Link href={`/admin/admins/${a.id}/edit`} className={btn.small}>
                       Tahrirlash
                     </Link>
-                    <form action={toggleAdmin}>
-                      <input type="hidden" name="id" value={a.id} />
-                      <button type="submit" className={btn.small}>
+                    <InlineActionForm action={toggleAdmin} hidden={{ id: a.id }}>
+                      <button type="button" className={btn.small}>
                         {a.active ? "Faolsizlantirish" : "Faollashtirish"}
                       </button>
-                    </form>
-                    <form action={deleteAdmin}>
-                      <input type="hidden" name="id" value={a.id} />
-                      <ConfirmButton
-                        message={`${a.name} administratorini o'chirishni tasdiqlaysizmi?`}
+                    </InlineActionForm>
+                    <InlineActionForm
+                      action={deleteAdmin}
+                      hidden={{ id: a.id }}
+                      confirmMessage={`${a.name} administratorini o'chirishni tasdiqlaysizmi?`}
+                    >
+                      <button
+                        type="button"
                         className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                       >
-                        O'chirish
-                      </ConfirmButton>
-                    </form>
+                        O&apos;chirish
+                      </button>
+                    </InlineActionForm>
                   </div>
                 </Td>
               </tr>

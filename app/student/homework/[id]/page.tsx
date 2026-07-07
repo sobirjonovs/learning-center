@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { homeworkViewStatus } from "@/lib/homework";
-import { computeHomeworkScore } from "@/lib/gamification";
-import { HOMEWORK_VIEW_STATUS, RATES } from "@/lib/constants";
+import { computeHomeworkScore, getGamificationSettings } from "@/lib/gamification";
+import { HOMEWORK_VIEW_STATUS } from "@/lib/constants";
 import { fmtDateTime, fmtNumber } from "@/lib/utils";
 import { AlertTriangle, Hourglass, PartyPopper, RotateCcw, Send } from "lucide-react";
 import { Badge, Card, CardTitle, PageHeader } from "@/components/ui";
@@ -28,6 +28,8 @@ export default async function StudentHomeworkDetailPage({
     },
   });
   if (!hw) notFound();
+
+  const { homework: hwRates } = await getGamificationSettings();
 
   const sub = await db.submission.findUnique({
     where: { homeworkId_studentId: { homeworkId: hw.id, studentId: session.id } },
@@ -163,8 +165,8 @@ export default async function StudentHomeworkDetailPage({
                 <div className="font-display text-xs uppercase tracking-wide text-blue-200">Yakuniy ball</div>
                 <div className="font-display text-4xl font-extrabold">{sub.score ?? 0}</div>
                 <div className="mt-1 text-xs text-blue-100">
-                  +{fmtNumber(Math.round((sub.score ?? 0) * RATES.homeworkXp))} XP · +
-                  {fmtNumber(Math.round((sub.score ?? 0) * RATES.homeworkPoints))} ball olindi
+                  +{fmtNumber(Math.round((sub.score ?? 0) * hwRates.xpRate))} XP · +
+                  {fmtNumber(Math.round((sub.score ?? 0) * hwRates.pointRate))} ball olindi
                 </div>
               </div>
               {sub.feedback && (

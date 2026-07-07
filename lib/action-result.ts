@@ -10,3 +10,7 @@ export function actionOk(message: string): ActionResult {
 export function actionErr(error: string): ActionResult {
   return { ok: false, error };
 }
+
+export function isActionResult(value: unknown): value is ActionResult {
+  return !!value && typeof value === "object" && "ok" in value;
+}

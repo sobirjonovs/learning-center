@@ -19,6 +19,7 @@ import {
 } from "@/components/ui";
 import { SegmentBar, BarChart } from "@/components/charts";
 import { setAttendance } from "./actions";
+import { InlineActionForm } from "@/components/inline-action-form";
 
 const STATUS_COLORS: Record<AttendanceStatus, string> = {
   PRESENT: "#10b981",
@@ -198,25 +199,30 @@ export default async function AttendancePage({
                   )}
                 </Td>
                 <Td>
-                  <form action={setAttendance} className="flex flex-wrap gap-1.5">
-                    <input type="hidden" name="groupId" value={selectedGroup.id} />
-                    <input type="hidden" name="studentId" value={m.student.id} />
-                    <input type="hidden" name="date" value={date} />
+                  <div className="flex flex-wrap gap-1.5">
                     {statusKeys.map((key) => (
-                      <button
+                      <InlineActionForm
                         key={key}
-                        type="submit"
-                        name="status"
-                        value={key}
-                        className={cn(
-                          statusBtnBase,
-                          current === key ? STATUS_BTN[key].on : STATUS_BTN[key].off
-                        )}
+                        action={setAttendance}
+                        hidden={{
+                          groupId: selectedGroup.id,
+                          studentId: m.student.id,
+                          date,
+                          status: key,
+                        }}
                       >
-                        {ATTENDANCE_STATUS[key].label}
-                      </button>
+                        <button
+                          type="button"
+                          className={cn(
+                            statusBtnBase,
+                            current === key ? STATUS_BTN[key].on : STATUS_BTN[key].off
+                          )}
+                        >
+                          {ATTENDANCE_STATUS[key].label}
+                        </button>
+                      </InlineActionForm>
                     ))}
-                  </form>
+                  </div>
                 </Td>
               </tr>
             );

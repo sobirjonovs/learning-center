@@ -1,101 +1,241 @@
-// Sozlamalar — gamifikatsiya koeffitsiyentlari (faqat SUPER_ADMIN)
+// Ball sozlamalari — barcha gamifikatsiya stavkalari (faqat SUPER_ADMIN)
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { RATES, SETTING_KEYS } from "@/lib/constants";
+import { getGamificationSettings } from "@/lib/gamification";
 import { PageHeader, Card, CardTitle, Field, inputCls, btn } from "@/components/ui";
+import { ActionForm } from "@/components/action-form";
 import { saveGamificationSettings } from "./actions";
 
 export default async function SettingsPage() {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
   if (session.role !== "SUPER_ADMIN") redirect("/admin");
 
-  const settings = await db.setting.findMany({
-    where: { key: { in: [SETTING_KEYS.quizXpRate, SETTING_KEYS.quizPointRate] } },
-  });
-  const map = new Map(settings.map((s) => [s.key, s.value]));
-  const quizXpRate = map.get(SETTING_KEYS.quizXpRate) ?? String(RATES.quizXp);
-  const quizPointRate = map.get(SETTING_KEYS.quizPointRate) ?? String(RATES.quizPoints);
+  const s = await getGamificationSettings();
+  const speedPercent = Math.round(s.quizScoring.speedBonusFraction * 100);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <PageHeader
-        title="Sozlamalar"
-        subtitle="Gamifikatsiya koeffitsiyentlarini boshqarish"
+        title="Ball sozlamalari"
+        subtitle="Platforma bo'ylab XP va magazin balli qanday berilishini boshqarish"
       />
 
-      <div className="space-y-5">
+      <ActionForm action={saveGamificationSettings} className="space-y-5">
         <Card>
-          <CardTitle>Gamifikatsiya sozlamalari</CardTitle>
-          <form action={saveGamificationSettings} className="space-y-4">
-            <Field label="Quiz XP koeffitsiyenti" required>
+          <CardTitle>Davomat</CardTitle>
+          <p className="mb-4 text-sm text-slate-400">
+            O&apos;qituvchi davomat belgilaganda beriladigan standart mukofot. Guruh bo&apos;yicha
+            alohida o&apos;zgartirish mumkin.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Keldi — XP" required>
+              <input
+                type="number"
+                name="attPresentXp"
+                required
+                min={0}
+                max={10000}
+                step={1}
+                defaultValue={s.attendance.presentXp}
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Keldi — magazin balli" required>
+              <input
+                type="number"
+                name="attPresentPoints"
+                required
+                min={0}
+                max={10000}
+                step={1}
+                defaultValue={s.attendance.presentPoints}
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Kechikdi — XP" required>
+              <input
+                type="number"
+                name="attLateXp"
+                required
+                min={0}
+                max={10000}
+                step={1}
+                defaultValue={s.attendance.lateXp}
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Kechikdi — magazin balli" required>
+              <input
+                type="number"
+                name="attLatePoints"
+                required
+                min={0}
+                max={10000}
+                step={1}
+                defaultValue={s.attendance.latePoints}
+                className={inputCls}
+              />
+            </Field>
+          </div>
+        </Card>
+
+        <Card>
+          <CardTitle>Uyga vazifa</CardTitle>
+          <p className="mb-4 text-sm text-slate-400">
+            O&apos;qituvchi baholagan yakuniy ball asosida XP va magazin balli hisoblanadi.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="XP koeffitsiyenti" required>
+              <input
+                type="number"
+                name="homeworkXpRate"
+                required
+                step={0.01}
+                min={0}
+                defaultValue={s.homework.xpRate}
+                className={inputCls}
+              />
+              <p className="mt-1 text-xs text-slate-500">XP = yakuniy ball × koeffitsient</p>
+            </Field>
+            <Field label="Magazin balli koeffitsiyenti" required>
+              <input
+                type="number"
+                name="homeworkPointRate"
+                required
+                step={0.01}
+                min={0}
+                defaultValue={s.homework.pointRate}
+                className={inputCls}
+              />
+              <p className="mt-1 text-xs text-slate-500">Ball = yakuniy ball × koeffitsient</p>
+            </Field>
+          </div>
+        </Card>
+
+        <Card>
+          <CardTitle>Imtihon</CardTitle>
+          <p className="mb-4 text-sm text-slate-400">
+            Imtihon natijasi (0–max ball) asosida XP va magazin balli beriladi.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="XP koeffitsiyenti" required>
+              <input
+                type="number"
+                name="examXpRate"
+                required
+                step={0.01}
+                min={0}
+                defaultValue={s.exam.xpRate}
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Magazin balli koeffitsiyenti" required>
+              <input
+                type="number"
+                name="examPointRate"
+                required
+                step={0.01}
+                min={0}
+                defaultValue={s.exam.pointRate}
+                className={inputCls}
+              />
+            </Field>
+          </div>
+        </Card>
+
+        <Card>
+          <CardTitle>Quiz — reytingga qo&apos;shish</CardTitle>
+          <p className="mb-4 text-sm text-slate-400">
+            Jonli quiz yakunida olingan o&apos;yin balli reytingga aylantiriladi.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="XP koeffitsiyenti" required>
               <input
                 type="number"
                 name="quizXpRate"
                 required
                 step={0.001}
                 min={0}
-                defaultValue={quizXpRate}
+                defaultValue={s.quiz.xpRate}
                 className={inputCls}
               />
-              <p className="mt-1 text-xs text-slate-400">
-                Quiz ballini XP ga aylantirish koeffitsiyenti. Masalan, 0.05 bo&apos;lsa — 5000
-                quiz balli 250 XP beradi.
+              <p className="mt-1 text-xs text-slate-500">
+                Masalan, 0.05 — 5000 o&apos;yin balli = 250 XP
               </p>
             </Field>
-            <Field label="Quiz ball koeffitsiyenti" required>
+            <Field label="Magazin balli koeffitsiyenti" required>
               <input
                 type="number"
                 name="quizPointRate"
                 required
                 step={0.001}
                 min={0}
-                defaultValue={quizPointRate}
+                defaultValue={s.quiz.pointRate}
                 className={inputCls}
               />
-              <p className="mt-1 text-xs text-slate-400">
-                Quiz ballini magazin balliga aylantirish koeffitsiyenti. Masalan, 0.015
-                bo&apos;lsa — 5000 quiz balli 75 magazin balli beradi.
+              <p className="mt-1 text-xs text-slate-500">
+                Masalan, 0.015 — 5000 o&apos;yin balli = 75 magazin balli
               </p>
             </Field>
-            <div className="flex justify-end border-t border-white/10 pt-4">
-              <button type="submit" className={btn.primary}>
-                Saqlash
-              </button>
-            </div>
-          </form>
+          </div>
         </Card>
 
         <Card>
-          <CardTitle>O&apos;zgarmas stavkalar (ma&apos;lumot uchun)</CardTitle>
-          <ul className="space-y-2 text-sm text-slate-600">
-            <li className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3.5 py-2.5">
-              <span>Uyga vazifa — XP</span>
-              <span className="font-semibold text-slate-100">
-                yakuniy ball × {RATES.homeworkXp}
-              </span>
-            </li>
-            <li className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3.5 py-2.5">
-              <span>Uyga vazifa — magazin balli</span>
-              <span className="font-semibold text-slate-100">
-                yakuniy ball × {RATES.homeworkPoints}
-              </span>
-            </li>
-            <li className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3.5 py-2.5">
-              <span>Imtihon — XP</span>
-              <span className="font-semibold text-slate-100">natija × {RATES.examXp}</span>
-            </li>
-            <li className="flex items-center justify-between gap-2 rounded-xl bg-white/5 px-3.5 py-2.5">
-              <span>Imtihon — magazin balli</span>
-              <span className="font-semibold text-slate-100">natija × {RATES.examPoints}</span>
-            </li>
-          </ul>
-          <p className="mt-3 text-xs text-slate-400">
-            Bu stavkalar kodda belgilangan bo&apos;lib, faqat quiz koeffitsiyentlari yuqoridagi
-            forma orqali o&apos;zgartiriladi.
+          <CardTitle>Quiz — Kahoot jonli o&apos;yin</CardTitle>
+          <p className="mb-4 text-sm text-slate-400">
+            Jonli o&apos;yin davomida har bir savol uchun ball tizimi.
           </p>
+          <div className="space-y-4">
+            <Field label="Tezlik bonusi maksimumi (%)" required>
+              <input
+                type="number"
+                name="quizSpeedBonusPercent"
+                required
+                step={1}
+                min={0}
+                max={100}
+                defaultValue={speedPercent}
+                className={inputCls}
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Eng tez to&apos;g&apos;ri javob uchun asosiy ballning shu foizi qo&apos;shiladi.
+              </p>
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Streak bonusi (har qadam)" required>
+                <input
+                  type="number"
+                  name="quizStreakBonusPerStep"
+                  required
+                  step={1}
+                  min={0}
+                  max={10000}
+                  defaultValue={s.quizScoring.streakBonusPerStep}
+                  className={inputCls}
+                />
+              </Field>
+              <Field label="Streak bonusi maksimumi" required>
+                <input
+                  type="number"
+                  name="quizStreakBonusMax"
+                  required
+                  step={1}
+                  min={0}
+                  max={100000}
+                  defaultValue={s.quizScoring.streakBonusMax}
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+          </div>
         </Card>
-      </div>
+
+        <div className="flex justify-end">
+          <button type="submit" className={btn.primary}>
+            Barcha sozlamalarni saqlash
+          </button>
+        </div>
+      </ActionForm>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 // Quiz meta ma'lumotlari formasi (yaratish/tahrirlash uchun umumiy)
 import { Field, inputCls, btn } from "@/components/ui";
+import { ImageInput } from "@/components/image-input";
 import { QUIZ_TYPES, type QuizType } from "@/lib/constants";
 
 export type QuizFormGroup = { id: string; name: string };
@@ -97,17 +98,7 @@ export function QuizForm({
       </div>
 
       <Field label="Quiz rasmi">
-        <div className="space-y-2">
-          {quiz?.image && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={quiz.image}
-              alt="Joriy rasm"
-              className="h-20 w-32 rounded-xl border border-white/10 object-cover"
-            />
-          )}
-          <input type="file" name="image" accept="image/*" className={inputCls} />
-        </div>
+        <ImageInput currentImage={quiz?.image} />
       </Field>
 
       <label className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm font-medium text-slate-200">

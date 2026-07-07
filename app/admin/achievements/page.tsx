@@ -11,32 +11,22 @@ import {
   ActiveBadge,
   EmptyState,
   Card,
-  Alert,
   btn,
 } from "@/components/ui";
 import { Modal } from "@/components/modal";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
+import { deleteAchievement, toggleAchievement } from "./actions";
 import { AchievementForm } from "./achievement-form";
-import { toggleAchievement, deleteAchievement } from "./actions";
 
-const ERROR_TEXT: Record<string, string> = {
-  required: "Kod, nom va tavsif to'ldirilishi shart.",
-  duplicate_code: "Bu kodli yutuq allaqachon mavjud.",
-};
-
-export default async function AchievementsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
+export default async function AchievementsPage() {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
   requirePermission(session, "achievements.manage");
-  const { error } = await searchParams;
 
   const achievements = await db.achievement.findMany({
     orderBy: [{ active: "desc" }, { xpReward: "asc" }],
     include: { _count: { select: { students: true } } },
   });
+  const usedCodes = achievements.map((a) => a.code);
 
   return (
     <div>
@@ -48,16 +38,10 @@ export default async function AchievementsPage({
             title="Yangi yutuq"
             trigger={<button className={btn.primary}>+ Yangi yutuq</button>}
           >
-            <AchievementForm />
+            <AchievementForm usedCodes={usedCodes} />
           </Modal>
         }
       />
-
-      {error && ERROR_TEXT[error] && (
-        <Alert variant="error" className="mb-4">
-          {ERROR_TEXT[error]}
-        </Alert>
-      )}
 
       {achievements.length === 0 ? (
         <EmptyState
@@ -69,7 +53,7 @@ export default async function AchievementsPage({
               title="Yangi yutuq"
               trigger={<button className={btn.primary}>+ Yangi yutuq</button>}
             >
-              <AchievementForm />
+              <AchievementForm usedCodes={usedCodes} />
             </Modal>
           }
         />
@@ -135,27 +119,26 @@ export default async function AchievementsPage({
                       title="Yutuqni tahrirlash"
                       trigger={<button className={btn.small}>Tahrirlash</button>}
                     >
-                      <AchievementForm achievement={a} />
+                      <AchievementForm achievement={a} usedCodes={usedCodes} />
                     </Modal>
-                    <form action={toggleAchievement}>
-                      <input type="hidden" name="id" value={a.id} />
-                      <button type="submit" className={btn.small}>
+                    <InlineActionForm action={toggleAchievement} hidden={{ id: a.id }}>
+                      <button type="button" className={btn.small}>
                         {a.active ? "Faolsizlantirish" : "Faollashtirish"}
                       </button>
-                    </form>
-                    <form action={deleteAchievement}>
-                      <input type="hidden" name="id" value={a.id} />
-                      <ConfirmButton
-                        message={
-                          a._count.students > 0
-                            ? `"${a.name}" yutuqini o'chirishni tasdiqlaysizmi? ${a._count.students} ta o'quvchi yozuvi ham o'chiriladi.`
-                            : `"${a.name}" yutuqini o'chirishni tasdiqlaysizmi?`
-                        }
-                        className={btn.dangerSmall}
-                      >
+                    </InlineActionForm>
+                    <InlineActionForm
+                      action={deleteAchievement}
+                      hidden={{ id: a.id }}
+                      confirmMessage={
+                        a._count.students > 0
+                          ? `"${a.name}" yutuqini o'chirishni tasdiqlaysizmi? ${a._count.students} ta o'quvchi yozuvi ham o'chiriladi.`
+                          : `"${a.name}" yutuqini o'chirishni tasdiqlaysizmi?`
+                      }
+                    >
+                      <button type="button" className={btn.dangerSmall}>
                         O&apos;chirish
-                      </ConfirmButton>
-                    </form>
+                      </button>
+                    </InlineActionForm>
                   </div>
                 </Td>
               </tr>

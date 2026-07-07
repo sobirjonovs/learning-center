@@ -18,6 +18,7 @@ import {
   btn,
 } from "@/components/ui";
 import { Modal } from "@/components/modal";
+import { ActionForm } from "@/components/action-form";
 import { StyledSelect } from "@/components/styled-select";
 import { DateFilter } from "./date-filter";
 import { addCallLog } from "./actions";
@@ -148,7 +149,7 @@ export default async function AbsentPage({
                         </button>
                       }
                     >
-                      <form action={addCallLog} className="space-y-4">
+                      <ActionForm action={addCallLog} className="space-y-4">
                         <input type="hidden" name="studentId" value={a.studentId} />
                         <input type="hidden" name="groupId" value={a.groupId} />
                         <input type="hidden" name="date" value={date} />
@@ -177,7 +178,7 @@ export default async function AbsentPage({
                             Saqlash
                           </button>
                         </div>
-                      </form>
+                      </ActionForm>
                     </Modal>
                     <Modal
                       title={`Qo'ng'iroqlar tarixi — ${a.student.name}`}

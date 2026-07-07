@@ -4,11 +4,8 @@ import { requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { UserCog } from "lucide-react";
 import { ActiveBadge, Avatar, Badge, EmptyState, PageHeader, Table, Td, Th, btn, inputCls } from "@/components/ui";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { deleteTeacher, toggleTeacher } from "./actions";
-
-const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
 
 export default async function TeachersPage({
   searchParams,
@@ -130,21 +127,20 @@ export default async function TeachersPage({
                   <Link href={`/admin/teachers/${t.id}/edit`} className={btn.small}>
                     Tahrirlash
                   </Link>
-                  <form action={toggleTeacher}>
-                    <input type="hidden" name="id" value={t.id} />
-                    <button type="submit" className={btn.small}>
+                  <InlineActionForm action={toggleTeacher} hidden={{ id: t.id }}>
+                    <button type="button" className={btn.small}>
                       {t.active ? "Faolsizlantirish" : "Faollashtirish"}
                     </button>
-                  </form>
-                  <form action={deleteTeacher}>
-                    <input type="hidden" name="id" value={t.id} />
-                    <ConfirmButton
-                      message={`${t.name} o'chirilsinmi? Unga bog'liq ma'lumotlar ham o'chib ketadi.`}
-                      className={dangerSmall}
-                    >
-                      O'chirish
-                    </ConfirmButton>
-                  </form>
+                  </InlineActionForm>
+                  <InlineActionForm
+                    action={deleteTeacher}
+                    hidden={{ id: t.id }}
+                    confirmMessage={`${t.name} o'chirilsinmi? Unga bog'liq ma'lumotlar ham o'chib ketadi.`}
+                  >
+                    <button type="button" className={btn.dangerSmall}>
+                      O&apos;chirish
+                    </button>
+                  </InlineActionForm>
                 </div>
               </Td>
             </tr>

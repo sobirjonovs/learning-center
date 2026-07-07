@@ -2,6 +2,7 @@
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ATTENDANCE_STATUS, type AttendanceStatus } from "@/lib/constants";
+import { getGamificationSettings, getGroupAttendanceRewards } from "@/lib/gamification";
 import { cn, dateStr, fmtDate, pct, startOfMonth, startOfWeek, todayStr } from "@/lib/utils";
 import { BarChart, SegmentBar } from "@/components/charts";
 import { Calendar, Users } from "lucide-react";
@@ -19,7 +20,9 @@ import {
   btn,
   inputCls,
 } from "@/components/ui";
-import { markAttendance } from "./actions";
+import { markAttendance, saveAttendanceRewards } from "./actions";
+import { ActionForm } from "@/components/action-form";
+import { InlineActionForm } from "@/components/inline-action-form";
 
 // SegmentBar uchun status ranglari
 const ATT_COLORS: Record<AttendanceStatus, string> = {
@@ -84,6 +87,8 @@ export default async function TeacherAttendancePage({
 
   const guruhParam = typeof sp.guruh === "string" ? sp.guruh : "";
   const group = groups.find((g) => g.id === guruhParam) ?? groups[0];
+  const gamification = await getGamificationSettings();
+  const rewards = getGroupAttendanceRewards(group, gamification.attendance);
 
   const sana =
     typeof sp.sana === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.sana) ? sp.sana : todayStr();
@@ -161,6 +166,62 @@ export default async function TeacherAttendancePage({
         </form>
       </Card>
 
+      <Card className="mb-6">
+        <CardTitle>Mukofot sozlamalari — {group.name}</CardTitle>
+        <p className="mb-4 text-sm text-slate-400">
+          Admin standartidan farq qilsa, shu guruh uchun alohida mukofot belgilang. Bo&apos;sh
+          qoldirilsa admin sozlamalari qo&apos;llaniladi.
+        </p>
+        <ActionForm action={saveAttendanceRewards} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <input type="hidden" name="groupId" value={group.id} />
+          <Field label="Keldi — XP">
+            <input
+              type="number"
+              name="attPresentXp"
+              min={0}
+              max={10000}
+              defaultValue={rewards.PRESENT.xp}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Keldi — ball">
+            <input
+              type="number"
+              name="attPresentPoints"
+              min={0}
+              max={10000}
+              defaultValue={rewards.PRESENT.points}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Kechikdi — XP">
+            <input
+              type="number"
+              name="attLateXp"
+              min={0}
+              max={10000}
+              defaultValue={rewards.LATE.xp}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Kechikdi — ball">
+            <input
+              type="number"
+              name="attLatePoints"
+              min={0}
+              max={10000}
+              defaultValue={rewards.LATE.points}
+              className={inputCls}
+            />
+          </Field>
+          <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
+            <button type="submit" className={btn.secondary}>
+              Mukofotni saqlash
+            </button>
+          </div>
+        </ActionForm>
+      </Card>
+
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardTitle>
@@ -175,37 +236,52 @@ export default async function TeacherAttendancePage({
               {members.map((m) => {
                 const current = dayStatus.get(m.student.id);
                 return (
-                  <form
+                  <div
                     key={m.student.id}
-                    action={markAttendance}
                     className="flex flex-wrap items-center gap-3 py-3"
                   >
-                    <input type="hidden" name="groupId" value={group.id} />
-                    <input type="hidden" name="studentId" value={m.student.id} />
-                    <input type="hidden" name="date" value={sana} />
                     <Avatar name={m.student.name} image={m.student.image} size="sm" />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">
                       {m.student.name}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {STATUS_KEYS.map((key) => (
-                        <button
-                          key={key}
-                          type="submit"
-                          name="status"
-                          value={key}
-                          className={cn(
-                            "rounded-lg px-3 py-1.5 text-xs font-semibold transition active:scale-[0.97]",
-                            current === key
-                              ? cn(ATTENDANCE_STATUS[key].badge, "ring-1 ring-inset ring-black/10")
-                              : "border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
-                          )}
-                        >
-                          {ATTENDANCE_STATUS[key].label}
-                        </button>
-                      ))}
+                      {STATUS_KEYS.map((key) => {
+                        const reward = rewards[key];
+                        const rewardHint =
+                          reward.xp > 0 || reward.points > 0
+                            ? `+${reward.xp} XP, +${reward.points} ball`
+                            : null;
+                        return (
+                          <InlineActionForm
+                            key={key}
+                            action={markAttendance}
+                            hidden={{
+                              groupId: group.id,
+                              studentId: m.student.id,
+                              date: sana,
+                              status: key,
+                            }}
+                          >
+                            <button
+                              type="button"
+                              title={rewardHint ?? undefined}
+                              className={cn(
+                                "rounded-lg px-3 py-1.5 text-xs font-semibold transition active:scale-[0.97]",
+                                current === key
+                                  ? cn(ATTENDANCE_STATUS[key].badge, "ring-1 ring-inset ring-black/10")
+                                  : "border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10"
+                              )}
+                            >
+                              {ATTENDANCE_STATUS[key].label}
+                              {rewardHint && (
+                                <span className="ml-1 font-normal opacity-80">({rewardHint})</span>
+                              )}
+                            </button>
+                          </InlineActionForm>
+                        );
+                      })}
                     </div>
-                  </form>
+                  </div>
                 );
               })}
             </div>

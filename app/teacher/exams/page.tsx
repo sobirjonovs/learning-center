@@ -4,7 +4,8 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fmtDate, todayStr } from "@/lib/utils";
 import { Modal } from "@/components/modal";
-import { ConfirmButton } from "@/components/confirm-button";
+import { ActionForm } from "@/components/action-form";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { ClipboardList } from "lucide-react";
 import {
   Badge,
@@ -39,7 +40,7 @@ export default async function TeacherExamsPage() {
 
   const newExamModal = (
     <Modal trigger={<button className={btn.primary}>+ Yangi imtihon</button>} title="Yangi imtihon">
-      <form action={createExam} className="space-y-4">
+      <ActionForm action={createExam} className="space-y-4">
         <Field label="Imtihon nomi" required>
           <input
             name="title"
@@ -80,7 +81,7 @@ export default async function TeacherExamsPage() {
         <button type="submit" className={btn.primary}>
           Yaratish
         </button>
-      </form>
+      </ActionForm>
     </Modal>
   );
 
@@ -143,15 +144,18 @@ export default async function TeacherExamsPage() {
                     <Link href={`/teacher/exams/${exam.id}`} className={btn.small}>
                       Natijalar
                     </Link>
-                    <form action={deleteExam}>
-                      <input type="hidden" name="id" value={exam.id} />
-                      <ConfirmButton
-                        message={`"${exam.title}" imtihonini o'chirmoqchimisiz? Natijalar ham o'chadi.`}
+                    <InlineActionForm
+                      action={deleteExam}
+                      hidden={{ id: exam.id }}
+                      confirmMessage={`"${exam.title}" imtihonini o'chirmoqchimisiz? Natijalar ham o'chadi.`}
+                    >
+                      <button
+                        type="button"
                         className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                       >
-                        O'chirish
-                      </ConfirmButton>
-                    </form>
+                        O&apos;chirish
+                      </button>
+                    </InlineActionForm>
                   </div>
                 </Td>
               </tr>

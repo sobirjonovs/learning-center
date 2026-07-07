@@ -174,6 +174,23 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
               <div className="text-lg font-black">
                 Savol {view.qIndex + 1} / {view.total}
               </div>
+              {view.question && (
+                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs font-semibold text-indigo-200/90">
+                  <span>Asosiy: +{fmtNumber(view.question.points)}</span>
+                  <span className="inline-flex items-center gap-1">
+                    <Zap className="h-3 w-3" strokeWidth={1.75} />
+                    Tezlik: 0–+{fmtNumber(view.question.maxSpeedBonus)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Flame className="h-3 w-3" strokeWidth={1.75} />
+                    Streak: +{view.question.streakBonusPerStep}/qadam (maks.{" "}
+                    {fmtNumber(view.question.streakBonusMax)})
+                  </span>
+                  {view.question.penaltyOnWrong && (
+                    <span className="text-rose-300">Noto&apos;g&apos;ri: −{fmtNumber(view.question.points)}</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {view.phase === "QUESTION" ? (
@@ -268,17 +285,30 @@ export function HostClient({ pin, quizId }: { pin: string; quizId: string }) {
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
               {view.reveal && view.reveal.fastest.length > 0 ? (
                 <div className="animate-slide-up rounded-2xl bg-white/10 px-5 py-3 ring-1 ring-white/15">
-                  <div className="mb-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-indigo-300">
+                  <div className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-indigo-300">
                     <Zap className="h-3.5 w-3.5" strokeWidth={1.75} />
                     Eng tez javob berganlar
                   </div>
-                  <div className="flex flex-wrap gap-4">
+                  <div className="space-y-2">
                     {view.reveal.fastest.map((f, i) => (
-                      <span key={i} className="flex items-center gap-1.5 text-sm font-semibold">
-                        <QuizAvatar id={f.emoji} expression="happy-face" size="sm" />
-                        {f.name}
-                        <span className="text-indigo-300">{(f.ms / 1000).toFixed(1)} s</span>
-                      </span>
+                      <div key={i} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                        <span className="flex items-center gap-1.5 font-semibold">
+                          <QuizAvatar id={f.emoji} expression="happy-face" size="sm" />
+                          {f.name}
+                          <span className="text-indigo-300">{(f.ms / 1000).toFixed(1)} s</span>
+                        </span>
+                        <span className="font-black text-amber-300">+{fmtNumber(f.delta)} ball</span>
+                        <span className="text-xs text-indigo-200/80">
+                          (asosiy +{fmtNumber(f.breakdown.base)}
+                          {f.breakdown.speed > 0 && (
+                            <>, tezlik +{fmtNumber(f.breakdown.speed)}</>
+                          )}
+                          {f.breakdown.streakBonus > 0 && (
+                            <>, streak +{fmtNumber(f.breakdown.streakBonus)}</>
+                          )}
+                          )
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>

@@ -38,21 +38,17 @@ export function ConfirmDialog({
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCancel();
-    document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [open, onCancel]);
+  }, [open]);
 
   if (!open || !mounted) return null;
 
   return createPortal(
     <div
       className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
-      onClick={(e) => e.target === e.currentTarget && onCancel()}
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"

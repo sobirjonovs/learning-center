@@ -1,5 +1,6 @@
 // Yutuq yaratish/tahrirlash formasi
 import { Field, inputCls, btn } from "@/components/ui";
+import { ACHIEVEMENT_CODE_OPTIONS } from "@/lib/constants";
 import { createAchievement, updateAchievement } from "./actions";
 
 type AchievementData = {
@@ -13,21 +14,59 @@ type AchievementData = {
   active: boolean;
 };
 
-export function AchievementForm({ achievement }: { achievement?: AchievementData }) {
+export function AchievementForm({
+  achievement,
+  usedCodes = [],
+}: {
+  achievement?: AchievementData;
+  usedCodes?: string[];
+}) {
+  const isEdit = Boolean(achievement);
+  const availableCodes = ACHIEVEMENT_CODE_OPTIONS.filter(
+    (opt) => !usedCodes.includes(opt.code) || opt.code === achievement?.code
+  );
+
   return (
     <form action={achievement ? updateAchievement : createAchievement} className="space-y-4">
       {achievement && <input type="hidden" name="id" value={achievement.id} />}
+
       <Field label="Kod" required>
-        <input
-          name="code"
-          required
-          defaultValue={achievement?.code ?? ""}
-          placeholder="STREAK_7"
-          className={inputCls}
-          style={{ textTransform: "uppercase" }}
-        />
-        <p className="mt-1 text-xs text-slate-500">Lotin harflar, raqamlar va _ (masalan: STREAK_7)</p>
+        {isEdit ? (
+          <>
+            <input type="hidden" name="code" value={achievement!.code} />
+            <select disabled className={inputCls} value={achievement!.code}>
+              {ACHIEVEMENT_CODE_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code}>
+                  {opt.code} — {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">Kod tahrirlashda o&apos;zgartirilmaydi</p>
+          </>
+        ) : availableCodes.length === 0 ? (
+          <p className="text-sm text-amber-400">
+            Barcha yutuq kodlari allaqachon qo&apos;shilgan. Yangi kod qo&apos;shish uchun avval mavjud
+            yutuqni o&apos;chiring yoki faolsizlantiring.
+          </p>
+        ) : (
+          <>
+            <select name="code" required defaultValue="" className={inputCls}>
+              <option value="" disabled>
+                Yutuq turini tanlang
+              </option>
+              {availableCodes.map((opt) => (
+                <option key={opt.code} value={opt.code}>
+                  {opt.code} — {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">
+              Kod tizim tomonidan avtomatik beriladi — faqat ro&apos;yxatdan tanlang
+            </p>
+          </>
+        )}
       </Field>
+
       <Field label="Nomi" required>
         <input
           name="name"
@@ -87,7 +126,11 @@ export function AchievementForm({ achievement }: { achievement?: AchievementData
         Faol (o'quvchilarga ko'rinadi va beriladi)
       </label>
       <div className="flex justify-end">
-        <button type="submit" className={btn.primary}>
+        <button
+          type="submit"
+          className={btn.primary}
+          disabled={!isEdit && availableCodes.length === 0}
+        >
           {achievement ? "Saqlash" : "Qo'shish"}
         </button>
       </div>

@@ -1,5 +1,6 @@
 // Administrator yaratish/tahrirlash formasi
 import { Field, inputCls, btn } from "@/components/ui";
+import { PasswordInput } from "@/components/password-input";
 import { PERMISSIONS } from "@/lib/constants";
 import { createAdmin, updateAdmin } from "./actions";
 
@@ -47,13 +48,11 @@ export function AdminForm({ admin, error }: { admin?: AdminData; error?: string 
           />
         </Field>
         <Field label={admin ? "Yangi parol" : "Parol"} required={!admin}>
-          <input
-            type="password"
+          <PasswordInput
             name="password"
             required={!admin}
             minLength={6}
             placeholder={admin ? "O'zgartirmaslik uchun bo'sh qoldiring" : "Kamida 6 ta belgi"}
-            className={inputCls}
           />
         </Field>
       </div>

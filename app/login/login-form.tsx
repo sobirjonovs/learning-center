@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { cn } from "@/lib/utils";
 import { btn, inputCls } from "@/components/ui";
+import { PasswordInput } from "@/components/password-input";
 import { loginAction, type LoginState } from "./actions";
 
 export function LoginForm({ isLight = false }: { isLight?: boolean }) {
@@ -51,14 +52,12 @@ export function LoginForm({ isLight = false }: { isLight?: boolean }) {
           >
             Parol
           </label>
-          <input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             required
             autoComplete="current-password"
             placeholder="••••••••"
-            className={inputCls}
           />
         </div>
 

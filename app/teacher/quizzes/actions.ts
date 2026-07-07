@@ -5,10 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { saveUpload } from "@/lib/uploads";
+import { resolveImageFromForm } from "@/lib/uploads";
 import { logActivity } from "@/lib/log";
 import { QUIZ_TYPES } from "@/lib/constants";
 import { createGame } from "@/lib/quiz-live";
+import { actionOk, type ActionResult } from "@/lib/action-result";
+import { redirectWithToast } from "@/lib/redirect-toast";
+import { MSGS } from "@/lib/toast-messages";
 
 // ---------------- Yordamchilar ----------------
 
@@ -36,7 +39,7 @@ async function readQuizFields(formData: FormData) {
   const timeLimit =
     Number.isFinite(timeLimitRaw) && timeLimitRaw > 0 ? Math.round(timeLimitRaw) : null;
   const countsToRating = formData.get("countsToRating") === "on";
-  const image = await saveUpload(formData.get("image") as File | null, "quizzes");
+  const image = await resolveImageFromForm(formData, "quizzes");
   return { name, description, subject, groupId, type, timeLimit, countsToRating, image };
 }
 
@@ -53,20 +56,20 @@ async function readQuestionFields(formData: FormData) {
   const correctIndex = Math.min(Math.max(0, correctIndexRaw), options.length - 1);
   const timeSecondsRaw = Math.round(Number(formData.get("timeSeconds") ?? 20));
   const timeSeconds = Math.min(300, Math.max(5, Number.isFinite(timeSecondsRaw) ? timeSecondsRaw : 20));
-  const pointsRaw = Math.round(Number(formData.get("points") ?? 500));
-  const points = Math.min(10000, Math.max(10, Number.isFinite(pointsRaw) ? pointsRaw : 500));
-  const image = await saveUpload(formData.get("image") as File | null, "quizzes");
-  return { text, options, correctIndex, timeSeconds, points, image };
+  const pointsRaw = Math.round(Number(formData.get("points") ?? 0));
+  const points = Math.min(10000, Math.max(0, Number.isFinite(pointsRaw) ? pointsRaw : 0));
+  const penaltyOnWrong = formData.get("penaltyOnWrong") === "on";
+  const image = await resolveImageFromForm(formData, "quizzes");
+  return { text, options, correctIndex, timeSeconds, points, penaltyOnWrong, image };
 }
 
 // ---------------- Quiz CRUD ----------------
 
-export async function createQuiz(formData: FormData): Promise<void> {
+export async function createQuiz(formData: FormData) {
   const session = await requireRole("TEACHER");
   const fields = await readQuizFields(formData);
   if (!fields.name) return;
 
-  // Guruh faqat o'qituvchining o'ziniki bo'lishi mumkin
   if (fields.groupId) {
     const group = await db.group.findUnique({ where: { id: fields.groupId } });
     if (!group || group.teacherId !== session.id) fields.groupId = null;
@@ -78,10 +81,10 @@ export async function createQuiz(formData: FormData): Promise<void> {
 
   await logActivity(session.id, "Quiz yaratdi", quiz.name);
   revalidateQuiz(quiz.id);
-  redirect(`/teacher/quizzes/${quiz.id}`);
+  redirectWithToast(`/teacher/quizzes/${quiz.id}`, MSGS.created(quiz.name));
 }
 
-export async function updateQuiz(formData: FormData): Promise<void> {
+export async function updateQuiz(formData: FormData) {
   const quizId = String(formData.get("id") ?? "");
   const { session } = await requireOwnQuiz(quizId);
 
@@ -101,26 +104,27 @@ export async function updateQuiz(formData: FormData): Promise<void> {
 
   await logActivity(session.id, "Quizni tahrirladi", fields.name);
   revalidateQuiz(quizId);
-  redirect(`/teacher/quizzes/${quizId}`);
+  redirectWithToast(`/teacher/quizzes/${quizId}`, MSGS.updated(fields.name));
 }
 
-export async function deleteQuiz(formData: FormData): Promise<void> {
+export async function deleteQuiz(formData: FormData): Promise<ActionResult> {
   const quizId = String(formData.get("id") ?? "");
   const { session, quiz } = await requireOwnQuiz(quizId);
 
   await db.quiz.delete({ where: { id: quizId } });
   await logActivity(session.id, "Quizni o'chirdi", quiz.name);
   revalidateQuiz();
+  return actionOk(MSGS.deleted(quiz.name));
 }
 
 // ---------------- Savollar ----------------
 
-export async function addQuestion(formData: FormData): Promise<void> {
+export async function addQuestion(formData: FormData): Promise<ActionResult> {
   const quizId = String(formData.get("quizId") ?? "");
   await requireOwnQuiz(quizId);
 
   const fields = await readQuestionFields(formData);
-  if (!fields.text || fields.options.length < 2) return;
+  if (!fields.text || fields.options.length < 2) return actionOk(MSGS.saved);
 
   const last = await db.quizQuestion.findFirst({
     where: { quizId },
@@ -137,20 +141,22 @@ export async function addQuestion(formData: FormData): Promise<void> {
       correctIndex: fields.correctIndex,
       timeSeconds: fields.timeSeconds,
       points: fields.points,
+      penaltyOnWrong: fields.penaltyOnWrong,
     },
   });
 
   revalidateQuiz(quizId);
+  return actionOk(MSGS.created("Savol"));
 }
 
-export async function updateQuestion(formData: FormData): Promise<void> {
+export async function updateQuestion(formData: FormData): Promise<ActionResult> {
   const questionId = String(formData.get("questionId") ?? "");
   const question = await db.quizQuestion.findUnique({ where: { id: questionId } });
-  if (!question) return;
+  if (!question) return actionOk(MSGS.updated());
   await requireOwnQuiz(question.quizId);
 
   const fields = await readQuestionFields(formData);
-  if (!fields.text || fields.options.length < 2) return;
+  if (!fields.text || fields.options.length < 2) return actionOk(MSGS.saved);
 
   await db.quizQuestion.update({
     where: { id: questionId },
@@ -160,22 +166,23 @@ export async function updateQuestion(formData: FormData): Promise<void> {
       correctIndex: fields.correctIndex,
       timeSeconds: fields.timeSeconds,
       points: fields.points,
+      penaltyOnWrong: fields.penaltyOnWrong,
       ...(fields.image ? { image: fields.image } : {}),
     },
   });
 
   revalidateQuiz(question.quizId);
+  return actionOk(MSGS.updated("Savol"));
 }
 
-export async function deleteQuestion(formData: FormData): Promise<void> {
+export async function deleteQuestion(formData: FormData): Promise<ActionResult> {
   const questionId = String(formData.get("questionId") ?? "");
   const question = await db.quizQuestion.findUnique({ where: { id: questionId } });
-  if (!question) return;
+  if (!question) return actionOk(MSGS.deleted());
   await requireOwnQuiz(question.quizId);
 
   await db.quizQuestion.delete({ where: { id: questionId } });
 
-  // Tartib raqamlarini qayta joylash
   const rest = await db.quizQuestion.findMany({
     where: { quizId: question.quizId },
     orderBy: { order: "asc" },
@@ -185,13 +192,14 @@ export async function deleteQuestion(formData: FormData): Promise<void> {
   );
 
   revalidateQuiz(question.quizId);
+  return actionOk(MSGS.deleted("Savol"));
 }
 
-export async function moveQuestion(formData: FormData): Promise<void> {
+export async function moveQuestion(formData: FormData): Promise<ActionResult> {
   const questionId = String(formData.get("questionId") ?? "");
   const dir = String(formData.get("dir") ?? "") === "up" ? -1 : 1;
   const question = await db.quizQuestion.findUnique({ where: { id: questionId } });
-  if (!question) return;
+  if (!question) return actionOk(MSGS.saved);
   await requireOwnQuiz(question.quizId);
 
   const all = await db.quizQuestion.findMany({
@@ -200,7 +208,7 @@ export async function moveQuestion(formData: FormData): Promise<void> {
   });
   const idx = all.findIndex((q) => q.id === questionId);
   const swapWith = all[idx + dir];
-  if (!swapWith) return;
+  if (!swapWith) return actionOk(MSGS.saved);
 
   await db.$transaction([
     db.quizQuestion.update({ where: { id: question.id }, data: { order: swapWith.order } }),
@@ -208,6 +216,7 @@ export async function moveQuestion(formData: FormData): Promise<void> {
   ]);
 
   revalidateQuiz(question.quizId);
+  return actionOk(MSGS.saved);
 }
 
 // ---------------- Jonli o'yin ----------------

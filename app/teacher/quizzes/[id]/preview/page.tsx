@@ -65,6 +65,7 @@ export default async function QuizPreviewPage({
                       <Target className="h-3.5 w-3.5" strokeWidth={1.75} />
                       {q.points} ball
                     </span>
+                    {q.penaltyOnWrong && <span className="text-amber-300">− jarima</span>}
                   </span>
                 </div>
 

@@ -19,7 +19,7 @@ import {
   Badge,
 } from "@/components/ui";
 import { Modal } from "@/components/modal";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { ProductForm } from "./product-form";
 import { PurchasesTable } from "./purchases-table";
 import { toggleProduct, deleteProduct } from "./actions";
@@ -183,18 +183,20 @@ export default async function ShopPage() {
                   >
                     <ProductForm product={p} />
                   </Modal>
-                  <form action={toggleProduct}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <button type="submit" className={btn.small}>
+                  <InlineActionForm action={toggleProduct} hidden={{ id: p.id }}>
+                    <button type="button" className={btn.small}>
                       {p.active ? "Faolsizlantirish" : "Faollashtirish"}
                     </button>
-                  </form>
-                  <form action={deleteProduct}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <ConfirmButton message={`"${p.name}" mahsulotini o'chirishni tasdiqlaysizmi?`} className={btn.dangerSmall}>
+                  </InlineActionForm>
+                  <InlineActionForm
+                    action={deleteProduct}
+                    hidden={{ id: p.id }}
+                    confirmMessage={`"${p.name}" mahsulotini o'chirishni tasdiqlaysizmi?`}
+                  >
+                    <button type="button" className={btn.dangerSmall}>
                       O&apos;chirish
-                    </ConfirmButton>
-                  </form>
+                    </button>
+                  </InlineActionForm>
                 </div>
               </Td>
             </tr>

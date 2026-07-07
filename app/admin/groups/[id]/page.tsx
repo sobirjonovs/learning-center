@@ -22,7 +22,8 @@ import {
 } from "@/components/ui";
 import { SegmentBar } from "@/components/charts";
 import { Modal } from "@/components/modal";
-import { ConfirmButton } from "@/components/confirm-button";
+import { ActionForm } from "@/components/action-form";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { RankMedal } from "@/components/rank-medal";
 import { addStudentToGroup, removeStudentFromGroup } from "../actions";
 
@@ -32,9 +33,6 @@ const STATUS_COLORS: Record<AttendanceStatus, string> = {
   ABSENT: "#f43f5e",
   EXCUSED: "#0ea5e9",
 };
-
-const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
 
 const isPresent = (s: string) => s === "PRESENT" || s === "LATE";
 
@@ -228,7 +226,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
                 Qo'shish uchun faol o'quvchi qolmadi — barchasi allaqachon guruhda.
               </p>
             ) : (
-              <form action={addStudentToGroup} className="space-y-4">
+              <ActionForm action={addStudentToGroup} className="space-y-4">
                 <input type="hidden" name="groupId" value={group.id} />
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-slate-200">
@@ -245,7 +243,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
                 <button type="submit" className={btn.primary}>
                   Qo'shish
                 </button>
-              </form>
+              </ActionForm>
             )}
           </Modal>
         </div>
@@ -296,16 +294,15 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
                   </Td>
                   <Td>
                     <div className="flex justify-end">
-                      <form action={removeStudentFromGroup}>
-                        <input type="hidden" name="groupId" value={group.id} />
-                        <input type="hidden" name="studentId" value={m.student.id} />
-                        <ConfirmButton
-                          message={`${m.student.name} guruhdan chiqarilsinmi?`}
-                          className={dangerSmall}
-                        >
+                      <InlineActionForm
+                        action={removeStudentFromGroup}
+                        hidden={{ groupId: group.id, studentId: m.student.id }}
+                        confirmMessage={`${m.student.name} guruhdan chiqarilsinmi?`}
+                      >
+                        <button type="button" className={btn.dangerSmall}>
                           Chiqarish
-                        </ConfirmButton>
-                      </form>
+                        </button>
+                      </InlineActionForm>
                     </div>
                   </Td>
                 </tr>

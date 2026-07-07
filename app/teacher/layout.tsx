@@ -10,6 +10,7 @@ const items: NavItem[] = [
   { href: "/teacher/exams", label: "Imtihonlar", icon: "clipboard-list" },
   { href: "/teacher/quizzes", label: "Quiz Battle", icon: "zap" },
   { href: "/teacher/rating", label: "Reyting", icon: "trophy" },
+  { href: "/teacher/profile", label: "Mening profilim", icon: "user-cog" },
 ];
 
 export default async function TeacherLayout({ children }: { children: React.ReactNode }) {

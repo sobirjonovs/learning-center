@@ -3,6 +3,7 @@
 // Bildirishnoma yaratish/tahrirlash formasi
 import { useState } from "react";
 import { Field, inputCls, btn } from "@/components/ui";
+import { ImageInput } from "@/components/image-input";
 import {
   NOTIFICATION_AUDIENCE,
   ROLE_LABELS,
@@ -89,17 +90,7 @@ export function NotificationForm({
       </Field>
 
       <Field label="Rasm">
-        <div className="space-y-2">
-          {notification?.image && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={notification.image}
-              alt="Joriy rasm"
-              className="h-20 w-20 rounded-xl border border-white/10 object-cover"
-            />
-          )}
-          <input type="file" name="image" accept="image/*" className={inputCls} />
-        </div>
+        <ImageInput currentImage={notification?.image} previewClassName="h-20 w-20" />
       </Field>
 
       <Field label="Qabul qiluvchilar" required>

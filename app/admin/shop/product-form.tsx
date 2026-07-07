@@ -1,11 +1,16 @@
 // Mahsulot yaratish/tahrirlash formasi (Modal ichida ishlatiladi)
+"use client";
+
 import { Field, inputCls, btn } from "@/components/ui";
+import { ImageInput } from "@/components/image-input";
+import { ActionForm } from "@/components/action-form";
 import { createProduct, updateProduct } from "./actions";
 
 type ProductData = {
   id: string;
   name: string;
   description: string | null;
+  image?: string | null;
   price: number;
   stock: number;
   active: boolean;
@@ -13,7 +18,7 @@ type ProductData = {
 
 export function ProductForm({ product }: { product?: ProductData }) {
   return (
-    <form action={product ? updateProduct : createProduct} className="space-y-4">
+    <ActionForm action={product ? updateProduct : createProduct} className="space-y-4">
       {product && <input type="hidden" name="id" value={product.id} />}
       <Field label="Nomi" required>
         <input
@@ -34,7 +39,7 @@ export function ProductForm({ product }: { product?: ProductData }) {
         />
       </Field>
       <Field label="Rasm">
-        <input type="file" name="image" accept="image/*" className={inputCls} />
+        <ImageInput currentImage={product?.image} />
       </Field>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Ball qiymati" required>
@@ -74,6 +79,6 @@ export function ProductForm({ product }: { product?: ProductData }) {
           {product ? "Saqlash" : "Qo'shish"}
         </button>
       </div>
-    </form>
+    </ActionForm>
   );
 }

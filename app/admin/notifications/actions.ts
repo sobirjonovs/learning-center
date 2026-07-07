@@ -2,12 +2,14 @@
 
 // Bildirishnomalar bo'yicha server amallari
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { requireRole, requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { saveUpload } from "@/lib/uploads";
+import { resolveImageFromForm } from "@/lib/uploads";
 import { logActivity } from "@/lib/log";
 import { NOTIFICATION_AUDIENCE } from "@/lib/constants";
+import { actionOk, type ActionResult } from "@/lib/action-result";
+import { redirectWithToast } from "@/lib/redirect-toast";
+import { MSGS } from "@/lib/toast-messages";
 
 async function requireNotificationSender() {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
@@ -77,7 +79,7 @@ export async function deliverDueScheduled(): Promise<void> {
 }
 
 /** Yaratish/tahrirlash — intent: send | schedule | draft */
-export async function saveNotification(formData: FormData): Promise<void> {
+export async function saveNotification(formData: FormData) {
   const session = await requireNotificationSender();
 
   const id = String(formData.get("id") ?? "");
@@ -98,13 +100,13 @@ export async function saveNotification(formData: FormData): Promise<void> {
     intent === "schedule" && scheduledAtRaw ? new Date(scheduledAtRaw) : null;
 
   const status = intent === "schedule" && scheduledAt ? "SCHEDULED" : "DRAFT";
-  const image = await saveUpload(formData.get("image") as File | null, "notifications");
+  const image = await resolveImageFromForm(formData, "notifications");
 
   let notificationId = id;
   if (id) {
     const existing = await db.notification.findUnique({ where: { id } });
     if (!existing) return;
-    if (existing.status === "SENT") redirect("/admin/notifications");
+    if (existing.status === "SENT") redirectWithToast("/admin/notifications", MSGS.updated());
     await db.notification.update({
       where: { id },
       data: {
@@ -133,7 +135,6 @@ export async function saveNotification(formData: FormData): Promise<void> {
     notificationId = created.id;
   }
 
-  // CUSTOM: tanlangan foydalanuvchilar saqlash paytidayoq qabul qiluvchi sifatida yoziladi
   await db.notificationRecipient.deleteMany({ where: { notificationId } });
   if (audience === "CUSTOM" && userIds.length > 0) {
     await db.notificationRecipient.createMany({
@@ -144,37 +145,45 @@ export async function saveNotification(formData: FormData): Promise<void> {
   if (intent === "send") {
     await deliver(notificationId);
     await logActivity(session.id, "Bildirishnoma yubordi", title);
+    revalidatePath("/admin/notifications");
+    redirectWithToast("/admin/notifications", MSGS.sent);
   } else if (intent === "schedule") {
     await logActivity(session.id, "Bildirishnoma rejalashtirdi", title);
+    revalidatePath("/admin/notifications");
+    redirectWithToast("/admin/notifications", `"${title}" rejalashtirildi`);
   } else {
     await logActivity(session.id, "Bildirishnoma qoralamasini saqladi", title);
+    revalidatePath("/admin/notifications");
+    redirectWithToast(
+      "/admin/notifications",
+      id ? MSGS.updated(title) : MSGS.created(title)
+    );
   }
-
-  revalidatePath("/admin/notifications");
-  redirect("/admin/notifications");
 }
 
 /** DRAFT/SCHEDULED bildirishnomani darhol yuborish */
-export async function sendNow(formData: FormData): Promise<void> {
+export async function sendNow(formData: FormData): Promise<ActionResult> {
   const session = await requireNotificationSender();
 
   const id = String(formData.get("id") ?? "");
   const notification = await db.notification.findUnique({ where: { id } });
-  if (!notification || notification.status === "SENT") return;
+  if (!notification || notification.status === "SENT") return actionOk(MSGS.saved);
 
   await deliver(id);
   await logActivity(session.id, "Bildirishnoma yubordi", notification.title);
   revalidatePath("/admin/notifications");
+  return actionOk(MSGS.sent);
 }
 
-export async function deleteNotification(formData: FormData): Promise<void> {
+export async function deleteNotification(formData: FormData): Promise<ActionResult> {
   const session = await requireNotificationSender();
 
   const id = String(formData.get("id") ?? "");
   const notification = await db.notification.findUnique({ where: { id } });
-  if (!notification) return;
+  if (!notification) return actionOk(MSGS.deleted());
 
   await db.notification.delete({ where: { id } });
   await logActivity(session.id, "Bildirishnomani o'chirdi", notification.title);
   revalidatePath("/admin/notifications");
+  return actionOk(MSGS.deleted(notification.title));
 }

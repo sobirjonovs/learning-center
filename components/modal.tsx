@@ -28,21 +28,15 @@ export function Modal({
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
   }, [open]);
 
   const overlay =
     open && mounted ? (
-      <div
-        className="fixed inset-0 z-50 flex cursor-pointer items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-md"
-        onClick={(e) => e.target === e.currentTarget && setOpen(false)}
-      >
+      <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-md">
         <div
           ref={ref}
           className={cn(

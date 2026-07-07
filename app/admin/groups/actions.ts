@@ -2,12 +2,13 @@
 
 // Guruhlar bo'limi server amallari
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requirePermission, requireRole } from "@/lib/auth";
 import { logActivity } from "@/lib/log";
 import { GROUP_TYPES, WEEKDAYS, type PermissionKey } from "@/lib/constants";
 import { actionErr, actionOk, type ActionResult } from "@/lib/action-result";
+import { redirectWithError, redirectWithToast } from "@/lib/redirect-toast";
+import { MSGS } from "@/lib/toast-messages";
 
 async function guard(permission: PermissionKey) {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
@@ -59,7 +60,9 @@ async function readForm(formData: FormData) {
 export async function createGroup(formData: FormData) {
   const session = await guard("groups.create");
   const f = await readForm(formData);
-  if (!f.name || !f.time || f.daysCount === 0) redirect("/admin/groups/new?error=required");
+  if (!f.name || !f.time || f.daysCount === 0) {
+    redirectWithError("/admin/groups/new", "Barcha majburiy maydonlarni to'ldiring");
+  }
 
   const group = await db.group.create({
     data: {
@@ -79,17 +82,19 @@ export async function createGroup(formData: FormData) {
   await logActivity(session.id, "Guruh yaratdi", group.name);
   revalidatePath("/admin/groups");
   revalidatePath("/admin");
-  redirect("/admin/groups");
+  redirectWithToast("/admin/groups", MSGS.created(group.name));
 }
 
 export async function updateGroup(formData: FormData) {
   const session = await guard("groups.manage");
   const id = String(formData.get("id") ?? "");
   const group = await db.group.findUnique({ where: { id } });
-  if (!group) redirect("/admin/groups");
+  if (!group) redirectWithToast("/admin/groups", MSGS.updated());
 
   const f = await readForm(formData);
-  if (!f.name || !f.time || f.daysCount === 0) redirect(`/admin/groups/${id}/edit?error=required`);
+  if (!f.name || !f.time || f.daysCount === 0) {
+    redirectWithError(`/admin/groups/${id}/edit`, "Barcha majburiy maydonlarni to'ldiring");
+  }
 
   await db.group.update({
     where: { id },
@@ -110,7 +115,7 @@ export async function updateGroup(formData: FormData) {
   await logActivity(session.id, "Guruhni tahrirladi", f.name);
   revalidatePath("/admin/groups");
   revalidatePath(`/admin/groups/${id}`);
-  redirect(`/admin/groups/${id}`);
+  redirectWithToast(`/admin/groups/${id}`, MSGS.updated(f.name));
 }
 
 export async function toggleGroup(formData: FormData): Promise<ActionResult> {
@@ -129,7 +134,7 @@ export async function toggleGroup(formData: FormData): Promise<ActionResult> {
   revalidatePath(`/admin/groups/${id}`);
   revalidatePath("/admin");
   return actionOk(
-    group.active ? `"${group.name}" faolsizlantirildi` : `"${group.name}" faollashtirildi`
+    group.active ? MSGS.deactivated(group.name) : MSGS.activated(group.name)
   );
 }
 
@@ -144,13 +149,13 @@ export async function deleteGroup(formData: FormData): Promise<ActionResult> {
     await logActivity(session.id, "Guruhni o'chirdi", group.name);
     revalidatePath("/admin/groups");
     revalidatePath("/admin");
-    return actionOk(`"${group.name}" guruhi o'chirildi`);
+    return actionOk(MSGS.deleted(group.name));
   } catch {
     return actionErr("Guruhni o'chirib bo'lmadi. Bog'liq ma'lumotlar mavjud bo'lishi mumkin.");
   }
 }
 
-export async function addStudentToGroup(formData: FormData) {
+export async function addStudentToGroup(formData: FormData): Promise<ActionResult> {
   const session = await guard("groups.manage");
   const groupId = String(formData.get("groupId") ?? "");
   const studentId = String(formData.get("studentId") ?? "");
@@ -159,7 +164,7 @@ export async function addStudentToGroup(formData: FormData) {
     db.group.findUnique({ where: { id: groupId } }),
     db.user.findUnique({ where: { id: studentId } }),
   ]);
-  if (!group || !student || student.role !== "STUDENT") return;
+  if (!group || !student || student.role !== "STUDENT") return actionOk(MSGS.saved);
 
   const existing = await db.groupStudent.findUnique({
     where: { groupId_studentId: { groupId, studentId } },
@@ -171,9 +176,10 @@ export async function addStudentToGroup(formData: FormData) {
 
   revalidatePath(`/admin/groups/${groupId}`);
   revalidatePath("/admin/students");
+  return actionOk(`"${student.name}" guruhga qo'shildi`);
 }
 
-export async function removeStudentFromGroup(formData: FormData) {
+export async function removeStudentFromGroup(formData: FormData): Promise<ActionResult> {
   const session = await guard("groups.manage");
   const groupId = String(formData.get("groupId") ?? "");
   const studentId = String(formData.get("studentId") ?? "");
@@ -182,10 +188,11 @@ export async function removeStudentFromGroup(formData: FormData) {
     db.group.findUnique({ where: { id: groupId } }),
     db.user.findUnique({ where: { id: studentId } }),
   ]);
-  if (!group || !student) return;
+  if (!group || !student) return actionOk(MSGS.saved);
 
   await db.groupStudent.deleteMany({ where: { groupId, studentId } });
   await logActivity(session.id, "Guruhdan o'quvchi chiqardi", `${student.name} ← ${group.name}`);
   revalidatePath(`/admin/groups/${groupId}`);
   revalidatePath("/admin/students");
+  return actionOk(`"${student.name}" guruhdan chiqarildi`);
 }

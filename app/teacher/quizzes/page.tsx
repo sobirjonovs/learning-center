@@ -6,7 +6,7 @@ import { fmtDate } from "@/lib/utils";
 import { QUIZ_TYPES, type QuizType } from "@/lib/constants";
 import { BarChart3, Pencil, Zap } from "lucide-react";
 import { Badge, EmptyState, PageHeader, Table, Td, Th, btn } from "@/components/ui";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { StartLiveGameButton } from "@/components/start-live-game-button";
 import { deleteQuiz } from "./actions";
 
@@ -117,15 +117,18 @@ export default async function TeacherQuizzesPage() {
                     <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
                     Tahrirlash
                   </Link>
-                  <form action={deleteQuiz}>
-                    <input type="hidden" name="id" value={q.id} />
-                    <ConfirmButton
-                      message={`"${q.name}" quizini o'chirishga ishonchingiz komilmi? Barcha savollar va natijalar ham o'chadi.`}
+                  <InlineActionForm
+                    action={deleteQuiz}
+                    hidden={{ id: q.id }}
+                    confirmMessage={`"${q.name}" quizini o'chirishga ishonchingiz komilmi? Barcha savollar va natijalar ham o'chadi.`}
+                  >
+                    <button
+                      type="button"
                       className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                     >
                       🗑
-                    </ConfirmButton>
-                  </form>
+                    </button>
+                  </InlineActionForm>
                 </div>
               </Td>
             </tr>

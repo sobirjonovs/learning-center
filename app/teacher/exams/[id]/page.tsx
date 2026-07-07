@@ -14,6 +14,7 @@ import {
   inputCls,
 } from "@/components/ui";
 import { saveExamResults } from "../actions";
+import { ActionForm } from "@/components/action-form";
 
 export default async function ExamResultsPage({
   params,
@@ -75,7 +76,7 @@ export default async function ExamResultsPage({
         <EmptyState icon={Users} title="Guruhda o'quvchilar yo'q" />
       ) : (
         <Card>
-          <form action={saveExamResults}>
+          <ActionForm action={saveExamResults}>
             <input type="hidden" name="examId" value={exam.id} />
             <div className="divide-y divide-white/5">
               {exam.group.students.map((m) => (
@@ -108,7 +109,7 @@ export default async function ExamResultsPage({
                 Saqlash
               </button>
             </div>
-          </form>
+          </ActionForm>
         </Card>
       )}
     </div>

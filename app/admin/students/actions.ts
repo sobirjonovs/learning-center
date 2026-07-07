@@ -2,14 +2,16 @@
 
 // O'quvchilar bo'limi server amallari
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { requirePermission, requireRole } from "@/lib/auth";
 import { logActivity } from "@/lib/log";
-import { saveUpload } from "@/lib/uploads";
+import { resolveImageFromForm } from "@/lib/uploads";
+import { generateUniqueLogin } from "@/lib/login";
 import { STUDENT_TYPES, type PermissionKey } from "@/lib/constants";
 import { actionErr, actionOk, type ActionResult } from "@/lib/action-result";
+import { redirectWithError, redirectWithToast } from "@/lib/redirect-toast";
+import { MSGS } from "@/lib/toast-messages";
 
 async function guard(permission: PermissionKey) {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
@@ -28,6 +30,12 @@ function readForm(formData: FormData) {
   const active = formData.get("active") === "on";
   const groupIds = formData.getAll("groups").map(String);
   return { name, login, password, phone, parentPhone, studentType, active, groupIds };
+}
+
+/** Ism-familiyadan bazada bo'sh login taklif qiladi (forma uchun) */
+export async function suggestStudentLogin(name: string): Promise<string> {
+  await guard("students.create");
+  return generateUniqueLogin(name.trim());
 }
 
 /** Faqat faol guruhlar orasidan tanlanganlarini sinxronlaydi (formada faqat faol guruhlar ko'rinadi). */
@@ -58,17 +66,25 @@ async function syncGroups(studentId: string, selected: string[]) {
 export async function createStudent(formData: FormData) {
   const session = await guard("students.create");
   const f = readForm(formData);
-  if (!f.name || !f.login || !f.password) redirect("/admin/students/new?error=required");
+  const loginManual = formData.get("loginManual") === "1";
 
-  const existing = await db.user.findUnique({ where: { login: f.login } });
-  if (existing) redirect("/admin/students/new?error=login");
+  if (!f.name || !f.password) redirectWithError("/admin/students/new", "Barcha majburiy maydonlarni to'ldiring");
 
-  const image = await saveUpload(formData.get("image") as File | null, "avatars");
+  let login = f.login;
+  if (!loginManual || !login) {
+    login = await generateUniqueLogin(f.name);
+  }
+  if (!login) redirectWithError("/admin/students/new", "Barcha majburiy maydonlarni to'ldiring");
+
+  const existing = await db.user.findUnique({ where: { login } });
+  if (existing) redirectWithError("/admin/students/new", "Bu login allaqachon band");
+
+  const image = await resolveImageFromForm(formData, "avatars");
   const student = await db.user.create({
     data: {
       role: "STUDENT",
       name: f.name,
-      login: f.login,
+      login,
       password: await bcrypt.hash(f.password, 10),
       phone: f.phone || null,
       parentPhone: f.parentPhone || null,
@@ -83,22 +99,22 @@ export async function createStudent(formData: FormData) {
   revalidatePath("/admin/students");
   revalidatePath("/admin/groups");
   revalidatePath("/admin");
-  redirect("/admin/students");
+  redirectWithToast("/admin/students", MSGS.created(student.name));
 }
 
 export async function updateStudent(formData: FormData) {
   const session = await guard("students.edit");
   const id = String(formData.get("id") ?? "");
   const student = await db.user.findUnique({ where: { id } });
-  if (!student || student.role !== "STUDENT") redirect("/admin/students");
+  if (!student || student.role !== "STUDENT") redirectWithToast("/admin/students", MSGS.updated());
 
   const f = readForm(formData);
-  if (!f.name || !f.login) redirect(`/admin/students/${id}/edit?error=required`);
+  if (!f.name || !f.login) redirectWithError(`/admin/students/${id}/edit`, "Barcha majburiy maydonlarni to'ldiring");
 
   const existing = await db.user.findUnique({ where: { login: f.login } });
-  if (existing && existing.id !== id) redirect(`/admin/students/${id}/edit?error=login`);
+  if (existing && existing.id !== id) redirectWithError(`/admin/students/${id}/edit`, "Bu login allaqachon band");
 
-  const image = await saveUpload(formData.get("image") as File | null, "avatars");
+  const image = await resolveImageFromForm(formData, "avatars");
   await db.user.update({
     where: { id },
     data: {
@@ -118,7 +134,7 @@ export async function updateStudent(formData: FormData) {
   revalidatePath("/admin/students");
   revalidatePath(`/admin/students/${id}`);
   revalidatePath("/admin/groups");
-  redirect(`/admin/students/${id}`);
+  redirectWithToast(`/admin/students/${id}`, MSGS.updated(f.name));
 }
 
 export async function toggleStudent(formData: FormData): Promise<ActionResult> {
@@ -137,7 +153,7 @@ export async function toggleStudent(formData: FormData): Promise<ActionResult> {
   revalidatePath(`/admin/students/${id}`);
   revalidatePath("/admin");
   return actionOk(
-    student.active ? `"${student.name}" faolsizlantirildi` : `"${student.name}" faollashtirildi`
+    student.active ? MSGS.deactivated(student.name) : MSGS.activated(student.name)
   );
 }
 
@@ -152,7 +168,7 @@ export async function deleteStudent(formData: FormData): Promise<ActionResult> {
     await logActivity(session.id, "O'quvchini o'chirdi", student.name);
     revalidatePath("/admin/students");
     revalidatePath("/admin");
-    return actionOk(`"${student.name}" o'chirildi`);
+    return actionOk(MSGS.deleted(student.name));
   } catch {
     return actionErr("O'quvchini o'chirib bo'lmadi. Bog'liq ma'lumotlar mavjud bo'lishi mumkin.");
   }

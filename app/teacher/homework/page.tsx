@@ -3,8 +3,9 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fmtDateTime } from "@/lib/utils";
-import { ConfirmButton } from "@/components/confirm-button";
 import { BookOpen } from "lucide-react";
+import { deleteHomework } from "./actions";
+import { InlineActionForm } from "@/components/inline-action-form";
 import {
   Badge,
   Card,
@@ -17,7 +18,6 @@ import {
   btn,
   inputCls,
 } from "@/components/ui";
-import { deleteHomework } from "./actions";
 
 export default async function TeacherHomeworkPage({
   searchParams,
@@ -149,15 +149,18 @@ export default async function TeacherHomeworkPage({
                     <Link href={`/teacher/homework/${hw.id}/edit`} className={btn.small}>
                       Tahrirlash
                     </Link>
-                    <form action={deleteHomework}>
-                      <input type="hidden" name="id" value={hw.id} />
-                      <ConfirmButton
-                        message={`"${hw.title}" vazifasini o'chirmoqchimisiz? Barcha topshiriqlar ham o'chadi.`}
+                    <InlineActionForm
+                      action={deleteHomework}
+                      hidden={{ id: hw.id }}
+                      confirmMessage={`"${hw.title}" vazifasini o'chirmoqchimisiz? Barcha topshiriqlar ham o'chadi.`}
+                    >
+                      <button
+                        type="button"
                         className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                       >
-                        O'chirish
-                      </ConfirmButton>
-                    </form>
+                        O&apos;chirish
+                      </button>
+                    </InlineActionForm>
                   </div>
                 </Td>
               </tr>

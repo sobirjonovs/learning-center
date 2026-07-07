@@ -23,6 +23,7 @@ import {
 } from "@/components/ui";
 import { SegmentBar } from "@/components/charts";
 import { Modal } from "@/components/modal";
+import { ActionForm } from "@/components/action-form";
 import { assignGroupToTeacher } from "../actions";
 
 const STATUS_COLORS: Record<AttendanceStatus, string> = {
@@ -210,7 +211,7 @@ export default async function TeacherProfilePage({
                       Biriktirish uchun boshqa faol guruh yo'q.
                     </p>
                   ) : (
-                    <form action={assignGroupToTeacher} className="space-y-4">
+                    <ActionForm action={assignGroupToTeacher} className="space-y-4">
                       <input type="hidden" name="teacherId" value={teacher.id} />
                       <div>
                         <label className="mb-1.5 block text-sm font-medium text-slate-200">
@@ -231,7 +232,7 @@ export default async function TeacherProfilePage({
                       <button type="submit" className={btn.primary}>
                         Biriktirish
                       </button>
-                    </form>
+                    </ActionForm>
                   )}
                 </Modal>
               }

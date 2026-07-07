@@ -5,10 +5,12 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cn, fmtDate, parseJsonArray } from "@/lib/utils";
 import { ANSWER_SHAPES, QUIZ_TYPES, type QuizType } from "@/lib/constants";
+import { maxSpeedBonus } from "@/lib/quiz-live";
+import { getQuizScoring } from "@/lib/gamification";
 import { HelpCircle, Pencil, Target } from "lucide-react";
 import { Badge, Card, CardTitle, EmptyState, PageHeader, btn } from "@/components/ui";
 import { Modal } from "@/components/modal";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { StartLiveGameButton } from "@/components/start-live-game-button";
 import { QuestionForm } from "./question-form";
 import {
@@ -38,6 +40,8 @@ export default async function QuizBuilderPage({
   });
   if (!quiz || quiz.teacherId !== session.id) redirect("/teacher/quizzes");
 
+  const scoring = await getQuizScoring();
+  const speedBonusPercent = Math.round(scoring.speedBonusFraction * 100);
   const canStart = quiz.questions.length > 0;
 
   return (
@@ -129,7 +133,14 @@ export default async function QuizBuilderPage({
 
           <Card>
             <CardTitle>Savol qo&apos;shish</CardTitle>
-            <QuestionForm quizId={quiz.id} action={addQuestion} submitLabel="+ Savol qo'shish" />
+            <QuestionForm
+              quizId={quiz.id}
+              action={addQuestion}
+              submitLabel="+ Savol qo'shish"
+              speedBonusPercent={speedBonusPercent}
+              streakBonusPerStep={scoring.streakBonusPerStep}
+              streakBonusMax={scoring.streakBonusMax}
+            />
           </Card>
         </div>
 
@@ -159,35 +170,45 @@ export default async function QuizBuilderPage({
                             <span className="inline-flex items-center gap-1">
                               <Target className="h-3 w-3" strokeWidth={1.75} />
                               {q.points} ball
+                              {q.points > 0 && (
+                                <span className="text-indigo-400">
+                                  (+{maxSpeedBonus(q.points, scoring)} tezlik)
+                                </span>
+                              )}
                             </span>
+                            {q.penaltyOnWrong && (
+                              <Badge className="bg-amber-500/15 text-amber-400">− jarima</Badge>
+                            )}
                           </div>
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
-                        <form action={moveQuestion}>
-                          <input type="hidden" name="questionId" value={q.id} />
-                          <input type="hidden" name="dir" value="up" />
+                        <InlineActionForm
+                          action={moveQuestion}
+                          hidden={{ questionId: q.id, dir: "up" }}
+                        >
                           <button
-                            type="submit"
+                            type="button"
                             disabled={idx === 0}
                             className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-white/10 hover:text-slate-700 disabled:opacity-30"
                             title="Yuqoriga"
                           >
                             ↑
                           </button>
-                        </form>
-                        <form action={moveQuestion}>
-                          <input type="hidden" name="questionId" value={q.id} />
-                          <input type="hidden" name="dir" value="down" />
+                        </InlineActionForm>
+                        <InlineActionForm
+                          action={moveQuestion}
+                          hidden={{ questionId: q.id, dir: "down" }}
+                        >
                           <button
-                            type="submit"
+                            type="button"
                             disabled={idx === quiz.questions.length - 1}
                             className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-white/10 hover:text-slate-700 disabled:opacity-30"
                             title="Pastga"
                           >
                             ↓
                           </button>
-                        </form>
+                        </InlineActionForm>
                         <Modal
                           trigger={
                             <button className={`${btn.small} inline-flex items-center justify-center`}>
@@ -206,20 +227,27 @@ export default async function QuizBuilderPage({
                               correctIndex: q.correctIndex,
                               timeSeconds: q.timeSeconds,
                               points: q.points,
+                              penaltyOnWrong: q.penaltyOnWrong,
                             }}
                             action={updateQuestion}
                             submitLabel="Saqlash"
+                            speedBonusPercent={speedBonusPercent}
+                            streakBonusPerStep={scoring.streakBonusPerStep}
+                            streakBonusMax={scoring.streakBonusMax}
                           />
                         </Modal>
-                        <form action={deleteQuestion}>
-                          <input type="hidden" name="questionId" value={q.id} />
-                          <ConfirmButton
-                            message="Bu savolni o'chirishga ishonchingiz komilmi?"
+                        <InlineActionForm
+                          action={deleteQuestion}
+                          hidden={{ questionId: q.id }}
+                          confirmMessage="Bu savolni o'chirishga ishonchingiz komilmi?"
+                        >
+                          <button
+                            type="button"
                             className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                           >
                             🗑
-                          </ConfirmButton>
-                        </form>
+                          </button>
+                        </InlineActionForm>
                       </div>
                     </div>
 

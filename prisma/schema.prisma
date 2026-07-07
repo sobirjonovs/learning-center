@@ -95,6 +95,12 @@ model Group {
   active     Boolean   @default(true)
   createdAt  DateTime  @default(now())
 
+  // Davomat mukofoti (null = standart qiymatlar, lib/constants.ts)
+  attPresentXp     Int?
+  attPresentPoints Int?
+  attLateXp        Int?
+  attLatePoints    Int?
+
   students      GroupStudent[]
   attendance    Attendance[]
   homeworks     Homework[]
@@ -282,8 +288,9 @@ model QuizQuestion {
   image        String?
   options      String // JSON: ["variant1","variant2",...] (2-4 ta)
   correctIndex Int
-  timeSeconds  Int     @default(20)
-  points       Int     @default(500)
+  timeSeconds    Int     @default(20)
+  points         Int     @default(0)
+  penaltyOnWrong Boolean @default(false) // noto'g'ri javobda ball ayirish (Kahoot uslubi)
 }
 
 model QuizResult {

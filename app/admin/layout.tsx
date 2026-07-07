@@ -18,7 +18,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/achievements", label: "Yutuqlar", icon: "medal", permission: "achievements.manage" },
     { href: "/admin/notifications", label: "Bildirishnomalar", icon: "bell", permission: "notifications.send" },
     { href: "/admin/admins", label: "Administratorlar", icon: "shield", superOnly: true },
-    { href: "/admin/settings", label: "Sozlamalar", icon: "settings", superOnly: true },
+    { href: "/admin/settings", label: "Ball sozlamalari", icon: "settings", superOnly: true },
+    { href: "/admin/profile", label: "Mening profilim", icon: "user-cog" },
   ];
 
   const items = allItems.filter((item) => {

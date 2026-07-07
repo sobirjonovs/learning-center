@@ -1,7 +1,7 @@
 // O'quvchilar reytingi (o'qituvchi guruhlari bo'yicha)
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { cn, fmtNumber, startOfMonth, startOfWeek } from "@/lib/utils";
+import { fmtNumber, startOfMonth, startOfWeek } from "@/lib/utils";
 import { getRating } from "@/lib/gamification";
 import { Star, Trophy } from "lucide-react";
 import {
@@ -58,7 +58,7 @@ export default async function TeacherRatingPage({
   ];
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         title={
           <span className="inline-flex items-center gap-2">
@@ -101,8 +101,8 @@ export default async function TeacherRatingPage({
               <Table
                 head={
                   <>
-                    <Th className="w-16 text-center">O'rin</Th>
-                    <Th>O'quvchi</Th>
+                    <Th className="w-16 text-center">O&apos;rin</Th>
+                    <Th>O&apos;quvchi</Th>
                     <Th className="text-center">Level</Th>
                     <Th className="text-right">XP</Th>
                     <Th className="text-right">Ball</Th>
@@ -112,12 +112,7 @@ export default async function TeacherRatingPage({
                 {rating.map((r) => (
                   <tr
                     key={r.studentId}
-                    className={cn(
-                      "hover:bg-white/[0.04]",
-                      r.place === 1 && "bg-amber-50/70",
-                      r.place === 2 && "bg-white/5",
-                      r.place === 3 && "bg-orange-50/60"
-                    )}
+                    className="group/row transition-colors hover:bg-white/[0.04] classic-canvas:hover:bg-slate-50"
                   >
                     <Td className="text-center">
                       <RankMedal place={r.place} size="sm" showBadge />
@@ -125,25 +120,28 @@ export default async function TeacherRatingPage({
                     <Td>
                       <div className="flex items-center gap-3">
                         <Avatar name={r.name} image={r.image} size="sm" />
-                        <span className="font-medium text-slate-200">{r.name}</span>
+                        <span className="font-medium text-slate-100 classic-canvas:text-slate-800">
+                          {r.name}
+                        </span>
                       </div>
                     </Td>
                     <Td className="text-center">
                       <Badge className="bg-violet-500/15 text-violet-400">Lv {r.level}</Badge>
                     </Td>
-                    <Td className="text-right font-semibold text-blue-400">
+                    <Td className="text-right font-semibold tabular-nums text-cyan-400 classic-canvas:text-blue-600">
                       {fmtNumber(r.xp)}
                     </Td>
-                    <Td className="text-right font-semibold text-amber-600">
+                    <Td className="text-right font-semibold tabular-nums text-amber-400 classic-canvas:text-amber-600">
                       <span className="inline-flex items-center justify-end gap-1">
-                        <Star className="h-3.5 w-3.5 text-amber-500" strokeWidth={1.75} />
+                        <Star className="h-3.5 w-3.5" strokeWidth={1.75} />
                         {fmtNumber(r.points)}
                       </span>
                     </Td>
                   </tr>
                 ))}
               </Table>
-              <p className="mt-3 text-xs text-slate-400">
+
+              <p className="mt-4 text-center text-xs text-slate-500">
                 Reyting uyga vazifa, imtihon, davomat, quiz, faollik va bonus ballari asosida
                 shakllanadi.
               </p>

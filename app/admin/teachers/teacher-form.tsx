@@ -1,6 +1,8 @@
 // O'qituvchi yaratish/tahrirlash formasi (server komponent)
 import Link from "next/link";
 import { Field, btn, inputCls } from "@/components/ui";
+import { PasswordInput } from "@/components/password-input";
+import { ImageInput } from "@/components/image-input";
 import { TEACHER_TYPES } from "@/lib/constants";
 
 type TeacherData = {
@@ -9,6 +11,7 @@ type TeacherData = {
   login: string;
   phone: string | null;
   teacherType: string | null;
+  image?: string | null;
   active: boolean;
   subjectIds?: string[];
 };
@@ -64,12 +67,10 @@ export function TeacherForm({
         </Field>
 
         <Field label="Parol" required={!teacher}>
-          <input
+          <PasswordInput
             name="password"
-            type="password"
             required={!teacher}
             placeholder={teacher ? "Bo'sh qoldirilsa o'zgarmaydi" : "Kamida 6 ta belgi"}
-            className={inputCls}
           />
         </Field>
 
@@ -123,7 +124,7 @@ export function TeacherForm({
         </Field>
 
         <Field label="Rasm" className="sm:col-span-2">
-          <input name="image" type="file" accept="image/*" className={inputCls} />
+          <ImageInput currentImage={teacher?.image} />
         </Field>
       </div>
 

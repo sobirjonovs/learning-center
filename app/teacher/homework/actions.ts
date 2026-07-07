@@ -2,7 +2,9 @@
 
 // Uyga vazifalar bo'yicha server amallari
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirectWithToast } from "@/lib/redirect-toast";
+import { actionOk, type ActionResult } from "@/lib/action-result";
+import { MSGS } from "@/lib/toast-messages";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { clamp } from "@/lib/utils";
@@ -68,7 +70,7 @@ export async function createHomework(formData: FormData): Promise<void> {
   await logActivity(session.id, "Uyga vazifa yaratdi", `${group.name}: ${hw.title}`);
   revalidatePath("/teacher/homework");
   revalidatePath("/teacher");
-  redirect("/teacher/homework");
+  redirectWithToast("/teacher/homework", MSGS.created(hw.title));
 }
 
 export async function updateHomework(formData: FormData): Promise<void> {
@@ -114,20 +116,21 @@ export async function updateHomework(formData: FormData): Promise<void> {
   revalidatePath("/teacher/homework");
   revalidatePath(`/teacher/homework/${hw.id}`);
   revalidatePath("/teacher");
-  redirect("/teacher/homework");
+  redirectWithToast("/teacher/homework", MSGS.updated(title));
 }
 
-export async function deleteHomework(formData: FormData): Promise<void> {
+export async function deleteHomework(formData: FormData): Promise<ActionResult> {
   const session = await requireRole("TEACHER");
 
   const id = String(formData.get("id") ?? "");
   const hw = await db.homework.findUnique({ where: { id }, include: { group: true } });
-  if (!hw || hw.group.teacherId !== session.id) return;
+  if (!hw || hw.group.teacherId !== session.id) return actionOk(MSGS.deleted());
 
   await db.homework.delete({ where: { id: hw.id } });
   await logActivity(session.id, "Uyga vazifani o'chirdi", `${hw.group.name}: ${hw.title}`);
   revalidatePath("/teacher/homework");
   revalidatePath("/teacher");
+  return actionOk(MSGS.deleted(hw.title));
 }
 
 /** Topshiriqni baholash: "ACCEPT" — qabul qilish, "RETURN" — qayta ishlashga yuborish. */

@@ -129,6 +129,15 @@ export {
   type QuizFaceId,
 } from "@/lib/quiz-avatars";
 
+// Kahoot uslubidagi jonli quiz ball tizimi
+export const QUIZ_SCORING = {
+  /** Eng tez to'g'ri javob uchun qo'shimcha ball — asosiy ballning shu ulushi (0..1) */
+  speedBonusFraction: 0.5,
+  /** Ketma-ket to'g'ri javoblar uchun bonus: min(100 * (streak - 1), 500) */
+  streakBonusPerStep: 100,
+  streakBonusMax: 500,
+} as const;
+
 // Javob variantlari belgilari va ranglari (Kahoot uslubida)
 export const ANSWER_SHAPES = [
   { shape: "▲", letter: "A", bg: "bg-rose-500", hover: "hover:bg-rose-600", ring: "ring-rose-300" },
@@ -195,9 +204,22 @@ export const RATES = {
 } as const;
 
 export const SETTING_KEYS = {
+  homeworkXpRate: "homework_xp_rate",
+  homeworkPointRate: "homework_point_rate",
+  examXpRate: "exam_xp_rate",
+  examPointRate: "exam_point_rate",
+  attPresentXp: "att_present_xp",
+  attPresentPoints: "att_present_points",
+  attLateXp: "att_late_xp",
+  attLatePoints: "att_late_points",
   quizXpRate: "quiz_xp_rate",
   quizPointRate: "quiz_point_rate",
+  quizSpeedBonusFraction: "quiz_speed_bonus_fraction",
+  quizStreakBonusPerStep: "quiz_streak_bonus_per_step",
+  quizStreakBonusMax: "quiz_streak_bonus_max",
 } as const;
+
+export const ALL_SETTING_KEYS = Object.values(SETTING_KEYS);
 
 // ---------------- Yutuqlar ----------------
 export const ACHIEVEMENT_CODES = {
@@ -209,3 +231,16 @@ export const ACHIEVEMENT_CODES = {
   EXAM_PERFECT: "EXAM_PERFECT",
   MONTH_CHAMPION: "MONTH_CHAMPION",
 } as const;
+
+export type AchievementCode = (typeof ACHIEVEMENT_CODES)[keyof typeof ACHIEVEMENT_CODES];
+
+/** Admin formasi uchun yutuq kodlari va shartlari */
+export const ACHIEVEMENT_CODE_OPTIONS: { code: AchievementCode; label: string }[] = [
+  { code: ACHIEVEMENT_CODES.STREAK_7, label: "7 kun ketma-ket faollik (streak)" },
+  { code: ACHIEVEMENT_CODES.HOMEWORK_10_ONTIME, label: "10 ta vazifa o'z vaqtida (jarimasiz)" },
+  { code: ACHIEVEMENT_CODES.EARLY_5, label: "5 ta vazifa muddatidan oldin (bonusli)" },
+  { code: ACHIEVEMENT_CODES.QUIZ_WINNER, label: "Quizda 1-o'rin" },
+  { code: ACHIEVEMENT_CODES.TOP3_GROUP, label: "Guruh reytingida TOP 3" },
+  { code: ACHIEVEMENT_CODES.EXAM_PERFECT, label: "Imtihondan 100% natija" },
+  { code: ACHIEVEMENT_CODES.MONTH_CHAMPION, label: "Oyning eng faol o'quvchisi (guruh bo'yicha)" },
+];

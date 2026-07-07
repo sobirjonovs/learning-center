@@ -10,7 +10,7 @@ import {
   Avatar,
   btn,
 } from "@/components/ui";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { updatePurchaseStatus } from "./actions";
 
 type PurchaseRow = {
@@ -71,23 +71,23 @@ export function PurchasesTable({
               <Td>
                 {p.status === "NEW" ? (
                   <div className="flex items-center justify-end gap-1.5">
-                    <form action={updatePurchaseStatus}>
-                      <input type="hidden" name="id" value={p.id} />
-                      <input type="hidden" name="status" value="DELIVERED" />
-                      <button type="submit" className={btn.primarySmall}>
+                    <InlineActionForm
+                      action={updatePurchaseStatus}
+                      hidden={{ id: p.id, status: "DELIVERED" }}
+                    >
+                      <button type="button" className={btn.primarySmall}>
                         Topshirildi
                       </button>
-                    </form>
-                    <form action={updatePurchaseStatus}>
-                      <input type="hidden" name="id" value={p.id} />
-                      <input type="hidden" name="status" value="CANCELLED" />
-                      <ConfirmButton
-                        message={`Buyurtma bekor qilinsinmi? ${fmtNumber(p.points)} ball ${p.student.name}ga qaytariladi.`}
-                        className={btn.dangerSmall}
-                      >
+                    </InlineActionForm>
+                    <InlineActionForm
+                      action={updatePurchaseStatus}
+                      hidden={{ id: p.id, status: "CANCELLED" }}
+                      confirmMessage={`Buyurtma bekor qilinsinmi? ${fmtNumber(p.points)} ball ${p.student.name}ga qaytariladi.`}
+                    >
+                      <button type="button" className={btn.dangerSmall}>
                         Bekor qilish
-                      </ConfirmButton>
-                    </form>
+                      </button>
+                    </InlineActionForm>
                   </div>
                 ) : (
                   <div className="text-right text-xs text-slate-400">—</div>

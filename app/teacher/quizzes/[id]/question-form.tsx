@@ -3,6 +3,9 @@
 // Savol qo'shish/tahrirlash formasi — variantlar soni dinamik (2/3/4)
 import { useState } from "react";
 import { Field, inputCls, btn } from "@/components/ui";
+import { ImageInput } from "@/components/image-input";
+import { ActionForm } from "@/components/action-form";
+import type { ActionResult } from "@/lib/action-result";
 import { ANSWER_SHAPES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +17,7 @@ export type QuestionFormData = {
   correctIndex: number;
   timeSeconds: number;
   points: number;
+  penaltyOnWrong: boolean;
 };
 
 export function QuestionForm({
@@ -21,11 +25,17 @@ export function QuestionForm({
   question,
   action,
   submitLabel,
+  speedBonusPercent = 50,
+  streakBonusPerStep = 100,
+  streakBonusMax = 500,
 }: {
   quizId: string;
   question?: QuestionFormData;
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<ActionResult | void>;
   submitLabel: string;
+  speedBonusPercent?: number;
+  streakBonusPerStep?: number;
+  streakBonusMax?: number;
 }) {
   const [count, setCount] = useState<number>(
     Math.min(4, Math.max(2, question?.options.length ?? 4))
@@ -38,7 +48,7 @@ export function QuestionForm({
   };
 
   return (
-    <form action={action} className="space-y-4">
+    <ActionForm action={action} className="space-y-4">
       {question ? (
         <input type="hidden" name="questionId" value={question.id} />
       ) : (
@@ -59,17 +69,7 @@ export function QuestionForm({
       </Field>
 
       <Field label="Savol rasmi">
-        <div className="space-y-2">
-          {question?.image && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={question.image}
-              alt="Joriy rasm"
-              className="h-20 w-32 rounded-xl border border-white/10 object-cover"
-            />
-          )}
-          <input type="file" name="image" accept="image/*" className={inputCls} />
-        </div>
+        <ImageInput currentImage={question?.image} />
       </Field>
 
       <div>
@@ -149,25 +149,49 @@ export function QuestionForm({
             className={inputCls}
           />
         </Field>
-        <Field label="Maksimal ball" required>
+        <Field label="Ball" required>
           <input
             type="number"
             name="points"
             required
-            min={10}
+            min={0}
             max={10000}
             step={10}
-            defaultValue={question?.points ?? 500}
+            defaultValue={question?.points ?? 0}
             className={inputCls}
           />
+          <p className="mt-1 text-xs text-slate-400">
+            Kahoot uslubida: to&apos;g&apos;ri javob uchun asosiy ball + tezlik bonusi (0 dan{" "}
+            {speedBonusPercent}% gacha) + ketma-ket to&apos;g&apos;ri javoblar uchun streak bonusi
+            (har qadam +{streakBonusPerStep}, maks. {streakBonusMax}). Admin sozlamalaridan
+            olinadi.
+          </p>
         </Field>
       </div>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-amber-500/30">
+        <input
+          type="checkbox"
+          name="penaltyOnWrong"
+          defaultChecked={question?.penaltyOnWrong ?? false}
+          className="mt-0.5 h-4 w-4 rounded border-white/20 text-amber-500 focus:ring-amber-500/40"
+        />
+        <span>
+          <span className="block text-sm font-medium text-slate-200">
+            Noto&apos;g&apos;ri javobda baldan minus qilish
+          </span>
+          <span className="mt-0.5 block text-xs text-slate-400">
+            Kahoot uslubida: o&apos;quvchi noto&apos;g&apos;ri tanlasa, maksimal ball miqdorida jarima
+            qo&apos;llanadi. Vaqt tugaganda jarima bo&apos;lmaydi.
+          </span>
+        </span>
+      </label>
 
       <div className="flex justify-end border-t border-white/10 pt-4">
         <button type="submit" className={btn.primary}>
           {submitLabel}
         </button>
       </div>
-    </form>
+    </ActionForm>
   );
 }

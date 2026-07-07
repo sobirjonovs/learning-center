@@ -4,8 +4,6 @@ import { db } from "@/lib/db";
 import { BookOpen } from "lucide-react";
 import {
   ActiveBadge,
-  Alert,
-  Badge,
   Card,
   EmptyState,
   PageHeader,
@@ -15,27 +13,13 @@ import {
   btn,
 } from "@/components/ui";
 import { Modal } from "@/components/modal";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { CategoryForm } from "./category-form";
 import { deleteCategory, toggleCategory } from "./actions";
 
-const dangerSmall =
-  "inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20";
-
-const ERROR_TEXT: Record<string, string> = {
-  required: "Kategoriya nomini kiriting.",
-  duplicate: "Bu nomdagi kategoriya allaqachon mavjud.",
-  in_use: "Kategoriya o'qituvchi yoki guruhga biriktirilgan — avval ularni o'zgartiring.",
-};
-
-export default async function CategoriesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
+export default async function CategoriesPage() {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
   requirePermission(session, "categories.manage");
-  const { error } = await searchParams;
 
   const categories = await db.subject.findMany({
     orderBy: { name: "asc" },
@@ -58,12 +42,6 @@ export default async function CategoriesPage({
           </Modal>
         }
       />
-
-      {error && ERROR_TEXT[error] && (
-        <Alert variant="error" className="mb-4">
-          {ERROR_TEXT[error]}
-        </Alert>
-      )}
 
       {categories.length === 0 ? (
         <EmptyState
@@ -110,21 +88,20 @@ export default async function CategoriesPage({
                     >
                       <CategoryForm category={c} />
                     </Modal>
-                    <form action={toggleCategory}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <button type="submit" className={btn.small}>
+                    <InlineActionForm action={toggleCategory} hidden={{ id: c.id }}>
+                      <button type="button" className={btn.small}>
                         {c.active ? "Faolsizlantirish" : "Faollashtirish"}
                       </button>
-                    </form>
-                    <form action={deleteCategory}>
-                      <input type="hidden" name="id" value={c.id} />
-                      <ConfirmButton
-                        message={`"${c.name}" kategoriyasi o'chirilsinmi?`}
-                        className={dangerSmall}
-                      >
-                        O'chirish
-                      </ConfirmButton>
-                    </form>
+                    </InlineActionForm>
+                    <InlineActionForm
+                      action={deleteCategory}
+                      hidden={{ id: c.id }}
+                      confirmMessage={`"${c.name}" kategoriyasi o'chirilsinmi?`}
+                    >
+                      <button type="button" className={btn.dangerSmall}>
+                        O&apos;chirish
+                      </button>
+                    </InlineActionForm>
                   </div>
                 </Td>
               </tr>

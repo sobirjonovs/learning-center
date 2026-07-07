@@ -2,13 +2,15 @@
 
 // O'qituvchilar bo'limi server amallari
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { requirePermission, requireRole } from "@/lib/auth";
 import { logActivity } from "@/lib/log";
-import { saveUpload } from "@/lib/uploads";
+import { resolveImageFromForm } from "@/lib/uploads";
 import { TEACHER_TYPES } from "@/lib/constants";
+import { actionOk, type ActionResult } from "@/lib/action-result";
+import { redirectWithError, redirectWithToast } from "@/lib/redirect-toast";
+import { MSGS } from "@/lib/toast-messages";
 
 async function syncTeacherSubjects(teacherId: string, subjectIds: string[]) {
   const valid = await db.subject.findMany({
@@ -52,12 +54,14 @@ function readForm(formData: FormData) {
 export async function createTeacher(formData: FormData) {
   const session = await guard();
   const { name, login, password, phone, teacherType, active } = readForm(formData);
-  if (!name || !login || !password) redirect("/admin/teachers/new?error=required");
+  if (!name || !login || !password) {
+    redirectWithError("/admin/teachers/new", "Barcha majburiy maydonlarni to'ldiring");
+  }
 
   const existing = await db.user.findUnique({ where: { login } });
-  if (existing) redirect("/admin/teachers/new?error=login");
+  if (existing) redirectWithError("/admin/teachers/new", "Bu login allaqachon band");
 
-  const image = await saveUpload(formData.get("image") as File | null, "avatars");
+  const image = await resolveImageFromForm(formData, "avatars");
   const teacher = await db.user.create({
     data: {
       role: "TEACHER",
@@ -77,22 +81,26 @@ export async function createTeacher(formData: FormData) {
   await logActivity(session.id, "O'qituvchi yaratdi", teacher.name);
   revalidatePath("/admin/teachers");
   revalidatePath("/admin");
-  redirect("/admin/teachers");
+  redirectWithToast("/admin/teachers", MSGS.created(teacher.name));
 }
 
 export async function updateTeacher(formData: FormData) {
   const session = await guard();
   const id = String(formData.get("id") ?? "");
   const teacher = await db.user.findUnique({ where: { id } });
-  if (!teacher || teacher.role !== "TEACHER") redirect("/admin/teachers");
+  if (!teacher || teacher.role !== "TEACHER") redirectWithToast("/admin/teachers", MSGS.updated());
 
   const { name, login, password, phone, teacherType, active } = readForm(formData);
-  if (!name || !login) redirect(`/admin/teachers/${id}/edit?error=required`);
+  if (!name || !login) {
+    redirectWithError(`/admin/teachers/${id}/edit`, "Barcha majburiy maydonlarni to'ldiring");
+  }
 
   const existing = await db.user.findUnique({ where: { login } });
-  if (existing && existing.id !== id) redirect(`/admin/teachers/${id}/edit?error=login`);
+  if (existing && existing.id !== id) {
+    redirectWithError(`/admin/teachers/${id}/edit`, "Bu login allaqachon band");
+  }
 
-  const image = await saveUpload(formData.get("image") as File | null, "avatars");
+  const image = await resolveImageFromForm(formData, "avatars");
   await db.user.update({
     where: { id },
     data: {
@@ -112,14 +120,14 @@ export async function updateTeacher(formData: FormData) {
   await logActivity(session.id, "O'qituvchini tahrirladi", name);
   revalidatePath("/admin/teachers");
   revalidatePath(`/admin/teachers/${id}`);
-  redirect(`/admin/teachers/${id}`);
+  redirectWithToast(`/admin/teachers/${id}`, MSGS.updated(name));
 }
 
-export async function toggleTeacher(formData: FormData) {
+export async function toggleTeacher(formData: FormData): Promise<ActionResult> {
   const session = await guard();
   const id = String(formData.get("id") ?? "");
   const teacher = await db.user.findUnique({ where: { id } });
-  if (!teacher || teacher.role !== "TEACHER") return;
+  if (!teacher || teacher.role !== "TEACHER") return actionOk(MSGS.saved);
 
   await db.user.update({ where: { id }, data: { active: !teacher.active } });
   await logActivity(
@@ -130,23 +138,26 @@ export async function toggleTeacher(formData: FormData) {
   revalidatePath("/admin/teachers");
   revalidatePath(`/admin/teachers/${id}`);
   revalidatePath("/admin");
+  return actionOk(
+    teacher.active ? MSGS.deactivated(teacher.name) : MSGS.activated(teacher.name)
+  );
 }
 
-export async function deleteTeacher(formData: FormData) {
+export async function deleteTeacher(formData: FormData): Promise<ActionResult> {
   const session = await guard();
   const id = String(formData.get("id") ?? "");
   const teacher = await db.user.findUnique({ where: { id } });
-  if (!teacher || teacher.role !== "TEACHER") return;
+  if (!teacher || teacher.role !== "TEACHER") return actionOk(MSGS.deleted());
 
   await db.user.delete({ where: { id } });
   await logActivity(session.id, "O'qituvchini o'chirdi", teacher.name);
   revalidatePath("/admin/teachers");
   revalidatePath("/admin");
-  redirect("/admin/teachers");
+  return actionOk(MSGS.deleted(teacher.name));
 }
 
 /** Faol guruhni o'qituvchiga biriktirish (profil sahifasidagi modal) */
-export async function assignGroupToTeacher(formData: FormData) {
+export async function assignGroupToTeacher(formData: FormData): Promise<ActionResult> {
   const session = await guard();
   const teacherId = String(formData.get("teacherId") ?? "");
   const groupId = String(formData.get("groupId") ?? "");
@@ -154,11 +165,12 @@ export async function assignGroupToTeacher(formData: FormData) {
     db.user.findUnique({ where: { id: teacherId } }),
     db.group.findUnique({ where: { id: groupId } }),
   ]);
-  if (!teacher || teacher.role !== "TEACHER" || !group) return;
+  if (!teacher || teacher.role !== "TEACHER" || !group) return actionOk(MSGS.saved);
 
   await db.group.update({ where: { id: groupId }, data: { teacherId } });
   await logActivity(session.id, "Guruh biriktirdi", `${group.name} → ${teacher.name}`);
   revalidatePath(`/admin/teachers/${teacherId}`);
   revalidatePath("/admin/groups");
   revalidatePath(`/admin/groups/${groupId}`);
+  return actionOk(`"${group.name}" guruhi biriktirildi`);
 }

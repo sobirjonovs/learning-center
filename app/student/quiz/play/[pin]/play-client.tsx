@@ -356,7 +356,21 @@ export function PlayClient({ pin, quizName }: { pin: string; quizName: string })
           <div className="animate-bounce-in space-y-3">
             <AlertCircle className="h-16 w-16 text-slate-400" strokeWidth={1.5} />
             <h2 className="text-2xl font-black">Bu safar noto&apos;g&apos;ri javob.</h2>
-            <p className="text-sm text-blue-300">Keyingi savolda omad!</p>
+            {r.delta < 0 ? (
+              <div className="text-4xl font-black text-rose-400">
+                {fmtNumber(r.delta)} <span className="text-2xl">ball</span>
+              </div>
+            ) : (
+              <p className="text-sm text-blue-300">Keyingi savolda omad!</p>
+            )}
+            {r.breakdown.penalty > 0 && (
+              <div className="mx-auto w-64 rounded-2xl bg-white/10 p-4 text-sm font-semibold ring-1 ring-white/15">
+                <div className="flex justify-between text-rose-300">
+                  <span>Noto&apos;g&apos;ri javob jarimasi</span>
+                  <span>−{fmtNumber(r.breakdown.penalty)}</span>
+                </div>
+              </div>
+            )}
             {r.streakBroken && (
               <span className="inline-flex items-center gap-1 text-lg font-bold text-rose-300">
                 <HeartCrack className="h-5 w-5" strokeWidth={1.75} />

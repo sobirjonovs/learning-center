@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { SessionUser } from "@/lib/session";
 import { ROLE_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -11,16 +12,24 @@ import { ThemedCanvas } from "./themed-canvas";
 import { ThemeToggle } from "./theme-toggle";
 import { useTheme } from "./theme-provider";
 
+const PROFILE_HREF: Partial<Record<SessionUser["role"], string>> = {
+  SUPER_ADMIN: "/admin/profile",
+  ADMIN: "/admin/profile",
+  TEACHER: "/teacher/profile",
+};
+
 function AppHeader({
   session,
   brand,
   variant,
   headerExtra,
+  profileHref,
 }: {
   session: SessionUser;
   brand: string;
   variant: "default" | "game" | "classic";
   headerExtra?: React.ReactNode;
+  profileHref?: string;
 }) {
   const { resolved } = useTheme();
   const isLight = resolved === "light";
@@ -53,13 +62,31 @@ function AppHeader({
             isLight ? "border-slate-200 bg-slate-50" : "border-white/10 bg-white/5 backdrop-blur"
           )}
         >
-          <Avatar name={session.name} image={session.image} size="sm" />
-          <div className="text-right">
-            <div className={cn("text-sm font-semibold", isLight ? "text-slate-900" : "text-white")}>
-              {session.name}
-            </div>
-            <div className="text-xs text-slate-500">{ROLE_LABELS[session.role]}</div>
-          </div>
+          {profileHref ? (
+            <Link
+              href={profileHref}
+              className="flex items-center gap-3 transition hover:opacity-80"
+              title="Mening profilim"
+            >
+              <Avatar name={session.name} image={session.image} size="sm" />
+              <div className="text-right">
+                <div className={cn("text-sm font-semibold", isLight ? "text-slate-900" : "text-white")}>
+                  {session.name}
+                </div>
+                <div className="text-xs text-slate-500">{ROLE_LABELS[session.role]}</div>
+              </div>
+            </Link>
+          ) : (
+            <>
+              <Avatar name={session.name} image={session.image} size="sm" />
+              <div className="text-right">
+                <div className={cn("text-sm font-semibold", isLight ? "text-slate-900" : "text-white")}>
+                  {session.name}
+                </div>
+                <div className="text-xs text-slate-500">{ROLE_LABELS[session.role]}</div>
+              </div>
+            </>
+          )}
           <LogoutButton />
         </div>
       </div>
@@ -91,7 +118,13 @@ export function AppShell({
       <Sidebar items={items} brand={brand} brandIcon={brandIcon} accent={accent} variant={variant} />
       <div className="relative z-10 lg:pl-64" data-app-shell-content>
         <div data-app-shell-header>
-          <AppHeader session={session} brand={brand} variant={variant} headerExtra={headerExtra} />
+          <AppHeader
+            session={session}
+            brand={brand}
+            variant={variant}
+            headerExtra={headerExtra}
+            profileHref={PROFILE_HREF[session.role]}
+          />
         </div>
         <main className="p-4 md:p-6 lg:p-8" data-app-shell-main>
           <div className="mx-auto max-w-7xl animate-fade-in" data-app-shell-inner>

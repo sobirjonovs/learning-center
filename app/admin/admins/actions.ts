@@ -8,6 +8,9 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logActivity } from "@/lib/log";
 import { PERMISSIONS } from "@/lib/constants";
+import { actionOk, type ActionResult } from "@/lib/action-result";
+import { redirectWithError, redirectWithToast } from "@/lib/redirect-toast";
+import { MSGS } from "@/lib/toast-messages";
 
 async function requireSuperAdmin() {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
@@ -25,7 +28,7 @@ function readPermissions(formData: FormData): string {
   return JSON.stringify([...new Set(keys)]);
 }
 
-export async function createAdmin(formData: FormData): Promise<void> {
+export async function createAdmin(formData: FormData) {
   const session = await requireSuperAdmin();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -33,10 +36,12 @@ export async function createAdmin(formData: FormData): Promise<void> {
   const password = String(formData.get("password") ?? "");
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const active = formData.get("active") === "on";
-  if (!name || !login || !password) return;
+  if (!name || !login || !password) {
+    redirectWithError("/admin/admins/new", "Barcha majburiy maydonlarni to'ldiring");
+  }
 
   const existing = await db.user.findUnique({ where: { login } });
-  if (existing) redirect("/admin/admins/new?error=login");
+  if (existing) redirectWithError("/admin/admins/new", "Bu login allaqachon band");
 
   await db.user.create({
     data: {
@@ -52,26 +57,28 @@ export async function createAdmin(formData: FormData): Promise<void> {
 
   await logActivity(session.id, "Administrator qo'shdi", name);
   revalidatePath("/admin/admins");
-  redirect("/admin/admins");
+  redirectWithToast("/admin/admins", MSGS.created(name));
 }
 
-export async function updateAdmin(formData: FormData): Promise<void> {
+export async function updateAdmin(formData: FormData) {
   const session = await requireSuperAdmin();
 
   const id = String(formData.get("id") ?? "");
   const admin = await db.user.findUnique({ where: { id } });
-  if (!admin || admin.role !== "ADMIN") return;
+  if (!admin || admin.role !== "ADMIN") redirectWithToast("/admin/admins", MSGS.updated());
 
   const name = String(formData.get("name") ?? "").trim();
   const login = String(formData.get("login") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const active = formData.get("active") === "on";
-  if (!name || !login) return;
+  if (!name || !login) {
+    redirectWithError(`/admin/admins/${id}/edit`, "Barcha majburiy maydonlarni to'ldiring");
+  }
 
   const existing = await db.user.findUnique({ where: { login } });
   if (existing && existing.id !== id) {
-    redirect(`/admin/admins/${id}/edit?error=login`);
+    redirectWithError(`/admin/admins/${id}/edit`, "Bu login allaqachon band");
   }
 
   await db.user.update({
@@ -88,15 +95,15 @@ export async function updateAdmin(formData: FormData): Promise<void> {
 
   await logActivity(session.id, "Administratorni tahrirladi", name);
   revalidatePath("/admin/admins");
-  redirect("/admin/admins");
+  redirectWithToast("/admin/admins", MSGS.updated(name));
 }
 
-export async function toggleAdmin(formData: FormData): Promise<void> {
+export async function toggleAdmin(formData: FormData): Promise<ActionResult> {
   const session = await requireSuperAdmin();
 
   const id = String(formData.get("id") ?? "");
   const admin = await db.user.findUnique({ where: { id } });
-  if (!admin || admin.role !== "ADMIN") return;
+  if (!admin || admin.role !== "ADMIN") return actionOk(MSGS.saved);
 
   await db.user.update({ where: { id }, data: { active: !admin.active } });
   await logActivity(
@@ -105,16 +112,20 @@ export async function toggleAdmin(formData: FormData): Promise<void> {
     admin.name
   );
   revalidatePath("/admin/admins");
+  return actionOk(
+    admin.active ? MSGS.deactivated(admin.name) : MSGS.activated(admin.name)
+  );
 }
 
-export async function deleteAdmin(formData: FormData): Promise<void> {
+export async function deleteAdmin(formData: FormData): Promise<ActionResult> {
   const session = await requireSuperAdmin();
 
   const id = String(formData.get("id") ?? "");
   const admin = await db.user.findUnique({ where: { id } });
-  if (!admin || admin.role !== "ADMIN") return;
+  if (!admin || admin.role !== "ADMIN") return actionOk(MSGS.deleted());
 
   await db.user.delete({ where: { id } });
   await logActivity(session.id, "Administratorni o'chirdi", admin.name);
   revalidatePath("/admin/admins");
+  return actionOk(MSGS.deleted(admin.name));
 }

@@ -2,7 +2,7 @@
 // Ball (points) — magazin uchun; XP — level uchun. Ikkalasi alohida yuritiladi.
 import { db } from "./db";
 import { dateStr, todayStr, startOfMonth } from "./utils";
-import { ACHIEVEMENT_CODES, ATTENDANCE_STATUS, RATES, SETTING_KEYS, type AttendanceStatus } from "./constants";
+import { ACHIEVEMENT_CODES, ALL_SETTING_KEYS, ATTENDANCE_STATUS, QUIZ_SCORING, RATES, SETTING_KEYS, type AttendanceStatus } from "./constants";
 
 // ---------------- Level ----------------
 
@@ -126,6 +126,52 @@ export async function spendPoints(
 
 // ---------------- Davomat mukofoti ----------------
 
+export type AttendanceReward = { xp: number; points: number; label: string };
+
+export type AttendanceRewards = Record<AttendanceStatus, AttendanceReward>;
+
+export type AttendanceDefaults = {
+  presentXp: number;
+  presentPoints: number;
+  lateXp: number;
+  latePoints: number;
+};
+
+/** Guruh uchun davomat mukofotlari (guruh maydoni bo'sh bo'lsa admin standartidan olinadi). */
+export function getGroupAttendanceRewards(
+  group: {
+    attPresentXp?: number | null;
+    attPresentPoints?: number | null;
+    attLateXp?: number | null;
+    attLatePoints?: number | null;
+  },
+  defaults: AttendanceDefaults
+): AttendanceRewards {
+  return {
+    PRESENT: {
+      label: ATTENDANCE_STATUS.PRESENT.label,
+      xp: group.attPresentXp ?? defaults.presentXp,
+      points: group.attPresentPoints ?? defaults.presentPoints,
+    },
+    LATE: {
+      label: ATTENDANCE_STATUS.LATE.label,
+      xp: group.attLateXp ?? defaults.lateXp,
+      points: group.attLatePoints ?? defaults.latePoints,
+    },
+    ABSENT: { label: ATTENDANCE_STATUS.ABSENT.label, xp: 0, points: 0 },
+    EXCUSED: { label: ATTENDANCE_STATUS.EXCUSED.label, xp: 0, points: 0 },
+  };
+}
+
+function attendanceReward(
+  status: AttendanceStatus,
+  rewards?: AttendanceRewards
+): AttendanceReward {
+  if (rewards) return rewards[status];
+  const d = ATTENDANCE_STATUS[status];
+  return { xp: d.xp, points: d.points, label: d.label };
+}
+
 /**
  * Davomat belgilanganda chaqiriladi. Oldingi status bilan farqni hisobga oladi
  * (masalan, KELDI -> KELMADI ga o'zgartirilsa, berilgan ball qaytarib olinadi).
@@ -135,10 +181,11 @@ export async function awardForAttendance(
   newStatus: AttendanceStatus,
   oldStatus: AttendanceStatus | null,
   date: string,
-  attendanceId: string
+  attendanceId: string,
+  rewards?: AttendanceRewards
 ): Promise<void> {
-  const nw = ATTENDANCE_STATUS[newStatus];
-  const old = oldStatus ? ATTENDANCE_STATUS[oldStatus] : { xp: 0, points: 0 };
+  const nw = attendanceReward(newStatus, rewards);
+  const old = oldStatus ? attendanceReward(oldStatus, rewards) : { xp: 0, points: 0, label: "" };
   const dXp = nw.xp - old.xp;
   const dPoints = nw.points - old.points;
   if (dXp === 0 && dPoints === 0) return;
@@ -193,28 +240,117 @@ export async function awardForHomework(
   const prev = previousFinal ?? 0;
   const dFinal = finalScore - prev;
   if (dFinal === 0) return;
+  const { homework } = await getGamificationSettings();
   await awardScore(studentId, {
-    xp: dFinal * RATES.homeworkXp,
-    points: dFinal * RATES.homeworkPoints,
+    xp: dFinal * homework.xpRate,
+    points: dFinal * homework.pointRate,
     reason: `Uyga vazifa: ${homeworkTitle}`,
     sourceType: "HOMEWORK",
     sourceId: submissionId,
   });
 }
 
+// ---------------- Ball sozlamalari (admin) ----------------
+
+export type GamificationSettings = {
+  homework: { xpRate: number; pointRate: number };
+  exam: { xpRate: number; pointRate: number };
+  attendance: AttendanceDefaults;
+  quiz: { xpRate: number; pointRate: number };
+  quizScoring: QuizScoringConfig;
+};
+
+function settingFloat(map: Map<string, string>, key: string, fallback: number): number {
+  const v = parseFloat(map.get(key) ?? "");
+  return !Number.isNaN(v) ? v : fallback;
+}
+
+function settingInt(map: Map<string, string>, key: string, fallback: number): number {
+  const v = parseFloat(map.get(key) ?? "");
+  return !Number.isNaN(v) ? Math.max(0, Math.round(v)) : fallback;
+}
+
+let settingsCache: { at: number; data: GamificationSettings } | null = null;
+const SETTINGS_TTL_MS = 30_000;
+
+/** Barcha gamifikatsiya stavkalarini admin sozlamalaridan yuklaydi. */
+export async function getGamificationSettings(): Promise<GamificationSettings> {
+  const now = Date.now();
+  if (settingsCache && now - settingsCache.at < SETTINGS_TTL_MS) {
+    return settingsCache.data;
+  }
+
+  const rows = await db.setting.findMany({ where: { key: { in: [...ALL_SETTING_KEYS] } } });
+  const map = new Map(rows.map((s) => [s.key, s.value]));
+
+  const speedFrac = settingFloat(
+    map,
+    SETTING_KEYS.quizSpeedBonusFraction,
+    QUIZ_SCORING.speedBonusFraction
+  );
+
+  const data: GamificationSettings = {
+    homework: {
+      xpRate: settingFloat(map, SETTING_KEYS.homeworkXpRate, RATES.homeworkXp),
+      pointRate: settingFloat(map, SETTING_KEYS.homeworkPointRate, RATES.homeworkPoints),
+    },
+    exam: {
+      xpRate: settingFloat(map, SETTING_KEYS.examXpRate, RATES.examXp),
+      pointRate: settingFloat(map, SETTING_KEYS.examPointRate, RATES.examPoints),
+    },
+    attendance: {
+      presentXp: settingInt(map, SETTING_KEYS.attPresentXp, ATTENDANCE_STATUS.PRESENT.xp),
+      presentPoints: settingInt(
+        map,
+        SETTING_KEYS.attPresentPoints,
+        ATTENDANCE_STATUS.PRESENT.points
+      ),
+      lateXp: settingInt(map, SETTING_KEYS.attLateXp, ATTENDANCE_STATUS.LATE.xp),
+      latePoints: settingInt(map, SETTING_KEYS.attLatePoints, ATTENDANCE_STATUS.LATE.points),
+    },
+    quiz: {
+      xpRate: settingFloat(map, SETTING_KEYS.quizXpRate, RATES.quizXp),
+      pointRate: settingFloat(map, SETTING_KEYS.quizPointRate, RATES.quizPoints),
+    },
+    quizScoring: {
+      speedBonusFraction: Math.min(1, Math.max(0, speedFrac)),
+      streakBonusPerStep: settingInt(
+        map,
+        SETTING_KEYS.quizStreakBonusPerStep,
+        QUIZ_SCORING.streakBonusPerStep
+      ),
+      streakBonusMax: settingInt(
+        map,
+        SETTING_KEYS.quizStreakBonusMax,
+        QUIZ_SCORING.streakBonusMax
+      ),
+    },
+  };
+
+  settingsCache = { at: now, data };
+  return data;
+}
+
+export function invalidateGamificationSettingsCache(): void {
+  settingsCache = null;
+}
+
 // ---------------- Quiz koeffitsiyentlari ----------------
 
+export type QuizScoringConfig = {
+  speedBonusFraction: number;
+  streakBonusPerStep: number;
+  streakBonusMax: number;
+};
+
+export async function getQuizScoring(): Promise<QuizScoringConfig> {
+  const { quizScoring } = await getGamificationSettings();
+  return quizScoring;
+}
+
 export async function getQuizRates(): Promise<{ xpRate: number; pointRate: number }> {
-  const settings = await db.setting.findMany({
-    where: { key: { in: [SETTING_KEYS.quizXpRate, SETTING_KEYS.quizPointRate] } },
-  });
-  const map = new Map(settings.map((s) => [s.key, parseFloat(s.value)]));
-  const xpRate = map.get(SETTING_KEYS.quizXpRate);
-  const pointRate = map.get(SETTING_KEYS.quizPointRate);
-  return {
-    xpRate: xpRate !== undefined && !Number.isNaN(xpRate) ? xpRate : RATES.quizXp,
-    pointRate: pointRate !== undefined && !Number.isNaN(pointRate) ? pointRate : RATES.quizPoints,
-  };
+  const { quiz } = await getGamificationSettings();
+  return quiz;
 }
 
 // ---------------- Reyting ----------------

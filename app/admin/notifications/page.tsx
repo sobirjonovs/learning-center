@@ -11,7 +11,7 @@ import {
 } from "@/lib/constants";
 import { Bell } from "lucide-react";
 import { PageHeader, Table, Th, Td, Badge, EmptyState, btn } from "@/components/ui";
-import { ConfirmButton } from "@/components/confirm-button";
+import { InlineActionForm } from "@/components/inline-action-form";
 import { deliverDueScheduled, sendNow, deleteNotification } from "./actions";
 
 export default async function NotificationsPage() {
@@ -101,29 +101,35 @@ export default async function NotificationsPage() {
                   <div className="flex items-center justify-end gap-1.5">
                     {editable && (
                       <>
-                        <form action={sendNow}>
-                          <input type="hidden" name="id" value={n.id} />
-                          <ConfirmButton
-                            message={`"${n.title}" hoziroq yuborilsinmi?`}
+                        <InlineActionForm
+                          action={sendNow}
+                          hidden={{ id: n.id }}
+                          confirmMessage={`"${n.title}" hoziroq yuborilsinmi?`}
+                        >
+                          <button
+                            type="button"
                             className="inline-flex items-center justify-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/15 px-2.5 py-1 text-xs font-medium text-blue-400 transition hover:bg-blue-500/25"
                           >
                             Darhol yuborish
-                          </ConfirmButton>
-                        </form>
+                          </button>
+                        </InlineActionForm>
                         <Link href={`/admin/notifications/${n.id}/edit`} className={btn.small}>
                           Tahrirlash
                         </Link>
                       </>
                     )}
-                    <form action={deleteNotification}>
-                      <input type="hidden" name="id" value={n.id} />
-                      <ConfirmButton
-                        message={`"${n.title}" bildirishnomasini o'chirishni tasdiqlaysizmi?`}
+                    <InlineActionForm
+                      action={deleteNotification}
+                      hidden={{ id: n.id }}
+                      confirmMessage={`"${n.title}" bildirishnomasini o'chirishni tasdiqlaysizmi?`}
+                    >
+                      <button
+                        type="button"
                         className="inline-flex items-center justify-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-400 transition hover:bg-rose-500/20"
                       >
-                        O'chirish
-                      </ConfirmButton>
-                    </form>
+                        O&apos;chirish
+                      </button>
+                    </InlineActionForm>
                   </div>
                 </Td>
               </tr>
