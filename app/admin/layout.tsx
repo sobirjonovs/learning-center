@@ -14,6 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/students", label: "O'quvchilar", icon: "graduation-cap", permission: "students.view" },
     { href: "/admin/attendance", label: "Davomat nazorati", icon: "check-circle2", permission: "attendance.manage" },
     { href: "/admin/absent", label: "Kelmaganlar", icon: "phone", permission: "calls.manage" },
+    { href: "/admin/payments", label: "To'lovlar", icon: "credit-card", permission: "payments.manage" },
     { href: "/admin/shop", label: "Magazin", icon: "shopping-bag", permission: "shop.manage" },
     { href: "/admin/achievements", label: "Yutuqlar", icon: "medal", permission: "achievements.manage" },
     { href: "/admin/notifications", label: "Bildirishnomalar", icon: "bell", permission: "notifications.send" },

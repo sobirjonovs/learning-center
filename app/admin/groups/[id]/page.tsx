@@ -1,10 +1,17 @@
 // Guruh sahifasi — ma'lumotlar, o'quvchilar, davomat, vazifalar, imtihonlar, reyting
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requirePermission, requireRole } from "@/lib/auth";
+import { can, requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ATTENDANCE_STATUS, type AttendanceStatus } from "@/lib/constants";
 import { getRating } from "@/lib/gamification";
+import {
+  buildPriceMap,
+  currentMonth,
+  expectedMonthlyFee,
+  PAYMENT_STATUS,
+  paymentStatus,
+} from "@/lib/payments";
 import { fmtDate, fmtDateTime, fmtNumber, parseJsonArray, pct } from "@/lib/utils";
 import {
   ActiveBadge,
@@ -42,6 +49,8 @@ const fmtDay = (d: string) => `${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(0, 4
 export default async function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
   requirePermission(session, "groups.manage");
+  const canPayments = can(session, "payments.manage");
+  const activeMonth = currentMonth();
 
   const { id } = await params;
   const group = await db.group.findUnique({
@@ -60,8 +69,8 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
         include: { _count: { select: { submissions: true } } },
       },
       exams: {
-        orderBy: { date: "desc" },
-        include: { results: { select: { score: true } } },
+        orderBy: { endAt: "desc" },
+        include: { results: { where: { status: "ACCEPTED" }, select: { score: true } } },
       },
     },
   });
@@ -69,7 +78,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
 
   const memberIds = group.students.map((m) => m.student.id);
 
-  const [attendanceRows, availableStudents, rating] = await Promise.all([
+  const [attendanceRows, availableStudents, rating, prices, monthPayments] = await Promise.all([
     db.attendance.findMany({
       where: { groupId: id },
       select: { studentId: true, status: true, date: true },
@@ -80,7 +89,20 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
       select: { id: true, name: true },
     }),
     getRating(memberIds),
+    canPayments
+      ? db.subjectPrice.findMany({ select: { subjectId: true, groupType: true, monthlyFee: true } })
+      : Promise.resolve([]),
+    canPayments
+      ? db.studentPayment.findMany({
+          where: { groupId: id, month: activeMonth },
+          select: { studentId: true, amount: true },
+        })
+      : Promise.resolve([]),
   ]);
+
+  const priceMap = buildPriceMap(prices);
+  const monthlyFee = expectedMonthlyFee(priceMap, group.subject?.id, group.type);
+  const payMap = new Map(monthPayments.map((p) => [p.studentId, p.amount]));
 
   // Umumiy davomat segmentlari
   const statusKeys = Object.keys(ATTENDANCE_STATUS) as AttendanceStatus[];
@@ -215,12 +237,21 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
 
       {/* O'quvchilar */}
       <div className="mt-6">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-slate-200">O'quvchilar ro'yxati</h2>
-          <Modal
-            trigger={<button className={btn.primary}>+ O'quvchi qo'shish</button>}
-            title="Guruhga o'quvchi qo'shish"
-          >
+          <div className="flex flex-wrap items-center gap-2">
+            {canPayments && (
+              <Link
+                href={`/admin/payments?groupId=${group.id}&month=${activeMonth}`}
+                className={btn.secondary}
+              >
+                To'lovlar ({activeMonth})
+              </Link>
+            )}
+            <Modal
+              trigger={<button className={btn.primary}>+ O'quvchi qo'shish</button>}
+              title="Guruhga o'quvchi qo'shish"
+            >
             {availableStudents.length === 0 ? (
               <p className="py-4 text-center text-sm text-slate-400">
                 Qo'shish uchun faol o'quvchi qolmadi — barchasi allaqachon guruhda.
@@ -246,6 +277,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
               </ActionForm>
             )}
           </Modal>
+          </div>
         </div>
 
         {group.students.length === 0 ? (
@@ -260,6 +292,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
                 <Th>Ball</Th>
                 <Th>XP</Th>
                 <Th>Davomat</Th>
+                {canPayments && <Th>To'lov ({activeMonth})</Th>}
                 <Th>Qo'shilgan sana</Th>
                 <Th>Holat</Th>
                 <Th className="text-right">Amallar</Th>
@@ -268,6 +301,8 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
           >
             {group.students.map((m) => {
               const p = memberPercent(m.student.id);
+              const paid = payMap.get(m.student.id) ?? 0;
+              const paySt = PAYMENT_STATUS[paymentStatus(paid, monthlyFee)];
               return (
                 <tr key={m.id} className="hover:bg-white/[0.04]">
                   <Td>
@@ -288,6 +323,14 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
                       <span className="text-xs font-semibold text-slate-600">{p}%</span>
                     </div>
                   </Td>
+                  {canPayments && (
+                    <Td>
+                      <div className="space-y-0.5">
+                        <Badge tone={paySt.tone}>{paySt.label}</Badge>
+                        <div className="text-xs text-slate-500">{fmtNumber(paid)} so'm</div>
+                      </div>
+                    </Td>
+                  )}
                   <Td className="text-slate-500">{fmtDate(m.joinedAt)}</Td>
                   <Td>
                     <ActiveBadge active={m.student.active} />
@@ -393,16 +436,17 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
           ) : (
             <div className="divide-y divide-white/5">
               {group.exams.map((e) => {
+                const graded = e.results.filter((r) => r.score !== null);
                 const avg =
-                  e.results.length > 0
-                    ? Math.round(e.results.reduce((s, r) => s + r.score, 0) / e.results.length)
+                  graded.length > 0
+                    ? Math.round(graded.reduce((s, r) => s + (r.score ?? 0), 0) / graded.length)
                     : null;
                 return (
                   <div key={e.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium text-slate-100">{e.title}</div>
                       <div className="text-xs text-slate-400">
-                        {fmtDate(e.date)} · {e.results.length} ta natija
+                        {fmtDate(e.endAt)} · {graded.length} ta tekshirilgan
                       </div>
                     </div>
                     <Badge className="bg-emerald-500/15 text-emerald-400">

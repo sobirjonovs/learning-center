@@ -69,6 +69,24 @@ export const HOMEWORK_VIEW_STATUS = {
 } as const;
 export type HomeworkViewStatus = keyof typeof HOMEWORK_VIEW_STATUS;
 
+// ---------------- Imtihon topshirig'i ----------------
+export const EXAM_RESULT_STATUS = {
+  SUBMITTED: { label: "Topshirildi", badge: "bg-sky-100 text-sky-700" },
+  ACCEPTED: { label: "Tekshirildi", badge: "bg-emerald-100 text-emerald-700" },
+  RETURNED: { label: "Qayta ishlash", badge: "bg-amber-100 text-amber-700" },
+} as const;
+export type ExamResultStatus = keyof typeof EXAM_RESULT_STATUS;
+
+export const EXAM_VIEW_STATUS = {
+  UPCOMING: { label: "Boshlanmagan", badge: "bg-slate-100 text-slate-600" },
+  ACTIVE: { label: "Faol", badge: "bg-indigo-100 text-indigo-700" },
+  IN_PROGRESS: { label: "Jarayonda", badge: "bg-sky-100 text-sky-700" },
+  SUBMITTED: { label: "Topshirildi", badge: "bg-violet-100 text-violet-700" },
+  CHECKED: { label: "Tekshirildi", badge: "bg-emerald-100 text-emerald-700" },
+  MISSED: { label: "O'tkazib yuborildi", badge: "bg-rose-100 text-rose-700" },
+} as const;
+export type ExamViewStatus = keyof typeof EXAM_VIEW_STATUS;
+
 // ---------------- Magazin ----------------
 export const PURCHASE_STATUS = {
   NEW: { label: "Yangi buyurtma", badge: "bg-sky-100 text-sky-700" },
@@ -160,6 +178,7 @@ export const PERMISSIONS = [
   { key: "shop.manage", label: "Magazin boshqaruvi" },
   { key: "achievements.manage", label: "Yutuqlarni boshqarish" },
   { key: "notifications.send", label: "Bildirishnoma yuborish" },
+  { key: "payments.manage", label: "To'lovlarni boshqarish" },
   { key: "reports.view", label: "Hisobotlarni ko'rish" },
   { key: "calls.manage", label: "Kelmaganlar bilan ishlash" },
 ] as const;
@@ -173,6 +192,7 @@ export const GROUP_TYPES = ["Umumiy", "Individual", "Intensiv", "Online"];
 // Demo seed uchun standart fan kategoriyalari
 export const DEFAULT_SUBJECTS = [
   "Matematika",
+  "Fizika",
   "Ingliz tili",
   "Frontend",
   "Backend",
@@ -198,6 +218,7 @@ export const RATES = {
   // imtihon
   examXp: 1,
   examPoints: 0.5,
+  examPerfectBonus: 50,
   // quiz (Setting jadvalida qayta belgilanishi mumkin)
   quizXp: 0.05,
   quizPoints: 0.015,
@@ -208,6 +229,7 @@ export const SETTING_KEYS = {
   homeworkPointRate: "homework_point_rate",
   examXpRate: "exam_xp_rate",
   examPointRate: "exam_point_rate",
+  examPerfectBonus: "exam_perfect_bonus",
   attPresentXp: "att_present_xp",
   attPresentPoints: "att_present_points",
   attLateXp: "att_late_xp",

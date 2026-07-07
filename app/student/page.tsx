@@ -81,9 +81,9 @@ export default async function StudentDashboard() {
         take: 6,
       }),
       db.examResult.findMany({
-        where: { studentId: session.id },
-        include: { exam: { select: { title: true, maxScore: true, date: true } } },
-        orderBy: { exam: { date: "desc" } },
+        where: { studentId: session.id, status: "ACCEPTED", score: { not: null } },
+        include: { exam: { select: { title: true, maxScore: true, endAt: true, passPercent: true } } },
+        orderBy: { gradedAt: "desc" },
         take: 5,
       }),
       db.studentAchievement.findMany({
@@ -191,7 +191,13 @@ export default async function StudentDashboard() {
         </Card>
 
         <Card className="animate-slide-up">
-          <CardTitle>
+          <CardTitle
+            action={
+              <Link href="/student/exams" className="text-xs font-medium text-cyan-400 classic:text-blue-600 hover:underline">
+                Barchasi →
+              </Link>
+            }
+          >
             <span className="font-display inline-flex items-center gap-2">
               <FileText className="h-4 w-4 text-blue-400" strokeWidth={1.75} />
               So&apos;nggi imtihon natijalari
@@ -202,7 +208,8 @@ export default async function StudentDashboard() {
           ) : (
             <div className="space-y-2">
               {examResults.map((r) => {
-                const p = pct(r.score, r.exam.maxScore);
+                const score = r.score ?? 0;
+                const p = pct(score, r.exam.maxScore);
                 return (
                   <div
                     key={r.id}
@@ -210,10 +217,10 @@ export default async function StudentDashboard() {
                   >
                     <div className="min-w-0">
                       <div className="truncate text-sm font-semibold text-slate-100 classic:text-slate-800">{r.exam.title}</div>
-                      <div className="text-xs text-slate-500">{fmtDateTime(r.exam.date)}</div>
+                      <div className="text-xs text-slate-500">{fmtDateTime(r.exam.endAt)}</div>
                     </div>
-                    <Badge className={examBadge(p)}>
-                      {r.score}/{r.exam.maxScore} · {p}%
+                    <Badge className={r.passed ? "bg-emerald-500/15 text-emerald-400" : examBadge(p)}>
+                      {score}/{r.exam.maxScore} · {r.passed ? "O'tdi" : "Yiqildi"}
                     </Badge>
                   </div>
                 );

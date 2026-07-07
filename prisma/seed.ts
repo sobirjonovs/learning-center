@@ -27,6 +27,12 @@ const daysAgo = (n: number) => {
   return d;
 };
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
 async function main() {
   console.log("Baza tozalanmoqda...");
   // FK tartibida tozalash
@@ -51,6 +57,8 @@ async function main() {
   await db.teacherSubject.deleteMany();
   await db.group.deleteMany();
   await db.subject.deleteMany();
+  await db.studentPayment.deleteMany();
+  await db.subjectPrice.deleteMany();
   await db.setting.deleteMany();
   await db.user.deleteMany();
 
@@ -89,6 +97,7 @@ async function main() {
         "calls.manage",
         "notifications.send",
         "categories.manage",
+        "payments.manage",
       ]),
     },
   });
@@ -146,6 +155,19 @@ async function main() {
   for (const name of DEFAULT_SUBJECTS) {
     const subject = await db.subject.create({ data: { name } });
     subjectMap.set(name, subject.id);
+  }
+
+  console.log("Fan narxlari (Umumiy/Individual)...");
+  for (const [name, subjectId] of subjectMap) {
+    // demo narxlar (so'm)
+    const base =
+      name === "Ingliz tili" ? 450_000 : name === "Matematika" ? 400_000 : name === "Fizika" ? 420_000 : 500_000;
+    await db.subjectPrice.createMany({
+      data: [
+        { subjectId, groupType: "Umumiy", monthlyFee: base, active: true },
+        { subjectId, groupType: "Individual", monthlyFee: base * 2, active: true },
+      ],
+    });
   }
 
   for (let i = 0; i < teacherData.length; i++) {
@@ -263,8 +285,8 @@ async function main() {
     }
   }
   // unique cheklovga rioya qilgan holda yaratish
-  for (const row of attendanceRows) {
-    await db.attendance.create({ data: row });
+  for (const batch of chunk(attendanceRows, 500)) {
+    await db.attendance.createMany({ data: batch });
   }
 
   console.log("Uyga vazifalar...");
@@ -368,19 +390,36 @@ async function main() {
 
   console.log("Imtihonlar...");
   for (let gi = 0; gi < 5; gi++) {
+    const endAt = daysAgo(3);
+    const startAt = daysAgo(10);
     const exam = await db.exam.create({
       data: {
         groupId: groups[gi].id,
         title: `${groupDefs[gi].name} — oraliq imtihon`,
-        date: daysAgo(10),
+        description: "Imtihon topshiriqlarini batafsil yozing va fayl yoki havola biriktiring.",
+        startAt,
+        endAt,
+        minScore: 0,
         maxScore: 100,
+        passPercent: 60,
       },
     });
     for (const si of membership[gi]) {
       if (si === 19) continue;
       const score = si === 0 && gi === 0 ? 100 : 50 + Math.floor(rand() * 51);
+      const passed = Math.round((score / 100) * 100) >= 60;
       await db.examResult.create({
-        data: { examId: exam.id, studentId: students[si].id, score },
+        data: {
+          examId: exam.id,
+          studentId: students[si].id,
+          comment: "Namuna imtihon javobi",
+          link: "https://example.com/exam-answer",
+          submittedAt: daysAgo(5),
+          status: "ACCEPTED",
+          score,
+          passed,
+          gradedAt: daysAgo(4),
+        },
       });
       txs.push({
         studentId: students[si].id,
@@ -589,8 +628,8 @@ async function main() {
   }
 
   console.log("Tranzaksiyalar va balanslar...");
-  for (const t of txs) {
-    await db.scoreTransaction.create({ data: t });
+  for (const batch of chunk(txs, 500)) {
+    await db.scoreTransaction.createMany({ data: batch });
   }
   // foydalanuvchi balanslari = tranzaksiyalar yig'indisi
   const totals = new Map<string, { points: number; xp: number }>();
@@ -696,6 +735,61 @@ async function main() {
         createdAt: new Date(Date.now() - i * 3 * 3600_000),
       },
     });
+  }
+
+  console.log("To'lovlar (demo)...");
+  const allPrices = await db.subjectPrice.findMany({ select: { subjectId: true, groupType: true, monthlyFee: true } });
+  const feeMap = new Map(allPrices.map((p) => [`${p.subjectId}:${p.groupType}`, p.monthlyFee]));
+
+  const months = (() => {
+    const d = new Date();
+    const res: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      res.push(`${y}-${m}`);
+      d.setMonth(d.getMonth() - 1);
+    }
+    return res;
+  })();
+
+  const paymentRows: Array<{
+    studentId: string;
+    groupId: string;
+    month: string;
+    amount: number;
+    recordedById: string;
+    recordedAt: Date;
+  }> = [];
+
+  for (let gi = 0; gi < groups.length; gi++) {
+    const g = groupDefs[gi];
+    const subjectId = subjectMap.get(g.subject);
+    if (!subjectId) continue;
+    const groupType = g.type === "Individual" ? "Individual" : "Umumiy";
+    const fee = feeMap.get(`${subjectId}:${groupType}`) ?? 0;
+    if (fee <= 0) continue;
+
+    for (const month of months) {
+      for (const si of membership[gi] ?? []) {
+        if (si === 19) continue;
+        const r = rand();
+        const paid = r < 0.7 ? fee : r < 0.85 ? Math.round(fee / 2) : 0;
+        if (paid === 0) continue;
+        paymentRows.push({
+          studentId: students[si].id,
+          groupId: groups[gi].id,
+          month,
+          amount: paid,
+          recordedById: superAdmin.id,
+          recordedAt: daysAgo(2),
+        });
+      }
+    }
+  }
+
+  for (const batch of chunk(paymentRows, 500)) {
+    await db.studentPayment.createMany({ data: batch });
   }
 
   console.log("✅ Seed tugadi.");

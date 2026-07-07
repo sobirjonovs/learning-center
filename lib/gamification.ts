@@ -250,11 +250,66 @@ export async function awardForHomework(
   });
 }
 
+/** Baholangan imtihon uchun XP/ball yozish (qayta baholashda farqni yozadi). */
+export async function awardForExam(
+  studentId: string,
+  finalScore: number,
+  previousFinal: number | null,
+  examTitle: string,
+  resultId: string,
+  opts: {
+    isPerfect?: boolean;
+    hadPerfectBonus?: boolean;
+    passed?: boolean;
+    previousPassed?: boolean;
+  } = {}
+): Promise<void> {
+  const { exam } = await getGamificationSettings();
+
+  // Agar imtihondan yiqilsa — ball/XP manfiy yoziladi.
+  // Qayta baholashda "o'tdi/yiqildi" holati ham hisobga olinishi uchun
+  // delta ni signed-score orqali yuritamiz.
+  const prevScore = previousFinal ?? 0;
+  const prevPassed = Boolean(opts.previousPassed);
+  const nowPassed = Boolean(opts.passed);
+  const prevSigned = prevPassed ? prevScore : -prevScore;
+  const nowSigned = nowPassed ? finalScore : -finalScore;
+  const dSigned = nowSigned - prevSigned;
+
+  if (dSigned !== 0) {
+    await awardScore(studentId, {
+      xp: dSigned * exam.xpRate,
+      points: Math.round(dSigned * exam.pointRate),
+      reason: `Imtihon: ${examTitle}`,
+      sourceType: "EXAM",
+      sourceId: resultId,
+    });
+  }
+
+  const perfectNow = Boolean(opts.isPerfect) && nowPassed;
+  const hadBonus = Boolean(opts.hadPerfectBonus);
+  if (perfectNow && !hadBonus && exam.perfectBonus > 0) {
+    await awardScore(studentId, {
+      points: exam.perfectBonus,
+      reason: `Imtihon 100%: ${examTitle}`,
+      sourceType: "BONUS",
+      sourceId: resultId,
+    });
+  } else if (!perfectNow && hadBonus && exam.perfectBonus > 0) {
+    await awardScore(studentId, {
+      points: -exam.perfectBonus,
+      reason: `Imtihon 100% bonusi bekor: ${examTitle}`,
+      sourceType: "BONUS",
+      sourceId: resultId,
+    });
+  }
+}
+
 // ---------------- Ball sozlamalari (admin) ----------------
 
 export type GamificationSettings = {
   homework: { xpRate: number; pointRate: number };
-  exam: { xpRate: number; pointRate: number };
+  exam: { xpRate: number; pointRate: number; perfectBonus: number };
   attendance: AttendanceDefaults;
   quiz: { xpRate: number; pointRate: number };
   quizScoring: QuizScoringConfig;
@@ -297,6 +352,7 @@ export async function getGamificationSettings(): Promise<GamificationSettings> {
     exam: {
       xpRate: settingFloat(map, SETTING_KEYS.examXpRate, RATES.examXp),
       pointRate: settingFloat(map, SETTING_KEYS.examPointRate, RATES.examPoints),
+      perfectBonus: settingInt(map, SETTING_KEYS.examPerfectBonus, RATES.examPerfectBonus),
     },
     attendance: {
       presentXp: settingInt(map, SETTING_KEYS.attPresentXp, ATTENDANCE_STATUS.PRESENT.xp),
@@ -474,7 +530,7 @@ export async function checkAchievements(studentId: string): Promise<void> {
     where: { studentId },
     include: { exam: { select: { maxScore: true } } },
   });
-  if (examResults.some((r) => r.score >= r.exam.maxScore)) {
+  if (examResults.some((r) => r.score !== null && r.score >= r.exam.maxScore)) {
     await grant(studentId, ACHIEVEMENT_CODES.EXAM_PERFECT);
   }
 

@@ -44,8 +44,8 @@ export default async function TeacherGroupDetailPage({
         select: { id: true, title: true, dueAt: true, maxScore: true },
       },
       exams: {
-        orderBy: { date: "desc" },
-        include: { results: { select: { score: true } } },
+        orderBy: { endAt: "desc" },
+        include: { results: { where: { status: "ACCEPTED" }, select: { score: true } } },
       },
     },
   });
@@ -226,11 +226,10 @@ export default async function TeacherGroupDetailPage({
             ) : (
               <div className="divide-y divide-white/5">
                 {group.exams.map((exam) => {
+                  const graded = exam.results.filter((r) => r.score !== null);
                   const avg =
-                    exam.results.length > 0
-                      ? Math.round(
-                          exam.results.reduce((s, r) => s + r.score, 0) / exam.results.length
-                        )
+                    graded.length > 0
+                      ? Math.round(graded.reduce((s, r) => s + (r.score ?? 0), 0) / graded.length)
                       : null;
                   return (
                     <div key={exam.id} className="flex flex-wrap items-center gap-3 py-3">
@@ -242,7 +241,7 @@ export default async function TeacherGroupDetailPage({
                           {exam.title}
                         </Link>
                         <div className="text-xs text-slate-400">
-                          {fmtDate(exam.date)} · {exam.results.length} ta natija
+                          {fmtDateTime(exam.endAt)} · {exam.results.length} ta tekshirilgan
                         </div>
                       </div>
                       <Badge className="bg-emerald-500/15 text-emerald-400">

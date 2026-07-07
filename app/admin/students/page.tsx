@@ -19,6 +19,7 @@ export default async function StudentsPage({
   const canCreate = can(session, "students.create");
   const canEdit = can(session, "students.edit");
   const canDelete = can(session, "students.delete");
+  const canPayments = can(session, "payments.manage");
 
   const { q } = await searchParams;
   const query = (q ?? "").trim();
@@ -156,7 +157,9 @@ export default async function StudentsPage({
                 <TableRowActions
                   links={[
                     { href: `/admin/students/${s.id}`, label: "Ko'rish" },
+                    { href: `/admin/students/${s.id}#payments`, label: "To'lovlar" },
                     ...(canEdit ? [{ href: `/admin/students/${s.id}/edit`, label: "Tahrirlash" }] : []),
+                    ...(canPayments ? [{ href: "/admin/payments", label: "To'lov kiritish" }] : []),
                   ]}
                   forms={[
                     ...(canEdit

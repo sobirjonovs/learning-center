@@ -402,8 +402,20 @@ export function ThActions({ children, className }: { children?: React.ReactNode;
   );
 }
 
-export function Td({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <td className={cn("px-4 py-3 align-middle text-slate-300 classic-canvas:text-slate-600", className)}>{children}</td>;
+export function Td({
+  children,
+  className,
+  colSpan,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+  colSpan?: number;
+}) {
+  return (
+    <td colSpan={colSpan} className={cn("px-4 py-3 align-middle text-slate-300 classic-canvas:text-slate-600", className)}>
+      {children}
+    </td>
+  );
 }
 
 export function TdActions({ children, className }: { children?: React.ReactNode; className?: string }) {

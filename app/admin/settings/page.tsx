@@ -115,7 +115,7 @@ export default async function SettingsPage() {
         <Card>
           <CardTitle>Imtihon</CardTitle>
           <p className="mb-4 text-sm text-slate-400">
-            Imtihon natijasi (0–max ball) asosida XP va magazin balli beriladi.
+            Imtihon natijasi asosida XP va magazin balli beriladi. 100% natija uchun bonus alohida.
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="XP koeffitsiyenti" required>
@@ -139,6 +139,19 @@ export default async function SettingsPage() {
                 defaultValue={s.exam.pointRate}
                 className={inputCls}
               />
+            </Field>
+            <Field label="100% bonus balli" required>
+              <input
+                type="number"
+                name="examPerfectBonus"
+                required
+                min={0}
+                defaultValue={s.exam.perfectBonus}
+                className={inputCls}
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Imtihondan to&apos;liq ball olgan o&apos;quvchiga qo&apos;shimcha magazin balli
+              </p>
             </Field>
           </div>
         </Card>

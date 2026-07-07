@@ -5,6 +5,9 @@ import { can, requirePermission, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ATTENDANCE_STATUS, SUBMISSION_STATUS, type AttendanceStatus, type SubmissionStatus } from "@/lib/constants";
 import { levelFromXp } from "@/lib/gamification";
+import {
+  buildPriceMap,
+} from "@/lib/payments";
 import { fmtDate, fmtDateTime, fmtNumber, parseJsonArray, pct } from "@/lib/utils";
 import { CheckCircle2, Flame, Gem, Zap } from "lucide-react";
 import {
@@ -22,6 +25,7 @@ import {
   btn,
 } from "@/components/ui";
 import { SegmentBar } from "@/components/charts";
+import { StudentPaymentHistory } from "@/components/student-payment-history";
 
 const STATUS_COLORS: Record<AttendanceStatus, string> = {
   PRESENT: "#10b981",
@@ -34,6 +38,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
   const session = await requireRole("SUPER_ADMIN", "ADMIN");
   requirePermission(session, "students.view");
   const canEdit = can(session, "students.edit");
+  const canPayments = can(session, "payments.manage");
 
   const { id } = await params;
   const student = await db.user.findUnique({
@@ -45,10 +50,13 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
             select: {
               id: true,
               name: true,
+              type: true,
               days: true,
               time: true,
               room: true,
               active: true,
+              subjectId: true,
+              subject: { select: { name: true } },
               teacher: { select: { id: true, name: true } },
             },
           },
@@ -59,8 +67,10 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
         include: { homework: { select: { title: true, maxScore: true } } },
       },
       examResults: {
+        where: { status: "ACCEPTED" },
+        orderBy: { gradedAt: "desc" },
         include: {
-          exam: { select: { title: true, date: true, maxScore: true, group: { select: { name: true } } } },
+          exam: { select: { title: true, endAt: true, maxScore: true, passPercent: true, group: { select: { name: true } } } },
         },
       },
       achievements: {
@@ -73,7 +83,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
 
   const groupIds = student.groupMemberships.map((m) => m.group.id);
 
-  const [attendanceRows, missedCount] = await Promise.all([
+  const [attendanceRows, missedCount, paymentRows, prices] = await Promise.all([
     db.attendance.findMany({ where: { studentId: id }, select: { status: true } }),
     db.homework.count({
       where: {
@@ -82,6 +92,22 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
         submissions: { none: { studentId: id } },
       },
     }),
+    db.studentPayment.findMany({
+      where: { studentId: id },
+      orderBy: [{ month: "desc" }, { recordedAt: "desc" }],
+      include: {
+        group: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            subjectId: true,
+            subject: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    db.subjectPrice.findMany({ select: { subjectId: true, groupType: true, monthlyFee: true } }),
   ]);
 
   const lvl = levelFromXp(student.xp);
@@ -98,7 +124,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
   }));
 
   const examResults = [...student.examResults].sort(
-    (a, b) => b.exam.date.getTime() - a.exam.date.getTime()
+    (a, b) => b.exam.endAt.getTime() - a.exam.endAt.getTime()
   );
 
   return (
@@ -114,11 +140,18 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
         subtitle="O'quvchi profili"
         backHref="/admin/students"
         action={
-          canEdit ? (
-            <Link href={`/admin/students/${student.id}/edit`} className={btn.primary}>
-              Tahrirlash
-            </Link>
-          ) : undefined
+          <div className="flex flex-wrap gap-2">
+            {canPayments && (
+              <Link href="/admin/payments" className={btn.secondary}>
+                To&apos;lov kiritish
+              </Link>
+            )}
+            {canEdit && (
+              <Link href={`/admin/students/${student.id}/edit`} className={btn.primary}>
+                Tahrirlash
+              </Link>
+            )}
+          </div>
         }
       />
 
@@ -202,6 +235,15 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
         </Card>
       </div>
 
+      <div className="mt-6">
+        <StudentPaymentHistory
+          id="payments"
+          rows={paymentRows}
+          priceMap={buildPriceMap(prices)}
+          title="To'lovlar tarixi"
+        />
+      </div>
+
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card>
           <CardTitle>Uyga vazifalar</CardTitle>
@@ -254,7 +296,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
                     <Th>Imtihon</Th>
                     <Th>Guruh</Th>
                     <Th>Sana</Th>
-                    <Th className="text-right">Ball</Th>
+                    <Th className="text-right">Natija</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -262,9 +304,9 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
                     <tr key={r.id}>
                       <Td className="font-medium text-slate-100">{r.exam.title}</Td>
                       <Td className="text-slate-500">{r.exam.group.name}</Td>
-                      <Td className="text-slate-500">{fmtDate(r.exam.date)}</Td>
+                      <Td className="text-slate-500">{fmtDate(r.exam.endAt)}</Td>
                       <Td className="text-right font-bold text-slate-700">
-                        {r.score}/{r.exam.maxScore}
+                        {r.score}/{r.exam.maxScore} · {r.passed ? "O'tdi" : "Yiqildi"}
                       </Td>
                     </tr>
                   ))}

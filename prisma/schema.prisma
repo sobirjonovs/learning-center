@@ -56,6 +56,10 @@ model User {
   callLogs         CallLog[]               @relation("CallLogStudent")
   madeCalls        CallLog[]               @relation("CallLogCaller")
   activities       ActivityLog[]
+
+  // To'lovlar
+  studentPayments  StudentPayment[] @relation("StudentPayments")
+  recordedPayments StudentPayment[] @relation("RecordedPayments")
 }
 
 // O'qituvchi fanlari / kategoriyalari (Matematika, Ingliz tili, Frontend, ...)
@@ -67,6 +71,7 @@ model Subject {
 
   teachers TeacherSubject[]
   groups   Group[]
+  prices   SubjectPrice[]
 }
 
 model TeacherSubject {
@@ -108,6 +113,7 @@ model Group {
   quizzes       Quiz[]
   notifications Notification[]
   callLogs      CallLog[]
+  payments      StudentPayment[]
 }
 
 model GroupStudent {
@@ -181,24 +187,40 @@ model Submission {
 }
 
 model Exam {
-  id        String   @id @default(cuid())
-  groupId   String
-  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  title     String
-  date      DateTime @default(now())
-  maxScore  Int      @default(100)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  startAt     DateTime @default(now())
+  endAt       DateTime @default(now())
+  minScore    Int      @default(0)
+  maxScore    Int      @default(100)
+  passPercent Int      @default(60)
+  fileUrl     String?
+  link        String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
 
   results ExamResult[]
 }
 
+// Imtihon topshirig'i statuslari: SUBMITTED | ACCEPTED | RETURNED
 model ExamResult {
-  id        String @id @default(cuid())
-  examId    String
-  exam      Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
-  studentId String
-  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  score     Int
+  id          String    @id @default(cuid())
+  examId      String
+  exam        Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  link        String?
+  fileUrl     String?
+  comment     String?
+  submittedAt DateTime?
+  status      String    @default("SUBMITTED")
+  score       Int?
+  passed      Boolean?
+  feedback    String?
+  gradedAt    DateTime?
 
   @@unique([examId, studentId])
 }
@@ -376,4 +398,37 @@ model ActivityLog {
 model Setting {
   key   String @id
   value String
+}
+
+// ---------------- To'lovlar ----------------
+// Guruh turi bo'yicha fan narxi (oylik). Masalan: Fizika + Individual, Fizika + Umumiy
+model SubjectPrice {
+  id         String   @id @default(cuid())
+  subjectId  String
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  groupType  String // GROUP_TYPES dagi qiymatlar: Umumiy | Individual | ...
+  monthlyFee Int
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([subjectId, groupType])
+}
+
+// O'quvchi to'lovi (har oy, guruh kesimida). month: "YYYY-MM"
+model StudentPayment {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      User     @relation("StudentPayments", fields: [studentId], references: [id], onDelete: Cascade)
+  groupId      String
+  group        Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  month        String
+  amount       Int      @default(0)
+  note         String?
+  recordedById String?
+  recordedBy   User?    @relation("RecordedPayments", fields: [recordedById], references: [id], onDelete: SetNull)
+  recordedAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([studentId, groupId, month])
 }

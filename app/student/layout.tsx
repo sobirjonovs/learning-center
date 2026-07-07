@@ -9,6 +9,8 @@ import type { NavItem } from "@/components/sidebar";
 const items: NavItem[] = [
   { href: "/student", label: "Bosh sahifa", icon: "home", exact: true },
   { href: "/student/homework", label: "Vazifalarim", icon: "book-open" },
+  { href: "/student/exams", label: "Imtihonlarim", icon: "clipboard-list" },
+  { href: "/student/payments", label: "To'lovlarim", icon: "credit-card" },
   { href: "/student/rating", label: "Reyting", icon: "trophy" },
   { href: "/student/quiz", label: "Quiz o'ynash", icon: "zap" },
   { href: "/student/shop", label: "Magazin", icon: "shopping-bag" },
