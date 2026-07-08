@@ -10,6 +10,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:init": "prisma migrate deploy && tsx prisma/seed.ts",
+    "db:fresh": "tsx prisma/fresh-admin.ts",
     "db:seed": "tsx prisma/seed.ts",
     "cron:achievements": "tsx scripts/run-achievements-cron.ts",
     "typecheck": "tsc --noEmit"
