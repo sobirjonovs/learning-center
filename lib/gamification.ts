@@ -1,7 +1,7 @@
 // Gamifikatsiya yadrosi: ball/XP daftari, level, streak, yutuqlar.
 // Ball (points) — magazin uchun; XP — level uchun. Ikkalasi alohida yuritiladi.
 import { db } from "./db";
-import { dateStr, todayStr, startOfMonth } from "./utils";
+import { dateStr, todayStr } from "./utils";
 import { ACHIEVEMENT_CODES, ALL_SETTING_KEYS, ATTENDANCE_STATUS, QUIZ_SCORING, RATES, SETTING_KEYS, type AttendanceStatus } from "./constants";
 
 // ---------------- Level ----------------
@@ -425,8 +425,9 @@ export type RatingRow = {
 /**
  * Berilgan o'quvchilar bo'yicha reyting. `since` berilsa — davr ichidagi
  * tranzaksiyalar bo'yicha, bo'lmasa umumiy XP bo'yicha.
+ * `until` berilsa — davr yuqori chegarasi (o'z ichiga olmaydi).
  */
-export async function getRating(studentIds: string[], since?: Date): Promise<RatingRow[]> {
+export async function getRating(studentIds: string[], since?: Date, until?: Date): Promise<RatingRow[]> {
   if (studentIds.length === 0) return [];
   const students = await db.user.findMany({
     where: { id: { in: studentIds } },
@@ -439,7 +440,7 @@ export async function getRating(studentIds: string[], since?: Date): Promise<Rat
       by: ["studentId"],
       where: {
         studentId: { in: studentIds },
-        createdAt: { gte: since },
+        createdAt: { gte: since, ...(until ? { lt: until } : {}) },
         sourceType: { not: "PURCHASE" },
       },
       _sum: { xp: true, points: true },
@@ -473,7 +474,8 @@ export async function getRating(studentIds: string[], since?: Date): Promise<Rat
 
 // ---------------- Yutuqlar ----------------
 
-async function grant(studentId: string, code: string): Promise<void> {
+/** Yutuq berish (bir marta). Rejalashtirilgan joblar ham shu funksiyadan foydalanadi. */
+export async function grantAchievement(studentId: string, code: string): Promise<void> {
   const achievement = await db.achievement.findUnique({ where: { code } });
   if (!achievement?.active) return;
   const existing = await db.studentAchievement.findUnique({
@@ -502,28 +504,27 @@ async function grant(studentId: string, code: string): Promise<void> {
 export async function checkAchievements(studentId: string): Promise<void> {
   const student = await db.user.findUnique({
     where: { id: studentId },
-    include: { groupMemberships: { select: { groupId: true } } },
   });
   if (!student) return;
 
   // 7 kun ketma-ket faollik
-  if (student.streak >= 7) await grant(studentId, ACHIEVEMENT_CODES.STREAK_7);
+  if (student.streak >= 7) await grantAchievement(studentId, ACHIEVEMENT_CODES.STREAK_7);
 
   // 10 ta vazifa o'z vaqtida (jarimasiz qabul qilingan)
   const onTime = await db.submission.count({
     where: { studentId, status: "ACCEPTED", penalty: 0 },
   });
-  if (onTime >= 10) await grant(studentId, ACHIEVEMENT_CODES.HOMEWORK_10_ONTIME);
+  if (onTime >= 10) await grantAchievement(studentId, ACHIEVEMENT_CODES.HOMEWORK_10_ONTIME);
 
   // 5 ta vazifa muddatidan oldin (bonusli)
   const early = await db.submission.count({
     where: { studentId, status: "ACCEPTED", bonus: { gt: 0 } },
   });
-  if (early >= 5) await grant(studentId, ACHIEVEMENT_CODES.EARLY_5);
+  if (early >= 5) await grantAchievement(studentId, ACHIEVEMENT_CODES.EARLY_5);
 
   // Quizda 1-o'rin
   const quizWin = await db.quizResult.count({ where: { studentId, place: 1 } });
-  if (quizWin > 0) await grant(studentId, ACHIEVEMENT_CODES.QUIZ_WINNER);
+  if (quizWin > 0) await grantAchievement(studentId, ACHIEVEMENT_CODES.QUIZ_WINNER);
 
   // Imtihondan 100% natija
   const examResults = await db.examResult.findMany({
@@ -531,30 +532,7 @@ export async function checkAchievements(studentId: string): Promise<void> {
     include: { exam: { select: { maxScore: true } } },
   });
   if (examResults.some((r) => r.score !== null && r.score >= r.exam.maxScore)) {
-    await grant(studentId, ACHIEVEMENT_CODES.EXAM_PERFECT);
-  }
-
-  // Guruh reytingida TOP 3 (umumiy XP bo'yicha) va oy chempioni
-  for (const gm of student.groupMemberships) {
-    const memberIds = (
-      await db.groupStudent.findMany({
-        where: { groupId: gm.groupId },
-        select: { studentId: true },
-      })
-    ).map((m) => m.studentId);
-    if (memberIds.length < 2) continue;
-
-    const overall = await getRating(memberIds);
-    const myOverall = overall.find((r) => r.studentId === studentId);
-    if (myOverall && myOverall.place <= 3 && myOverall.xp > 0) {
-      await grant(studentId, ACHIEVEMENT_CODES.TOP3_GROUP);
-    }
-
-    const monthly = await getRating(memberIds, startOfMonth());
-    const first = monthly[0];
-    if (first && first.studentId === studentId && first.xp > 0) {
-      await grant(studentId, ACHIEVEMENT_CODES.MONTH_CHAMPION);
-    }
+    await grantAchievement(studentId, ACHIEVEMENT_CODES.EXAM_PERFECT);
   }
 }
 

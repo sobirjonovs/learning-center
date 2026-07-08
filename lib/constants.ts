@@ -262,7 +262,7 @@ export const ACHIEVEMENT_CODE_OPTIONS: { code: AchievementCode; label: string }[
   { code: ACHIEVEMENT_CODES.HOMEWORK_10_ONTIME, label: "10 ta vazifa o'z vaqtida (jarimasiz)" },
   { code: ACHIEVEMENT_CODES.EARLY_5, label: "5 ta vazifa muddatidan oldin (bonusli)" },
   { code: ACHIEVEMENT_CODES.QUIZ_WINNER, label: "Quizda 1-o'rin" },
-  { code: ACHIEVEMENT_CODES.TOP3_GROUP, label: "Guruh reytingida TOP 3" },
+  { code: ACHIEVEMENT_CODES.TOP3_GROUP, label: "Guruh reytingida haftalik TOP 3 (yakshanba 00:00)" },
   { code: ACHIEVEMENT_CODES.EXAM_PERFECT, label: "Imtihondan 100% natija" },
-  { code: ACHIEVEMENT_CODES.MONTH_CHAMPION, label: "Oyning eng faol o'quvchisi (guruh bo'yicha)" },
+  { code: ACHIEVEMENT_CODES.MONTH_CHAMPION, label: "Oy chempioni (oy oxirida 00:00, guruh bo'yicha)" },
 ];

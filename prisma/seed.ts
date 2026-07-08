@@ -33,7 +33,41 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
+/** Production: faqat bo'sh bazada admin yaratadi, mavjud ma'lumotni o'chirmaydi */
+async function seedProductionInit() {
+  const count = await db.user.count();
+  if (count > 0) {
+    console.log("Bazada ma'lumot mavjud — seed o'tkazib yuborildi.");
+    return;
+  }
+  console.log("Birinchi marta ishga tushirilmoqda — admin yaratilmoqda...");
+  const adminHash = await bcrypt.hash("admin123", 10);
+  await db.user.create({
+    data: {
+      role: "SUPER_ADMIN",
+      name: "Administrator",
+      login: "admin",
+      password: adminHash,
+      permissions: JSON.stringify([]),
+    },
+  });
+  console.log("✅ Admin yaratildi: admin / admin123");
+  console.log("⚠️  Parolni darhol o'zgartiring!");
+}
+
 async function main() {
+  const isProd = process.env.NODE_ENV === "production";
+  const forceDemo = process.env.FORCE_SEED === "true";
+
+  if (isProd && !forceDemo) {
+    await seedProductionInit();
+    return;
+  }
+
+  if (isProd && forceDemo) {
+    console.warn("⚠️  FORCE_SEED=true — barcha ma'lumotlar o'chiriladi!");
+  }
+
   console.log("Baza tozalanmoqda...");
   // FK tartibida tozalash
   await db.activityLog.deleteMany();
@@ -591,9 +625,9 @@ async function main() {
     { code: "HOMEWORK_10_ONTIME", name: "Mas'uliyatli o'quvchi", description: "10 ta vazifani o'z vaqtida bajarish", icon: "📚", xpReward: 150, pointsReward: 75 },
     { code: "EARLY_5", name: "Ilg'or", description: "5 ta vazifani muddatidan oldin topshirish", icon: "⚡", xpReward: 120, pointsReward: 60 },
     { code: "QUIZ_WINNER", name: "Quiz chempioni", description: "Quizda 1-o'rin olish", icon: "🏆", xpReward: 200, pointsReward: 100 },
-    { code: "TOP3_GROUP", name: "Yulduz", description: "Guruh reytingida TOP 3 ga kirish", icon: "⭐", xpReward: 150, pointsReward: 75 },
+    { code: "TOP3_GROUP", name: "Yulduz", description: "Guruh reytingida haftalik TOP 3 (yakshanba 00:00 da hisoblanadi)", icon: "⭐", xpReward: 150, pointsReward: 75 },
     { code: "EXAM_PERFECT", name: "Mukammal natija", description: "Imtihondan 100% natija olish", icon: "💯", xpReward: 250, pointsReward: 125 },
-    { code: "MONTH_CHAMPION", name: "Oy chempioni", description: "Oylik reytingda 1-o'rin", icon: "👑", xpReward: 300, pointsReward: 150 },
+    { code: "MONTH_CHAMPION", name: "Oy chempioni", description: "Oylik reytingda 1-o'rin (oy oxirida 00:00 da hisoblanadi)", icon: "👑", xpReward: 300, pointsReward: 150 },
   ];
   const achievements: Record<string, string> = {};
   for (const a of achievementDefs) {
