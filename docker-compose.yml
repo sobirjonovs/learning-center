@@ -1,0 +1,17 @@
+# Docker uchun namuna (Coolify, VPS va h.k.)
+# Ishga tushirish: docker compose up -d
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/data/learning-center.db"
+      NODE_ENV: "production"
+    volumes:
+      - learning-center-data:/data
+    restart: unless-stopped
+
+volumes:
+  learning-center-data:
