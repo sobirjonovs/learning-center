@@ -29,7 +29,7 @@ model User {
 
   // O'quvchi maydonlari
   parentPhone String?
-  studentType String? // Oddiy | Premium | VIP
+  studentType String? // Oddiy | Ijtimoiy
   points      Int     @default(0) // magazin balli
   xp          Int     @default(0)
   streak      Int     @default(0)

@@ -61,7 +61,7 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
       students: {
         orderBy: { joinedAt: "asc" },
         include: {
-          student: { select: { id: true, name: true, image: true, points: true, xp: true, active: true } },
+          student: { select: { id: true, name: true, image: true, points: true, xp: true, active: true, studentType: true } },
         },
       },
       homeworks: {
@@ -101,7 +101,6 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
   ]);
 
   const priceMap = buildPriceMap(prices);
-  const monthlyFee = expectedMonthlyFee(priceMap, group.subject?.id, group.type);
   const payMap = new Map(monthPayments.map((p) => [p.studentId, p.amount]));
 
   // Umumiy davomat segmentlari
@@ -302,7 +301,8 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
             {group.students.map((m) => {
               const p = memberPercent(m.student.id);
               const paid = payMap.get(m.student.id) ?? 0;
-              const paySt = PAYMENT_STATUS[paymentStatus(paid, monthlyFee)];
+              const fee = expectedMonthlyFee(priceMap, group.subject?.id, group.type, m.student.studentType);
+              const paySt = PAYMENT_STATUS[paymentStatus(paid, fee, m.student.studentType)];
               return (
                 <tr key={m.id} className="hover:bg-white/[0.04]">
                   <Td>

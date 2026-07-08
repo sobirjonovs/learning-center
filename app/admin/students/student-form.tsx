@@ -149,6 +149,9 @@ export function StudentForm({
               </option>
             ))}
           </select>
+          <p className="mt-1 text-xs text-slate-500">
+            Oddiy — oylik to&apos;lov qiladi. Ijtimoiy — to&apos;lov qilmaydi.
+          </p>
         </Field>
 
         <Field label="Rasm">

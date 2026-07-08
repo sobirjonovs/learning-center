@@ -186,7 +186,18 @@ export type PermissionKey = (typeof PERMISSIONS)[number]["key"];
 
 // ---------------- Turlari ----------------
 export const TEACHER_TYPES = ["Asosiy o'qituvchi", "Yordamchi o'qituvchi", "Master o'qituvchi"];
-export const STUDENT_TYPES = ["Oddiy", "Premium", "VIP"];
+export const STUDENT_TYPES = ["Oddiy", "Ijtimoiy"] as const;
+export type StudentType = (typeof STUDENT_TYPES)[number];
+export const SOCIAL_STUDENT_TYPE: StudentType = "Ijtimoiy";
+
+export const STUDENT_TYPE_HINTS: Record<StudentType, string> = {
+  Oddiy: "Oylik to'lov qiladi",
+  Ijtimoiy: "To'lov qilmaydi (ijtimoiy dastur)",
+};
+
+export function isSocialStudent(studentType: string | null | undefined): boolean {
+  return studentType === SOCIAL_STUDENT_TYPE;
+}
 export const GROUP_TYPES = ["Umumiy", "Individual", "Intensiv", "Online"];
 
 // Demo seed uchun standart fan kategoriyalari

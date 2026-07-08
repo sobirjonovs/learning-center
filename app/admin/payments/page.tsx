@@ -44,7 +44,7 @@ export default async function PaymentsPage({
             subject: { select: { id: true, name: true } },
             students: {
               orderBy: { joinedAt: "asc" },
-              include: { student: { select: { id: true, name: true } } },
+              include: { student: { select: { id: true, name: true, studentType: true } } },
             },
           },
         })
@@ -52,7 +52,7 @@ export default async function PaymentsPage({
   ]);
 
   const priceMap = buildPriceMap(prices);
-  const fee = expectedMonthlyFee(priceMap, group?.subject?.id, group?.type);
+  const baseFee = expectedMonthlyFee(priceMap, group?.subject?.id, group?.type);
 
   const payments = group
     ? await db.studentPayment.findMany({
@@ -64,12 +64,23 @@ export default async function PaymentsPage({
   for (const p of payments) payMap.set(p.studentId, { amount: p.amount, note: p.note ?? null });
 
   const paidCount = group
-    ? group.students.filter((m) => paymentStatus(payMap.get(m.student.id)?.amount ?? 0, fee) === "PAID").length
+    ? group.students.filter((m) => {
+        const fee = expectedMonthlyFee(priceMap, group.subject?.id, group.type, m.student.studentType);
+        return paymentStatus(payMap.get(m.student.id)?.amount ?? 0, fee, m.student.studentType) === "PAID";
+      }).length
     : 0;
   const partialCount = group
-    ? group.students.filter((m) => paymentStatus(payMap.get(m.student.id)?.amount ?? 0, fee) === "PARTIAL").length
+    ? group.students.filter((m) => {
+        const fee = expectedMonthlyFee(priceMap, group.subject?.id, group.type, m.student.studentType);
+        return paymentStatus(payMap.get(m.student.id)?.amount ?? 0, fee, m.student.studentType) === "PARTIAL";
+      }).length
     : 0;
-  const unpaidCount = group ? group.students.length - paidCount - partialCount : 0;
+  const exemptCount = group
+    ? group.students.filter((m) =>
+        paymentStatus(0, baseFee, m.student.studentType) === "EXEMPT"
+      ).length
+    : 0;
+  const unpaidCount = group ? group.students.length - paidCount - partialCount - exemptCount : 0;
 
   return (
     <div className="space-y-6">
@@ -195,7 +206,7 @@ export default async function PaymentsPage({
           <p className="py-10 text-center text-sm text-slate-400">Guruh tanlanmagan</p>
         ) : (
           <>
-            <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
               <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
                 <div className="text-xs text-slate-500">Fan / turi</div>
                 <div className="mt-1 flex flex-wrap gap-1.5">
@@ -204,9 +215,9 @@ export default async function PaymentsPage({
                 </div>
               </div>
               <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
-                <div className="text-xs text-slate-500">Oylik narx</div>
+                <div className="text-xs text-slate-500">Oylik narx (oddiy)</div>
                 <div className="mt-1 text-lg font-bold tabular-nums text-slate-100">
-                  {fee ? `${fmtNumber(fee)} so'm` : "—"}
+                  {baseFee ? `${fmtNumber(baseFee)} so'm` : "—"}
                 </div>
               </div>
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
@@ -221,6 +232,10 @@ export default async function PaymentsPage({
                 <div className="text-xs text-rose-400/80">To&apos;lanmadi</div>
                 <div className="mt-1 text-2xl font-bold tabular-nums text-rose-300">{unpaidCount}</div>
               </div>
+              <div className="rounded-xl border border-sky-500/20 bg-sky-500/10 px-4 py-3">
+                <div className="text-xs text-sky-400/80">Ijtimoiy</div>
+                <div className="mt-1 text-2xl font-bold tabular-nums text-sky-300">{exemptCount}</div>
+              </div>
             </div>
 
             {group.students.length === 0 ? (
@@ -230,6 +245,7 @@ export default async function PaymentsPage({
                 head={
                   <>
                     <Th>O&apos;quvchi</Th>
+                    <Th>Turi</Th>
                     <Th>Holat</Th>
                     <Th className="text-right">To&apos;langan</Th>
                     <Th className="min-w-[20rem] text-right">To&apos;lov kiritish</Th>
@@ -239,8 +255,10 @@ export default async function PaymentsPage({
                 {group.students.map((m) => {
                   const paid = payMap.get(m.student.id)?.amount ?? 0;
                   const note = payMap.get(m.student.id)?.note ?? "";
-                  const status = paymentStatus(paid, fee);
+                  const fee = expectedMonthlyFee(priceMap, group.subject?.id, group.type, m.student.studentType);
+                  const status = paymentStatus(paid, fee, m.student.studentType);
                   const st = PAYMENT_STATUS[status];
+                  const isExempt = status === "EXEMPT";
                   return (
                     <tr key={m.id} className="hover:bg-white/[0.03]">
                       <Td>
@@ -252,38 +270,45 @@ export default async function PaymentsPage({
                         </Link>
                       </Td>
                       <Td>
+                        <Badge tone={isExempt ? "sky" : "violet"}>{m.student.studentType ?? "Oddiy"}</Badge>
+                      </Td>
+                      <Td>
                         <Badge tone={st.tone}>{st.label}</Badge>
                       </Td>
                       <Td className="text-right font-semibold tabular-nums text-slate-200">
-                        {fmtNumber(paid)} so&apos;m
+                        {isExempt ? "—" : `${fmtNumber(paid)} so&apos;m`}
                       </Td>
                       <Td>
-                        <ActionForm
-                          action={upsertStudentPayment}
-                          className="flex flex-wrap items-center justify-end gap-2"
-                        >
-                          <input type="hidden" name="studentId" value={m.student.id} />
-                          <input type="hidden" name="groupId" value={group.id} />
-                          <input type="hidden" name="month" value={activeMonth} />
-                          <input
-                            name="amount"
-                            type="number"
-                            min={0}
-                            step={1000}
-                            defaultValue={paid || fee || 0}
-                            className={inputCls + " w-32 tabular-nums"}
-                            aria-label="To'lov summasi"
-                          />
-                          <input
-                            name="note"
-                            defaultValue={note}
-                            placeholder="Izoh"
-                            className={inputCls + " min-w-[8rem] flex-1 max-w-[14rem]"}
-                          />
-                          <button type="submit" className={btn.primarySmall + " shrink-0"}>
-                            Saqlash
-                          </button>
-                        </ActionForm>
+                        {isExempt ? (
+                          <span className="block text-right text-sm text-slate-500">To&apos;lov talab qilinmaydi</span>
+                        ) : (
+                          <ActionForm
+                            action={upsertStudentPayment}
+                            className="flex flex-wrap items-center justify-end gap-2"
+                          >
+                            <input type="hidden" name="studentId" value={m.student.id} />
+                            <input type="hidden" name="groupId" value={group.id} />
+                            <input type="hidden" name="month" value={activeMonth} />
+                            <input
+                              name="amount"
+                              type="number"
+                              min={0}
+                              step={1000}
+                              defaultValue={paid || fee || 0}
+                              className={inputCls + " w-32 tabular-nums"}
+                              aria-label="To'lov summasi"
+                            />
+                            <input
+                              name="note"
+                              defaultValue={note}
+                              placeholder="Izoh"
+                              className={inputCls + " min-w-[8rem] flex-1 max-w-[14rem]"}
+                            />
+                            <button type="submit" className={btn.primarySmall + " shrink-0"}>
+                              Saqlash
+                            </button>
+                          </ActionForm>
+                        )}
                       </Td>
                     </tr>
                   );

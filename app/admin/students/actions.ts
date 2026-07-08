@@ -8,7 +8,7 @@ import { requirePermission, requireRole } from "@/lib/auth";
 import { logActivity } from "@/lib/log";
 import { resolveImageFromForm } from "@/lib/uploads";
 import { generateUniqueLogin } from "@/lib/login";
-import { STUDENT_TYPES, type PermissionKey } from "@/lib/constants";
+import { STUDENT_TYPES, type PermissionKey, type StudentType } from "@/lib/constants";
 import { actionErr, actionOk, type ActionResult } from "@/lib/action-result";
 import { redirectWithError, redirectWithToast } from "@/lib/redirect-toast";
 import { MSGS } from "@/lib/toast-messages";
@@ -26,7 +26,9 @@ function readForm(formData: FormData) {
   const phone = String(formData.get("phone") ?? "").trim();
   const parentPhone = String(formData.get("parentPhone") ?? "").trim();
   const studentTypeRaw = String(formData.get("studentType") ?? "");
-  const studentType = STUDENT_TYPES.includes(studentTypeRaw) ? studentTypeRaw : STUDENT_TYPES[0];
+  const studentType: StudentType = (STUDENT_TYPES as readonly string[]).includes(studentTypeRaw)
+    ? (studentTypeRaw as StudentType)
+    : STUDENT_TYPES[0];
   const active = formData.get("active") === "on";
   const groupIds = formData.getAll("groups").map(String);
   return { name, login, password, phone, parentPhone, studentType, active, groupIds };

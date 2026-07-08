@@ -9,7 +9,7 @@ import { StudentPaymentHistory } from "@/components/student-payment-history";
 export default async function StudentPaymentsPage() {
   const session = await requireRole("STUDENT");
 
-  const [paymentRows, prices] = await Promise.all([
+  const [paymentRows, prices, studentProfile] = await Promise.all([
     db.studentPayment.findMany({
       where: { studentId: session.id },
       orderBy: [{ month: "desc" }, { recordedAt: "desc" }],
@@ -26,6 +26,7 @@ export default async function StudentPaymentsPage() {
       },
     }),
     db.subjectPrice.findMany({ select: { subjectId: true, groupType: true, monthlyFee: true } }),
+    db.user.findUnique({ where: { id: session.id }, select: { studentType: true } }),
   ]);
 
   return (
@@ -43,6 +44,7 @@ export default async function StudentPaymentsPage() {
       <StudentPaymentHistory
         rows={paymentRows}
         priceMap={buildPriceMap(prices)}
+        studentType={studentProfile?.studentType}
         groupLinks={false}
         title="To'lovlar tarixi"
       />

@@ -24,12 +24,14 @@ export function StudentPaymentHistory({
   groupLinks = true,
   title = "To'lovlar tarixi",
   id,
+  studentType,
 }: {
   rows: PaymentHistoryRow[];
   priceMap: Map<string, number>;
   groupLinks?: boolean;
   title?: string;
   id?: string;
+  studentType?: string | null;
 }) {
   const totalPaid = rows.reduce((sum, row) => sum + row.amount, 0);
 
@@ -64,8 +66,9 @@ export function StudentPaymentHistory({
             </thead>
             <tbody className="divide-y divide-white/5">
               {rows.map((p) => {
-                const fee = expectedMonthlyFee(priceMap, p.group.subjectId, p.group.type);
-                const st = PAYMENT_STATUS[paymentStatus(p.amount, fee)];
+                const fee = expectedMonthlyFee(priceMap, p.group.subjectId, p.group.type, studentType);
+                const status = paymentStatus(p.amount, fee, studentType);
+                const st = PAYMENT_STATUS[status];
                 return (
                   <tr key={p.id}>
                     <Td className="whitespace-nowrap font-medium text-slate-100">{p.month}</Td>
@@ -82,7 +85,9 @@ export function StudentPaymentHistory({
                     <Td>
                       <Badge tone={st.tone}>{st.label}</Badge>
                     </Td>
-                    <Td className="text-right text-slate-500">{fee ? fmtNumber(fee) : "—"}</Td>
+                    <Td className="text-right text-slate-500">
+                      {status === "EXEMPT" ? "—" : fee ? fmtNumber(fee) : "—"}
+                    </Td>
                     <Td className="text-right font-semibold text-slate-200">{fmtNumber(p.amount)}</Td>
                     <Td className="max-w-[10rem] truncate text-slate-500">
                       <span title={p.note ?? undefined}>{p.note ?? "—"}</span>

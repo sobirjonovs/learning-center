@@ -240,6 +240,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
           id="payments"
           rows={paymentRows}
           priceMap={buildPriceMap(prices)}
+          studentType={student.studentType}
           title="To'lovlar tarixi"
         />
       </div>

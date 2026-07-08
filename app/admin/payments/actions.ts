@@ -79,10 +79,13 @@ export async function upsertStudentPayment(formData: FormData): Promise<ActionRe
   if (!Number.isFinite(amount) || amount < 0) return actionErr("Summani to'g'ri kiriting");
 
   const [student, group] = await Promise.all([
-    db.user.findUnique({ where: { id: studentId }, select: { id: true, role: true, name: true } }),
+    db.user.findUnique({ where: { id: studentId }, select: { id: true, role: true, name: true, studentType: true } }),
     db.group.findUnique({ where: { id: groupId }, select: { id: true, name: true } }),
   ]);
   if (!student || student.role !== "STUDENT" || !group) return actionErr("Topilmadi");
+  if (student.studentType === "Ijtimoiy" && amount > 0) {
+    return actionErr("Ijtimoiy o'quvchi uchun to'lov kiritib bo'lmaydi");
+  }
 
   await db.studentPayment.upsert({
     where: { studentId_groupId_month: { studentId, groupId, month } },

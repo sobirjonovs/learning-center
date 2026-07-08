@@ -176,7 +176,7 @@ async function main() {
           password: studentHash,
           phone: `+998 9${i % 10} ${100 + i} ${10 + i} ${20 + i}`,
           parentPhone: `+998 9${(i + 3) % 10} ${200 + i} ${30 + i} ${40 + i}`,
-          studentType: i % 7 === 0 ? "Premium" : i % 11 === 0 ? "VIP" : "Oddiy",
+          studentType: i % 7 === 0 ? "Ijtimoiy" : "Oddiy",
           active: i !== 19, // bittasi faolsiz
         },
       })
