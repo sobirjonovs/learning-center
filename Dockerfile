@@ -1,11 +1,15 @@
 FROM node:22-alpine
 WORKDIR /app
 
+# prisma generate uchun schema va DATABASE_URL build vaqtida kerak
+ENV DATABASE_URL="file:/data/learning-center.db"
+
 COPY package.json package-lock.json ./
+COPY prisma ./prisma/
 RUN npm ci
 
 COPY . .
-RUN npx prisma generate && npm run build
+RUN npm run build
 
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+CMD ["npm", "start"]
